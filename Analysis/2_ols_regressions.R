@@ -1,6 +1,6 @@
-###################################### Introduction ############################################
+###################################### Ghana FI Introduction ############################################
 
-# Author: Allan Lee
+# Author: Allan Lee (xiao bao)
 # Date: December 29th, 2023
 # Purpose: OLS Regressions
 

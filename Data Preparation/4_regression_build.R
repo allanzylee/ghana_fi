@@ -55,6 +55,29 @@ child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>%
   dplyr::select(-community, -region)
 iv <- read_rds("build/iv.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
+e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
+
+##########################################################################################
+########################## Calculate household size variable #############################
+##########################################################################################
+num_kids <- e_household %>% 
+  select(careid, contains('c_ind')) %>% 
+  mutate(across(everything(),~as.double(str_trim(.))),
+         num_kids2 = pmax(c_ind_1,
+                          c_ind_2,
+                          c_ind_3,
+                          c_ind_4,
+                          c_ind_5,
+                          c_ind_6,
+                          c_ind_7,
+                          c_ind_8,
+                          c_ind_9,
+                          c_ind_10,
+                          c_ind_11,
+                          c_ind_12,
+                          na.rm=T),
+         careid=as.double(careid)) %>% 
+  select(-contains('c_ind'))
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -135,7 +158,8 @@ full_data_w <- e_child %>%
          !is.na(age),
          !is.na(e_ch_fs_pc),
          !is.na(e_cg_fs_dummy)
-         )
+         ) %>% 
+  left_join(num_kids,by=c('careid'))
 
 # Create long version of the data
 

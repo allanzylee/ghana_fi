@@ -61,9 +61,9 @@ e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
 ########################## Calculate household size variable #############################
 ##########################################################################################
 num_kids <- e_household %>% 
-  select(careid, contains('c_ind')) %>% 
+  select(careid, contains('c_ind'), contains('cr2_')) %>% 
   mutate(across(everything(),~as.double(str_trim(.))),
-         num_kids2 = pmax(c_ind_1,
+         num_kidstest = pmax(c_ind_1,
                           c_ind_2,
                           c_ind_3,
                           c_ind_4,

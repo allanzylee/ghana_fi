@@ -180,6 +180,8 @@ full_data_l <- full_data_w %>%
 saveRDS(full_data_w, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
 saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
 
+write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")
+
 # 
 # #########################################################################################
 # ######################################## Summary Statistics ##############################

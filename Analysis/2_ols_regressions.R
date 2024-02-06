@@ -658,4 +658,40 @@ stargazer(ols_models_cov_int_a,
           se=list(lit_reg_full_int_a_robust[,2],num_reg_full_int_a_robust[,2],ef_reg_full_int_a_robust[,2],sel_reg_full_int_a_robust[,2]),
           p=list(lit_reg_full_int_a_robust[,4],num_reg_full_int_a_robust[,4],ef_reg_full_int_a_robust[,4],sel_reg_full_int_a_robust[,4]))
 
+####################################################################################################################
+########################## Base OLS Model: Include Region and Treatment dummies ###############################
+#########################################################################################################################
+
+# Define base OLS input
+base_ols_input_region_treatment <- expand.grid(category=c('lit','num','ef','sel'),
+                                      model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+
+# Regression results
+base_ols_results_region_treatment<- pmap(base_ols_input_region_treatment,
+                                reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+base_ols_robust_input_region_treatment <- expand.grid(category=c('lit','num','ef','sel'),
+                                             results_str='base_ols_results_region_treatment') %>% 
+  mutate(across(everything(),~as.character(.)))
+
+# Robust Standard Error results
+base_ols_robust_errors_region_treatment <- pmap(base_ols_robust_input_region_treatment,
+                                       robust_func) %>% 
+  set_names('lit','num','ef','sel')
+
+############################## Exporting Results ###############################
+
+stargazer(base_ols_results_region_treatment,
+          title="Base OLS Regression wit Region and Treatment FE",
+          dep.var.caption = "Endline Dependent Variable:",
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+          # covariate.labels=c("Child-Reported Food Insecurity","Caregiver-Reported Food Insecurity","Midline Education Outcome","Constant"),
+          se=list(base_ols_robust_errors_region_treatment[['lit']][,2],base_ols_robust_errors_region_treatment[['num']][,2],base_ols_robust_errors_region_treatment[['ef']][,2],base_ols_robust_errors_region_treatment[['sel']][,2]),
+          p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/base_ols_region_treatment_fe/base_ols_with_region_treatment_fe.html")
 

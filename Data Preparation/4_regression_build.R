@@ -34,6 +34,7 @@ library(GGally)
 library(broom.helpers)
 library(jtools)
 library(janitor)
+library(fastDummies)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -90,7 +91,8 @@ full_data_w <- e_child %>%
          age=childage,
          current_class=ed3,
          private_school=ed2,
-         language=io1
+         language=io1,
+         region
          ) %>% 
   # COME BACK HERE TO CHECK
   dplyr::right_join(e_cg %>% dplyr::select(careid, 
@@ -124,7 +126,7 @@ full_data_w <- e_child %>%
                                           poverty=mid_reverse_ppi,
                                           num_kids),
                    by=c("childid","careid")) %>%
-  dplyr::left_join(iv,
+  dplyr::left_join(iv %>% dplyr::select(-region),
                    by=c("careid","childid")) %>% 
   # Adjsut variables to become ordinal/binary
   mutate(female=if_else(female==1,0,1),
@@ -142,7 +144,9 @@ full_data_w <- e_child %>%
          language=case_when(language %in% c('Dagaari','Dagaari, Wali','English','TWI')~"Other",
                             T~language),
          current_class=as.factor(case_when(current_class<0~NA_real_,
-                                 T~current_class))
+                                 T~current_class)),
+         region=case_when(region==""~"Northern",
+                          T~region)
          ) %>% 
   # Standardize outcome data
   mutate(m_sel_per=scale(m_sel_per)[,1],
@@ -159,7 +163,9 @@ full_data_w <- e_child %>%
          !is.na(e_ch_fs_pc),
          !is.na(e_cg_fs_dummy)
          ) %>% 
-  left_join(num_kids,by=c('careid'))
+  left_join(num_kids,by=c('careid')) %>% 
+  fastDummies::dummy_cols(select_columns='region') %>% 
+  clean_names()
 
 # Create long version of the data
 

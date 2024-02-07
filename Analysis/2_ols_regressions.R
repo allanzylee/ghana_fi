@@ -510,58 +510,58 @@ stargazer(reduced_multivar_weather_ols_results,
 #           p=list(lit_reg_base_int_g_robust[,4],num_reg_base_int_g_robust[,4],ef_reg_base_int_g_robust[,4],sel_reg_base_int_g_robust[,4]),
 #           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_frongillo_code/OLS_base_int_g_frongillo.html")
 
-##########################################################################################
-############################## OLS Regression w/ Covariates AND Gender Interaction ###############################
-##########################################################################################
-
-# Define equation
-ols_cov_g_model_eq <- "e_edu~e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*female+e_cg_fs_dummy*female+m_edu+female+age+enrolled_in_school +current_class+ private_school+num_books+cg_age +cg_female +marital_status+cg_edu +poverty+num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language"
-
-### PRIMARY SCHOOL: Run an OLS regression of each outcome variable on all variables
-
-# Literacy
-lit_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="lit_per"))
-summary(lit_reg_full_int_g)
-lit_reg_full_int_g_robust <- coeftest(lit_reg_full_int_g, vcov.=vcovHC(lit_reg_full_int_g,type="HC1"))
-
-# Numeracy
-num_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="num_per"))
-summary(num_reg_full_int_g)
-num_reg_full_int_g_robust <- coeftest(num_reg_full_int_g, vcov.=vcovHC(num_reg_full_int_g,type="HC1"))
-
-# Executive Function
-ef_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="ef_per"))
-summary(ef_reg_full_int_g)
-ef_reg_full_int_g_robust <- coeftest(ef_reg_full_int_g, vcov.=vcovHC(ef_reg_full_int_g,type="HC1"))
-
-# Strength and Difficulties
-sel_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="sel_per"))
-summary(sel_reg_full_int_g)
-sel_reg_full_int_g_robust <- coeftest(sel_reg_full_int_g, vcov.=vcovHC(sel_reg_full_int_g,type="HC1"))
-
-############################## Exporting Results ###############################
-
-ols_models_cov_int_g <- list(lit_reg_full_int_g,num_reg_full_int_g,ef_reg_full_int_g,sel_reg_full_int_g)
-
-stargazer(ols_models_cov_int_g,
-          title="Multivariate OLS Regression with Gender Interaction",
-          dep.var.caption = "Endline Dependent Variable:",
-          covariate.labels=variables_g,
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          # omit=omitted_variables_g,
-          se=list(lit_reg_full_int_g_robust[,2],num_reg_full_int_g_robust[,2],ef_reg_full_int_g_robust[,2],sel_reg_full_int_g_robust[,2]),
-          p=list(lit_reg_full_int_g_robust[,4],num_reg_full_int_g_robust[,4],ef_reg_full_int_g_robust[,4],sel_reg_full_int_g_robust[,4]),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_frongillo_code/OLS_full_int_g_frongillo.html")
-
-# Shortened table for paper
-stargazer(ols_models_cov_int_g,
-          title="Multivariate OLS Regression with Gender Interaction",
-          dep.var.caption = "Endline Dependent Variable:",
-          covariate.labels=c(variables_g[1:4],variables_g[38:40]),
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          omit=omitted_variables_g,
-          se=list(lit_reg_full_int_g_robust[,2],num_reg_full_int_g_robust[,2],ef_reg_full_int_g_robust[,2],sel_reg_full_int_g_robust[,2]),
-          p=list(lit_reg_full_int_g_robust[,4],num_reg_full_int_g_robust[,4],ef_reg_full_int_g_robust[,4],sel_reg_full_int_g_robust[,4]))
+# ##########################################################################################
+# ############################## OLS Regression w/ Covariates AND Gender Interaction ###############################
+# ##########################################################################################
+# 
+# # Define equation
+# ols_cov_g_model_eq <- "e_edu~e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*female+e_cg_fs_dummy*female+m_edu+female+age+enrolled_in_school +current_class+ private_school+num_books+cg_age +cg_female +marital_status+cg_edu +poverty+num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language"
+# 
+# ### PRIMARY SCHOOL: Run an OLS regression of each outcome variable on all variables
+# 
+# # Literacy
+# lit_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="lit_per"))
+# summary(lit_reg_full_int_g)
+# lit_reg_full_int_g_robust <- coeftest(lit_reg_full_int_g, vcov.=vcovHC(lit_reg_full_int_g,type="HC1"))
+# 
+# # Numeracy
+# num_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="num_per"))
+# summary(num_reg_full_int_g)
+# num_reg_full_int_g_robust <- coeftest(num_reg_full_int_g, vcov.=vcovHC(num_reg_full_int_g,type="HC1"))
+# 
+# # Executive Function
+# ef_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="ef_per"))
+# summary(ef_reg_full_int_g)
+# ef_reg_full_int_g_robust <- coeftest(ef_reg_full_int_g, vcov.=vcovHC(ef_reg_full_int_g,type="HC1"))
+# 
+# # Strength and Difficulties
+# sel_reg_full_int_g<-lm(ols_cov_g_model_eq ,data=full_data_l %>% filter(m_outcome_type=="sel_per"))
+# summary(sel_reg_full_int_g)
+# sel_reg_full_int_g_robust <- coeftest(sel_reg_full_int_g, vcov.=vcovHC(sel_reg_full_int_g,type="HC1"))
+# 
+# ############################## Exporting Results ###############################
+# 
+# ols_models_cov_int_g <- list(lit_reg_full_int_g,num_reg_full_int_g,ef_reg_full_int_g,sel_reg_full_int_g)
+# 
+# stargazer(ols_models_cov_int_g,
+#           title="Multivariate OLS Regression with Gender Interaction",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           covariate.labels=variables_g,
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+#           # omit=omitted_variables_g,
+#           se=list(lit_reg_full_int_g_robust[,2],num_reg_full_int_g_robust[,2],ef_reg_full_int_g_robust[,2],sel_reg_full_int_g_robust[,2]),
+#           p=list(lit_reg_full_int_g_robust[,4],num_reg_full_int_g_robust[,4],ef_reg_full_int_g_robust[,4],sel_reg_full_int_g_robust[,4]),
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_frongillo_code/OLS_full_int_g_frongillo.html")
+# 
+# # Shortened table for paper
+# stargazer(ols_models_cov_int_g,
+#           title="Multivariate OLS Regression with Gender Interaction",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           covariate.labels=c(variables_g[1:4],variables_g[38:40]),
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+#           omit=omitted_variables_g,
+#           se=list(lit_reg_full_int_g_robust[,2],num_reg_full_int_g_robust[,2],ef_reg_full_int_g_robust[,2],sel_reg_full_int_g_robust[,2]),
+#           p=list(lit_reg_full_int_g_robust[,4],num_reg_full_int_g_robust[,4],ef_reg_full_int_g_robust[,4],sel_reg_full_int_g_robust[,4]))
 
 # ##########################################################################################
 # ############################## Base OLS Regression w/ Age Interaction ###############################
@@ -608,55 +608,55 @@ stargazer(ols_models_cov_int_g,
 ##########################################################################################
 ############################## OLS Regression w/ Covariates AND Age Interaction ###############################
 ##########################################################################################
-
-# Define equation
-ols_cov_a_model_eq <- "e_edu~e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+m_edu+female+age+enrolled_in_school +current_class+ private_school+num_books+cg_age +cg_female +marital_status+cg_edu +poverty+num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language"
-
-### PRIMARY SCHOOL: Run an OLS regression of each outcome variable on all variables
-
-# Literacy
-lit_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="lit_per"))
-summary(lit_reg_full_int_a)
-lit_reg_full_int_a_robust <- coeftest(lit_reg_full_int_a, vcov.=vcovHC(lit_reg_full_int_a,type="HC1"))
-
-# Numeracy
-num_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="num_per"))
-summary(num_reg_full_int_a)
-num_reg_full_int_a_robust <- coeftest(num_reg_full_int_a, vcov.=vcovHC(num_reg_full_int_a,type="HC1"))
-
-# Executive Function
-ef_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="ef_per"))
-summary(ef_reg_full_int_a)
-ef_reg_full_int_a_robust <- coeftest(ef_reg_full_int_a, vcov.=vcovHC(ef_reg_full_int_a,type="HC1"))
-
-# Strength and Difficulties
-sel_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="sel_per"))
-summary(sel_reg_full_int_a)
-sel_reg_full_int_a_robust <- coeftest(sel_reg_full_int_a, vcov.=vcovHC(sel_reg_full_int_a,type="HC1"))
-
-############################## Exporting Results ###############################
-
-ols_models_cov_int_a <- list(lit_reg_full_int_a,num_reg_full_int_a,ef_reg_full_int_a,sel_reg_full_int_a)
-
-stargazer(ols_models_cov_int_a,
-          title="Multivariate OLS Regression with Age Interaction",
-          dep.var.caption = "Endline Dependent Variable:",
-          covariate.labels=variables_a,
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          # omit=omitted_variables_a,
-          se=list(lit_reg_full_int_a_robust[,2],num_reg_full_int_a_robust[,2],ef_reg_full_int_a_robust[,2],sel_reg_full_int_a_robust[,2]),
-          p=list(lit_reg_full_int_a_robust[,4],num_reg_full_int_a_robust[,4],ef_reg_full_int_a_robust[,4],sel_reg_full_int_a_robust[,4]),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_frongillo_code/OLS_full_int_a_frongillo.html")
-
-# Shortened table for paper
-stargazer(ols_models_cov_int_a,
-          title="Multivariate OLS Regression with Gender Interaction",
-          dep.var.caption = "Endline Dependent Variable:",
-          covariate.labels=c(variables_a[1:4],variables_a[38:40]),
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          omit=omitted_variables_a,
-          se=list(lit_reg_full_int_a_robust[,2],num_reg_full_int_a_robust[,2],ef_reg_full_int_a_robust[,2],sel_reg_full_int_a_robust[,2]),
-          p=list(lit_reg_full_int_a_robust[,4],num_reg_full_int_a_robust[,4],ef_reg_full_int_a_robust[,4],sel_reg_full_int_a_robust[,4]))
+# 
+# # Define equation
+# ols_cov_a_model_eq <- "e_edu~e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+m_edu+female+age+enrolled_in_school +current_class+ private_school+num_books+cg_age +cg_female +marital_status+cg_edu +poverty+num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language"
+# 
+# ### PRIMARY SCHOOL: Run an OLS regression of each outcome variable on all variables
+# 
+# # Literacy
+# lit_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="lit_per"))
+# summary(lit_reg_full_int_a)
+# lit_reg_full_int_a_robust <- coeftest(lit_reg_full_int_a, vcov.=vcovHC(lit_reg_full_int_a,type="HC1"))
+# 
+# # Numeracy
+# num_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="num_per"))
+# summary(num_reg_full_int_a)
+# num_reg_full_int_a_robust <- coeftest(num_reg_full_int_a, vcov.=vcovHC(num_reg_full_int_a,type="HC1"))
+# 
+# # Executive Function
+# ef_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="ef_per"))
+# summary(ef_reg_full_int_a)
+# ef_reg_full_int_a_robust <- coeftest(ef_reg_full_int_a, vcov.=vcovHC(ef_reg_full_int_a,type="HC1"))
+# 
+# # Strength and Difficulties
+# sel_reg_full_int_a<-lm(ols_cov_a_model_eq ,data=full_data_l %>% filter(m_outcome_type=="sel_per"))
+# summary(sel_reg_full_int_a)
+# sel_reg_full_int_a_robust <- coeftest(sel_reg_full_int_a, vcov.=vcovHC(sel_reg_full_int_a,type="HC1"))
+# 
+# ############################## Exporting Results ###############################
+# 
+# ols_models_cov_int_a <- list(lit_reg_full_int_a,num_reg_full_int_a,ef_reg_full_int_a,sel_reg_full_int_a)
+# 
+# stargazer(ols_models_cov_int_a,
+#           title="Multivariate OLS Regression with Age Interaction",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           covariate.labels=variables_a,
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+#           # omit=omitted_variables_a,
+#           se=list(lit_reg_full_int_a_robust[,2],num_reg_full_int_a_robust[,2],ef_reg_full_int_a_robust[,2],sel_reg_full_int_a_robust[,2]),
+#           p=list(lit_reg_full_int_a_robust[,4],num_reg_full_int_a_robust[,4],ef_reg_full_int_a_robust[,4],sel_reg_full_int_a_robust[,4]),
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_frongillo_code/OLS_full_int_a_frongillo.html")
+# 
+# # Shortened table for paper
+# stargazer(ols_models_cov_int_a,
+#           title="Multivariate OLS Regression with Gender Interaction",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           covariate.labels=c(variables_a[1:4],variables_a[38:40]),
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+#           omit=omitted_variables_a,
+#           se=list(lit_reg_full_int_a_robust[,2],num_reg_full_int_a_robust[,2],ef_reg_full_int_a_robust[,2],sel_reg_full_int_a_robust[,2]),
+#           p=list(lit_reg_full_int_a_robust[,4],num_reg_full_int_a_robust[,4],ef_reg_full_int_a_robust[,4],sel_reg_full_int_a_robust[,4]))
 
 ####################################################################################################################
 ########################## Base OLS Model: Include Region and Treatment dummies ###############################
@@ -693,5 +693,54 @@ stargazer(base_ols_results_region_treatment,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/base_ols_region_treatment_fe/base_ols_with_region_treatment_fe.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/base_ols_with_region_treatment_fe.html")
+
+##########################################################################################
+############################## Multivariate OLS Regression w/ Region ##############################
+##########################################################################################
+
+# Add region FE
+
+# Define base OLS input
+reduced_multivar_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
+                                          model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+
+# Regression results
+reduced_multivar_ols_region_results<- pmap(reduced_multivar_ols_input_region,
+                                    reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+reduced_multivar_ols_robust_region_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                                 results_str='reduced_multivar_ols_region_results') %>% 
+  mutate(across(everything(),~as.character(.)))
+
+# Robust Standard Error results
+reduced_multivar_ols_region_robust_errors <- pmap(reduced_multivar_ols_robust_region_input,
+                                           robust_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Export tidy results
+reduced_multivar_ols_region_df <-pmap_dfr(reduced_multivar_ols_robust_region_input %>% dplyr::select(category),
+                                   tidy_func)
+
+############################## Exporting Results ###############################
+
+stargazer(reduced_multivar_ols_region_results,
+          title="Multivariate OLS Regression",
+          dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+          omit=c('female','age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+                 'marital_status','cg_edu','poverty','num_kids','pe_pc1',
+                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+                 'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
+          se=list(multivar_ols_robust_errors[['lit']][,2],multivar_ols_robust_errors[['num']][,2],multivar_ols_robust_errors[['ef']][,2],multivar_ols_robust_errors[['sel']][,2]),
+          p=list(multivar_ols_robust_errors[['lit']][,4],multivar_ols_robust_errors[['num']][,4],multivar_ols_robust_errors[['ef']][,4],multivar_ols_robust_errors[['sel']][,4]),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/multivar_ols.html")
 

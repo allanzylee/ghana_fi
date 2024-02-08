@@ -62,7 +62,7 @@ e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
 ########################## Calculate household size variable #############################
 ##########################################################################################
 num_kids <- e_household %>% 
-  select(careid, contains('c_ind'), contains('cr2_')) %>% 
+  dplyr::select(careid, contains('c_ind'), contains('cr2_')) %>% 
   mutate(across(everything(),~as.double(str_trim(.))),
          num_kidstest = pmax(c_ind_1,
                           c_ind_2,
@@ -78,7 +78,7 @@ num_kids <- e_household %>%
                           c_ind_12,
                           na.rm=T),
          careid=as.double(careid)) %>% 
-  select(-contains('c_ind'))
+  dplyr::select(-contains('c_ind'))
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -135,6 +135,7 @@ full_data_w <- e_child %>%
          marital_status=case_when(marital_status==3~1,
                                   marital_status==4~1,
                                   T~0),
+         age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
          cg_edu=case_when((cg_edu>1 & cg_edu<6)~1,
                           T~0),

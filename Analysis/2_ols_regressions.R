@@ -693,6 +693,7 @@ stargazer(base_ols_results_region_treatment,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
+          omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/base_ols_with_region_treatment_fe.html")
 
 ##########################################################################################

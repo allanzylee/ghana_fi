@@ -27,7 +27,7 @@ library(ltm)
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
 outcomes <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds') %>% 
-  select(childid,careid,contains('_per'))
+  dplyr::select(childid,careid,contains('_per'))
 
 #########################################################################################
 ######################################## Overall Summary Statistics ##############################
@@ -35,7 +35,7 @@ outcomes <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/bu
 
 # High level summary of all relevant variables
 summary_stat<-full_data_w %>% 
-  dplyr::select(e_ch_fs_dummy, e_cg_fs_dummy, female,age,enrolled_in_school,private_school,num_books,cg_age,cg_female,cg_edu,marital_status,poverty,num_kids, treatment) %>% 
+  dplyr::select(e_ch_fs_dummy, e_cg_fs_dummy, female,age_num,enrolled_in_school,private_school,cg_age,cg_female,cg_edu,marital_status,poverty,num_kids, treatment) %>% 
   as.data.frame()
 
 # Export the summary statistic table
@@ -43,8 +43,8 @@ stargazer(summary_stat,
           header=FALSE, 
           type='latex',
           title = "Child Demographics Summary Statistics",
-          covariate.labels=c("Child Food Insecurity","Caregiver Food Insecurity","Child Female","Child Age","Enrolled in School","Current Class", "Attends Private School","Number of Books Child Owns",
-                             "Caregiver Age","Caregiver Female","Caregiver Education","Caregiver Marital Status","Poverty","Household Size","Participated in PNP Treatment Group")
+          covariate.labels=c("Child Food Insecurity","Caregiver Food Insecurity","Child Female","Child Age","Enrolled in School","Current Class", "Attends Private School",
+                             "Caregiver Age","Caregiver Female","Caregiver Education","Caregiver Marital Status","Poverty","Number of Children in Family","Participated in PNP Treatment Group")
           )
 
 ############################# Language Summary Statistics ###############################

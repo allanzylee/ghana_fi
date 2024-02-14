@@ -186,54 +186,54 @@ ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_f
        height=5.5,
        units="in")
 
-##########################################################################################
-############################## MODIFIED OLS Regression w/ Covariates ##############################
-##########################################################################################
-
-# This version removes enrollment, poverty, number of books, and private school as covariates 
-
-# Define base OLS input
-reduced_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                  model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+'))
-
-# Regression results
-reduced_multivar_ols_results<- pmap(reduced_multivar_ols_input,
-                            reg_func) %>% 
-  set_names('lit','num','ef','sel')
-
-# Define base OLS Robust input
-reduced_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                         results_str='reduced_multivar_ols_results') %>% 
-  mutate(across(everything(),~as.character(.)))
-
-# Robust Standard Error results
-reduced_multivar_ols_robust_errors <- pmap(reduced_multivar_ols_robust_input,
-                                   robust_func) %>% 
-  set_names('lit','num','ef','sel')
-
-# Export tidy results
-reduced_multivar_ols_df <-pmap_dfr(reduced_multivar_ols_robust_input %>% dplyr::select(category),
-                           tidy_func)
-
-############################## Exporting Results ###############################
-
-stargazer(reduced_multivar_ols_results,
-          title="Multivariate OLS Regression",
-          dep.var.caption = "Endline Dependent Variable:",
-          # covariate.labels=variables,
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
-          omit=c('female','age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
-                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
-                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
-                 'marital_status','cg_edu','poverty','num_kids','pe_pc1',
-                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
-                 'languageSissali','languageOther'),
-          se=list(multivar_ols_robust_errors[['lit']][,2],multivar_ols_robust_errors[['num']][,2],multivar_ols_robust_errors[['ef']][,2],multivar_ols_robust_errors[['sel']][,2]),
-          p=list(multivar_ols_robust_errors[['lit']][,4],multivar_ols_robust_errors[['num']][,4],multivar_ols_robust_errors[['ef']][,4],multivar_ols_robust_errors[['sel']][,4]),
-          star.cutoffs = c(.05, .01, NA),
-          notes.append     = FALSE,
-          notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.3.24_reduced_multivar_ols/multivar_ols.html")
+# ##########################################################################################
+# ############################## MODIFIED OLS Regression w/ Covariates ##############################
+# ##########################################################################################
+# 
+# # This version removes enrollment, poverty, number of books, and private school as covariates 
+# 
+# # Define base OLS input
+# reduced_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                                   model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+'))
+# 
+# # Regression results
+# reduced_multivar_ols_results<- pmap(reduced_multivar_ols_input,
+#                             reg_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Define base OLS Robust input
+# reduced_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                                          results_str='reduced_multivar_ols_results') %>% 
+#   mutate(across(everything(),~as.character(.)))
+# 
+# # Robust Standard Error results
+# reduced_multivar_ols_robust_errors <- pmap(reduced_multivar_ols_robust_input,
+#                                    robust_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Export tidy results
+# reduced_multivar_ols_df <-pmap_dfr(reduced_multivar_ols_robust_input %>% dplyr::select(category),
+#                            tidy_func)
+# 
+# ############################## Exporting Results ###############################
+# 
+# stargazer(reduced_multivar_ols_results,
+#           title="Multivariate OLS Regression",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           # covariate.labels=variables,
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+#           omit=c('female','age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+#                  'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+#                  'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+#                  'marital_status','cg_edu','poverty','num_kids','pe_pc1',
+#                  'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+#                  'languageSissali','languageOther'),
+#           se=list(multivar_ols_robust_errors[['lit']][,2],multivar_ols_robust_errors[['num']][,2],multivar_ols_robust_errors[['ef']][,2],multivar_ols_robust_errors[['sel']][,2]),
+#           p=list(multivar_ols_robust_errors[['lit']][,4],multivar_ols_robust_errors[['num']][,4],multivar_ols_robust_errors[['ef']][,4],multivar_ols_robust_errors[['sel']][,4]),
+#           star.cutoffs = c(.05, .01, NA),
+#           notes.append     = FALSE,
+#           notes            = "*$p<0.05$; **$p<0.01$",
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.3.24_reduced_multivar_ols/multivar_ols.html")
 
 ##################################################################################################################################
 ############################## Test the Statistical Significance of Child-Reported Food Insecurity ###############################
@@ -249,10 +249,10 @@ successive_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
                                                   '~ e_ch_fs_dummy+e_cg_fs_dummy+marital_status+',
                                                   '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_edu +',
                                                   '~ e_ch_fs_dummy+e_cg_fs_dummy+num_kids+',
-                                                  '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc1+',
-                                                  '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc2+',
-                                                  '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc3+',
-                                                  '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc4+',
+                                                  # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc1+',
+                                                  # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc2+',
+                                                  # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc3+',
+                                                  # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc4+',
                                                   '~ e_ch_fs_dummy+e_cg_fs_dummy+treatment+',
                                                   '~ e_ch_fs_dummy+e_cg_fs_dummy+language+',
                                                   '~ e_ch_fs_dummy+e_cg_fs_dummy+language+age+'))
@@ -274,7 +274,7 @@ ch_fi_sig_func <- function(num,model,category){
 }
 
 # Regression results
-successive_ch_fi_sig<- pmap_dfr(successive_ols_input %>% mutate(num=seq(1,60,1)),
+successive_ch_fi_sig<- pmap_dfr(successive_ols_input %>% mutate(num=seq(1,44,1)),
                               ch_fi_sig_func) %>% 
   dplyr::select(cov,outcome,sig_flag) %>% 
   pivot_wider(names_from = outcome,
@@ -285,104 +285,6 @@ successive_ch_fi_sig<- pmap_dfr(successive_ols_input %>% mutate(num=seq(1,60,1))
 # Export
 write.csv(successive_ch_fi_sig,
           '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.9.24_ch_fi_stat_sig/010924_stat_sig.csv')
-
-########################################################################################################################
-############################## MODIFIED OLS Regression w/ Covariates and GENDER INTERACTION ##############################
-########################################################################################################################
-
-# This version removes enrollment, poverty, number of books, and private school as covariates 
-
-# Define base OLS input
-gender_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                          model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*female+e_cg_fs_dummy*female+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+'))
-
-# Regression results
-gender_multivar_ols_results<- pmap(gender_multivar_ols_input,
-                                    reg_func) %>% 
-  set_names('lit','num','ef','sel')
-
-# Define base OLS Robust input
-gender_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 results_str='gender_multivar_ols_results') %>% 
-  mutate(across(everything(),~as.character(.)))
-
-# Robust Standard Error results
-gender_multivar_ols_robust_errors <- pmap(gender_multivar_ols_robust_input,
-                                           robust_func) %>% 
-  set_names('lit','num','ef','sel')
-
-# Export tidy results
-gender_multivar_ols_df <-pmap_dfr(gender_multivar_ols_robust_input %>% dplyr::select(category),
-                                   tidy_func)
-
-############################## Exporting Results ###############################
-
-stargazer(gender_multivar_ols_results,
-          title="Multivariate OLS Regression with Gender Interaction",
-          dep.var.caption = "Endline Dependent Variable:",
-          # covariate.labels=variables,
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
-          omit=c('age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
-                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
-                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
-                 'marital_status','cg_edu','poverty','num_kids','pe_pc1',
-                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
-                 'languageSissali','languageOther'),
-          se=list(gender_multivar_ols_robust_errors[['lit']][,2],gender_multivar_ols_robust_errors[['num']][,2],gender_multivar_ols_robust_errors[['ef']][,2],gender_multivar_ols_robust_errors[['sel']][,2]),
-          p=list(gender_multivar_ols_robust_errors[['lit']][,4],gender_multivar_ols_robust_errors[['num']][,4],gender_multivar_ols_robust_errors[['ef']][,4],gender_multivar_ols_robust_errors[['sel']][,4]),
-          star.cutoffs = c(.05, .01, NA),
-          notes.append     = FALSE,
-          notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.3.24_reduced_multivar_ols/gender_multivar_ols.html")
-
-########################################################################################################################
-############################## MODIFIED OLS Regression w/ Covariates and AGE INTERACTION ##############################
-########################################################################################################################
-
-# This version removes enrollment, poverty, number of books, and private school as covariates 
-
-# Define base OLS input
-age_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+'))
-
-# Regression results
-age_multivar_ols_results<- pmap(age_multivar_ols_input,
-                                   reg_func) %>% 
-  set_names('lit','num','ef','sel')
-
-# Define base OLS Robust input
-age_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                                results_str='age_multivar_ols_results') %>% 
-  mutate(across(everything(),~as.character(.)))
-
-# Robust Standard Error results
-age_multivar_ols_robust_errors <- pmap(age_multivar_ols_robust_input,
-                                          robust_func) %>% 
-  set_names('lit','num','ef','sel')
-
-# Export tidy results
-age_multivar_ols_df <-pmap_dfr(age_multivar_ols_robust_input %>% dplyr::select(category),
-                                  tidy_func)
-
-############################## Exporting Results ###############################
-
-stargazer(age_multivar_ols_results,
-          title="Multivariate OLS Regression with Age Interaction",
-          dep.var.caption = "Endline Dependent Variable:",
-          # covariate.labels=variables,
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
-          omit=c('female','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
-                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
-                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
-                 'marital_status','cg_edu','poverty','num_kids','pe_pc1',
-                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
-                 'languageSissali','languageOther'),
-          se=list(age_multivar_ols_robust_errors[['lit']][,2],age_multivar_ols_robust_errors[['num']][,2],age_multivar_ols_robust_errors[['ef']][,2],age_multivar_ols_robust_errors[['sel']][,2]),
-          p=list(age_multivar_ols_robust_errors[['lit']][,4],age_multivar_ols_robust_errors[['num']][,4],age_multivar_ols_robust_errors[['ef']][,4],age_multivar_ols_robust_errors[['sel']][,4]),
-          star.cutoffs = c(.05, .01, NA),
-          notes.append     = FALSE,
-          notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.3.24_reduced_multivar_ols/age_multivar_ols.html")
 
 ####################################################################################################################
 ########################## Base OLS Model: Weather Deviance as X variable ###############################
@@ -745,3 +647,100 @@ stargazer(reduced_multivar_ols_region_results,
           notes            = "*$p<0.05$; **$p<0.01$",
           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/multivar_ols.html")
 
+########################################################################################################################
+############################## OLS Regression w/ Covariates and GENDER INTERACTION ##############################
+########################################################################################################################
+
+# This version removes enrollment, poverty, number of books, and private school as covariates 
+
+# Define base OLS input
+gender_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*female+e_cg_fs_dummy*female+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+
+# Regression results
+gender_multivar_ols_results<- pmap(gender_multivar_ols_input,
+                                   reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+gender_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                                results_str='gender_multivar_ols_results') %>% 
+  mutate(across(everything(),~as.character(.)))
+
+# Robust Standard Error results
+gender_multivar_ols_robust_errors <- pmap(gender_multivar_ols_robust_input,
+                                          robust_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Export tidy results
+gender_multivar_ols_df <-pmap_dfr(gender_multivar_ols_robust_input %>% dplyr::select(category),
+                                  tidy_func)
+
+############################## Exporting Results ###############################
+
+stargazer(gender_multivar_ols_results,
+          title="Multivariate OLS Regression with Gender Interaction",
+          dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+          omit=c('age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+                 'marital_status','cg_edu','poverty','num_kids','pe_pc1',
+                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+                 'languageSissali','languageOther','languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
+          se=list(gender_multivar_ols_robust_errors[['lit']][,2],gender_multivar_ols_robust_errors[['num']][,2],gender_multivar_ols_robust_errors[['ef']][,2],gender_multivar_ols_robust_errors[['sel']][,2]),
+          p=list(gender_multivar_ols_robust_errors[['lit']][,4],gender_multivar_ols_robust_errors[['num']][,4],gender_multivar_ols_robust_errors[['ef']][,4],gender_multivar_ols_robust_errors[['sel']][,4]),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/gender_multivar_ols.html")
+
+########################################################################################################################
+############################## OLS Regression w/ Covariates and AGE INTERACTION ##############################
+########################################################################################################################
+
+# This version removes enrollment, poverty, number of books, and private school as covariates 
+
+# Define base OLS input
+age_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                      model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+
+# Regression results
+age_multivar_ols_results<- pmap(age_multivar_ols_input,
+                                reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+age_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                             results_str='age_multivar_ols_results') %>% 
+  mutate(across(everything(),~as.character(.)))
+
+# Robust Standard Error results
+age_multivar_ols_robust_errors <- pmap(age_multivar_ols_robust_input,
+                                       robust_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Export tidy results
+age_multivar_ols_df <-pmap_dfr(age_multivar_ols_robust_input %>% dplyr::select(category),
+                               tidy_func)
+
+############################## Exporting Results ###############################
+
+stargazer(age_multivar_ols_results,
+          title="Multivariate OLS Regression with Age Interaction",
+          dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+          omit=c('female','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+                 'marital_status','cg_edu','poverty','num_kids','pe_pc1',
+                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+                 'languageSissali','languageOther',                 'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
+          se=list(age_multivar_ols_robust_errors[['lit']][,2],age_multivar_ols_robust_errors[['num']][,2],age_multivar_ols_robust_errors[['ef']][,2],age_multivar_ols_robust_errors[['sel']][,2]),
+          p=list(age_multivar_ols_robust_errors[['lit']][,4],age_multivar_ols_robust_errors[['num']][,4],age_multivar_ols_robust_errors[['ef']][,4],age_multivar_ols_robust_errors[['sel']][,4]),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/age_multivar_ols.html")

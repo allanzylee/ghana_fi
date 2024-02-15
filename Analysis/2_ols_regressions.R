@@ -606,7 +606,7 @@ stargazer(base_ols_results_region_treatment,
 
 # Define base OLS input
 reduced_multivar_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                          model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                          model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_edu +num_kids+treatment+language+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 reduced_multivar_ols_region_results<- pmap(reduced_multivar_ols_input_region,

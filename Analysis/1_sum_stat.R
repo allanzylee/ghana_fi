@@ -20,6 +20,8 @@ library(dplyr)
 library(stargazer)
 library(glue)
 library(ltm)
+library(xtable)
+library(writexl)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -49,7 +51,7 @@ stargazer(summary_stat,
 
 ############################# Language Summary Statistics ###############################
 lan_break_down<-as.data.frame(table(full_data_w$language)/nrow(full_data_w)) %>% 
-  clean_names() %>% 
+  janitor::clean_names() %>% 
   rename(language=var1,frequency=freq)
 # write_xlsx(lan_break_down, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/lan_break_down.xlsx")
 
@@ -311,7 +313,7 @@ m_e_ch_cg_fi_cor <-pmap_dfr(m_e_ch_cg_corr_input,
 ############################# Outcome: Summary Statistics ###############################
 
 outcome_data<-full_data_w %>% 
-  select(-contains('_per')) %>% 
+  dplyr::select(-contains('_per')) %>% 
   left_join(outcomes, by=c('childid','careid'))
 
 # Define function
@@ -326,7 +328,7 @@ outcome_func <- function(var_group_str, str_1, str_0) {
                        ~sd(., na.rm=T),
                        .names = "sd.{col}")
       ) %>% 
-      select(-contains('sd.mean')) %>% 
+      dplyr::select(-contains('sd.mean')) %>% 
       pivot_longer(everything(), 
                    names_to = c("category", ".value"), 
                    names_sep="_" ) %>% 
@@ -342,7 +344,7 @@ outcome_func <- function(var_group_str, str_1, str_0) {
                        ~sd(., na.rm=T),
                        .names = "sd.{col}")
       ) %>% 
-      select(-contains('sd.mean')) %>% 
+      dplyr::select(-contains('sd.mean')) %>% 
       pivot_longer(-group, 
                    names_to = c("category", ".value"), 
                    names_sep="_" ) %>% 
@@ -373,7 +375,7 @@ outcome_overall_female_age <- outcome_data %>%
                    ~sd(., na.rm=T),
                    .names = "sd.{col}")
   ) %>% 
-  select(-contains('sd.mean')) %>% 
+  dplyr::select(-contains('sd.mean')) %>% 
   pivot_longer(-c(female,age), 
                names_to = c("category", ".value"), 
                names_sep="_" ) %>% 
@@ -394,22 +396,63 @@ outcome_sum_stat <-pmap_dfr(outcome_sum_stat_input,
   pivot_wider(names_from=category,
               values_from=c(lit,sel,ef,num))
   
+############################# Midline and Endline Child and CG Reports of FI: Correlation ###############################
+
+# Define function
+m_e_ch_outcome_cor_func <- function(var_group_str) {
+    midline<-paste0('m_',var_group_str,'_per')
+    endline<-paste0('e_',var_group_str,'_per')
+    m_var_group <- ensym(midline)
+    e_var_group <- ensym(endline)
+    
+    m_e_cor <- outcomes %>% 
+      mutate(across(everything(),~as.numeric(.))) %>% 
+      filter(!is.na(!!m_var_group),
+             !is.na(!!e_var_group)) %>% 
+      summarize(cor=cor(!!m_var_group,
+                           !!e_var_group)) %>% 
+      mutate(cat=var_group_str)
+    # %>% 
+    #   pivot_longer(-group, 
+    #                names_to = c("category", ".value"), 
+    #                names_sep="_" ) %>% 
+    #   mutate(group=case_when(group==1 ~ str_1,
+    #                          T~str_0))
+    return(m_e_cor)
+  
+}
+
+# Define Input
+m_e_ch_outcome_cor_input <- tribble(
+  ~var_group_str,
+  "lit",
+  "num",
+  "ef",
+  "sel"
+  
+) 
+m_e_ch_outcome_cor_output <-pmap_dfr(m_e_ch_outcome_cor_input,
+                                     m_e_ch_outcome_cor_func)
+
+# Print as Latex
+xtable(m_e_ch_outcome_cor_output, type = "latex")
 
 ########################################## Export ########################################################
 # Make list of summary statistic results
 sum_stat_export <- list('child_cg_reports_cor' = ch_cg_fi_cor, 
                       'child_cg_reports_sum_stat' = ch_cg_fi_sum_stat, 
                       'mid_end_child_cg_reports_corr' = m_e_ch_cg_fi_cor,
-                      'outcome_sum_stat'=outcome_sum_stat)
+                      'outcome_sum_stat'=outcome_sum_stat,
+                      'mid_end_ch_outcome_cor'=m_e_ch_outcome_cor_output)
 
 # Export
-write.xlsx(sum_stat_export, file = '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/12.31.2023_sum_stat/sum_stat.xlsx')
+write_xlsx(sum_stat_export, '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/sum_stat/sum_stat.xlsx')
 
 ########################################################################################################
 ########################################## Outcome Cronbach's Alpha ########################################################
 #########################################################################################################
 
-x<-cronbach.alpha(outcome_data %>% dplyr::select(matches('^m_.*per$')), CI=TRUE)
+x<-cronbach.alpha(outcomes %>% dplyr::select(matches('^m_.*per$')), CI=TRUE)
 
 
 

@@ -57,28 +57,30 @@ child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>%
 iv <- read_rds("build/iv.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
 e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
+baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
+  mutate(careid=as.double(careid))
 
-##########################################################################################
-########################## Calculate household size variable #############################
-##########################################################################################
-num_kids <- e_household %>% 
-  dplyr::select(careid, contains('c_ind'), contains('cr2_')) %>% 
-  mutate(across(everything(),~as.double(str_trim(.))),
-         num_kidstest = pmax(c_ind_1,
-                          c_ind_2,
-                          c_ind_3,
-                          c_ind_4,
-                          c_ind_5,
-                          c_ind_6,
-                          c_ind_7,
-                          c_ind_8,
-                          c_ind_9,
-                          c_ind_10,
-                          c_ind_11,
-                          c_ind_12,
-                          na.rm=T),
-         careid=as.double(careid)) %>% 
-  dplyr::select(-contains('c_ind'))
+# ##########################################################################################
+# ########################## Calculate household size variable #############################
+# ##########################################################################################
+# num_kids <- e_household %>% 
+#   dplyr::select(careid, contains('c_ind'), contains('cr2_')) %>% 
+#   mutate(across(everything(),~as.double(str_trim(.))),
+#          num_kidstest = pmax(c_ind_1,
+#                           c_ind_2,
+#                           c_ind_3,
+#                           c_ind_4,
+#                           c_ind_5,
+#                           c_ind_6,
+#                           c_ind_7,
+#                           c_ind_8,
+#                           c_ind_9,
+#                           c_ind_10,
+#                           c_ind_11,
+#                           c_ind_12,
+#                           na.rm=T),
+#          careid=as.double(careid)) %>% 
+#   dplyr::select(-contains('c_ind'))
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -94,14 +96,13 @@ full_data_w <- e_child %>%
          language=io1,
          region
          ) %>% 
-  # COME BACK HERE TO CHECK
   dplyr::right_join(e_cg %>% dplyr::select(careid, 
                                     childid, 
                                     enrolled_in_school=cr7,
                                     female=cr3,
                                     cg_age=cb1,
                                     cg_female=cb2,
-                                    cg_edu=cb3,
+                                    #cg_edu=cb3,
                                     marital_status=cb5,
                                     num_books=pe7,
                                     treatment,
@@ -123,11 +124,17 @@ full_data_w <- e_child %>%
                    by=c("childid","careid")) %>%
   dplyr::left_join(child_order %>% dplyr::select(childid,
                                           careid,
-                                          poverty=mid_reverse_ppi,
-                                          num_kids),
+                                          poverty=mid_reverse_ppi
+                                          #,num_kids
+                                          ),
                    by=c("childid","careid")) %>%
   dplyr::left_join(iv %>% dplyr::select(-region),
                    by=c("careid","childid")) %>% 
+  dplyr::left_join(baseline_enrollment_reg %>% 
+                     select(careid,
+                            hh_size=ps1,
+                            cg_schooling=hr10),
+                   by=c('careid')) %>% 
   # Adjsut variables to become ordinal/binary
   mutate(female=if_else(female==1,0,1),
          cg_female=if_else(cg_female==1,0,1),
@@ -137,8 +144,8 @@ full_data_w <- e_child %>%
                                   T~0),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
-         cg_edu=case_when((cg_edu>1 & cg_edu<6)~1,
-                          T~0),
+         #cg_edu=case_when((cg_edu>1 & cg_edu<6)~1,
+         #                  T~0),
          treatment=case_when(treatment>0 ~ 1,
                              T~0),
          current_class=as.double(current_class),
@@ -162,9 +169,18 @@ full_data_w <- e_child %>%
   filter(!is.na(female),
          !is.na(age),
          !is.na(e_ch_fs_pc),
-         !is.na(e_cg_fs_dummy)
+         !is.na(e_cg_fs_dummy),
+         !is.na(cg_age),
+         !is.na(cg_female),
+         !is.na(marital_status),
+         !is.na(pe_pc1),
+         !is.na(pe_pc2),
+         !is.na(pe_pc3),
+         !is.na(pe_pc4),
+         !is.na(treatment),
+         !is.na(language)
          ) %>% 
-  left_join(num_kids,by=c('careid')) %>% 
+  # left_join(num_kids,by=c('careid')) %>% 
   fastDummies::dummy_cols(select_columns='region') %>% 
   clean_names()
 
@@ -185,9 +201,9 @@ full_data_l <- full_data_w %>%
 
 # Export
 saveRDS(full_data_w, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
-saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
+# saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
 
-write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")
+# write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")
 
 # 
 # #########################################################################################

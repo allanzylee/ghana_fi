@@ -1,6 +1,6 @@
 ###################################### Ghana FI Introduction ############################################
 
-# Author: Allan Lee (xiao bao)
+# Author: Allan Lee
 # Date: December 29th, 2023
 # Purpose: OLS Regressions
 
@@ -98,13 +98,11 @@ stargazer(base_ols_results_region_treatment,
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
           omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/base_ols_with_region_treatment_fe.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_baseline_region_fe/base_ols_with_region_treatment_fe.html")
 
 ##########################################################################################
-############################## Multivariate OLS Regression w/ Region ##############################
+############################## Multivariate OLS Regression w/ Region and PNP Treatment ##############################
 ##########################################################################################
-
-# Add region FE
 
 # Define base OLS input
 reduced_multivar_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
@@ -122,7 +120,7 @@ reduced_multivar_ols_robust_region_input <- expand.grid(category=c('lit','num','
 
 # Cluster Robust Standard Error results
 reduced_multivar_ols_region_robust_errors <- pmap(reduced_multivar_ols_robust_region_input,
-                                           robust_func) %>% 
+                                           cluster_robust_func) %>% 
   set_names('lit','num','ef','sel')
 
 # # Export tidy results
@@ -147,7 +145,7 @@ stargazer(reduced_multivar_ols_region_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_baseline_region_fe/multivar_ols.html")
 
 ########################################################################################################################
 ############################## OLS Regression w/ Covariates and GENDER INTERACTION ##############################
@@ -171,7 +169,7 @@ gender_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel
 
 # Cluster Robust Standard Error results
 gender_multivar_ols_robust_errors <- pmap(gender_multivar_ols_robust_input,
-                                          robust_func) %>% 
+                                          cluster_robust_func) %>% 
   set_names('lit','num','ef','sel')
 
 # Export tidy results
@@ -196,7 +194,7 @@ stargazer(gender_multivar_ols_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/gender_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_baseline_region_fe/gender_multivar_ols.html")
 
 ########################################################################################################################
 ############################## OLS Regression w/ Covariates and AGE INTERACTION ##############################
@@ -220,7 +218,7 @@ age_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
 
 # Cluster Robust Standard Error results
 age_multivar_ols_robust_errors <- pmap(age_multivar_ols_robust_input,
-                                       robust_func) %>% 
+                                       cluster_robust_func) %>% 
   set_names('lit','num','ef','sel')
 
 # Export tidy results
@@ -245,4 +243,4 @@ stargazer(age_multivar_ols_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_region_treatment_fe/age_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_baseline_region_fe/age_multivar_ols.html")

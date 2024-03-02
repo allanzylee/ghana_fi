@@ -1,8 +1,8 @@
-###################################### Introduction ############################################
+###################################### Ghana FI Introduction ############################################
 
 # Author: Allan Lee
-# Date: January 3rd, 2024
-# Purpose: Logit Regressions on Enrollment
+# Date: 3/2/2024
+# Purpose: VA OLS Regressions with Mechanisms as Outcomes
 
 ##########################################################################################
 ############################################### Set up ###################################
@@ -14,17 +14,53 @@ rm(list=ls())
 # Set working directory
 setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
-# Load packages
 library(tidyverse)
 library(stargazer)
 library(AER)
 library(dataCompareR)
+library(broom)
+library(xtable)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
+
+##########################################################################################
+######################################## Regression Functions ############################
+##########################################################################################
+
+# Define base OLS functions
+reg_func <- function(category, model){
+  m_category_str<-paste0("m_",category,"_per")
+  e_category_str<-paste0("e_",category,"_per")
+  
+  for_reg<-full_data_w %>% 
+    rename(lagged_outcome=m_category_str)
+  
+  fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
+  reg <- lm(fm,
+            data=for_reg)
+  return(reg)
+}
+
+# Define function for standard errors
+cluster_robust_func <- function(category, results_str){
+  
+  results<-get(results_str)
+  reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+  
+  return(reg_robust)
+}
+
+# Define function for creating tidy results
+tidy_func <- function(category, results_str){
+  results<-get(results_str)
+  out<-tidy(results[[category]]) %>% 
+    mutate(category=category)
+  return(out)
+}
 
 ##########################################################################################
 ####################################### Enrollment #######################################

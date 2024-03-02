@@ -31,6 +31,22 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 outcomes <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds') %>% 
   dplyr::select(childid,careid,contains('_per'))
 
+###################################### Load relevant functions ################################
+
+# Define base OLS functions
+reg_func <- function(category, model){
+  m_category_str<-paste0("m_",category,"_per")
+  e_category_str<-paste0("e_",category,"_per")
+  
+  for_reg<-full_data_w %>% 
+    rename(lagged_outcome=m_category_str)
+  
+  fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
+  reg <- lm(fm,
+            data=for_reg)
+  return(reg)
+}
+
 #########################################################################################
 ######################################## Overall Summary Statistics ##############################
 ##########################################################################################
@@ -446,13 +462,67 @@ sum_stat_export <- list('child_cg_reports_cor' = ch_cg_fi_cor,
                       'mid_end_ch_outcome_cor'=m_e_ch_outcome_cor_output)
 
 # Export
-write_xlsx(sum_stat_export, '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/sum_stat/sum_stat.xlsx')
+write_xlsx(sum_stat_export, '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/sum_stat.xlsx')
 
 ########################################################################################################
 ########################################## Outcome Cronbach's Alpha ########################################################
 #########################################################################################################
 
-x<-cronbach.alpha(outcomes %>% dplyr::select(matches('^m_.*per$')), CI=TRUE)
+# x<-cronbach.alpha(outcomes %>% dplyr::select(matches('^m_.*per$')), CI=TRUE)
 
+##################################################################################################################################
+############################## Test the Statistical Significance of Child-Reported Food Insecurity ###############################
+##################################################################################################################################
+
+# Define successive input
+successive_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                    model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+age+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_age+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_female+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+marital_status+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_schooling +region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+hh_size+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc1+',
+                                            # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc2+',
+                                            # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc3+',
+                                            # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc4+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+language+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+language+age+region_north_east+region_northern+region_upper_east+region_upper_west+region+'))
+
+# Regression results
+successive_ols_results<- pmap(successive_ols_input,
+                              reg_func)
+
+# Extract child_food_insecurity and note the instances when it is not all significant
+ch_fi_sig_func <- function(num,model,category){
+  out<-tidy(successive_ols_results[[num]]) %>% 
+    janitor::clean_names() %>% 
+    mutate(cov=model,
+           outcome=category) %>% 
+    filter(term=='e_ch_fs_dummy') %>% 
+    mutate(sig_flag=case_when(p_value<=0.05~1,
+                              T~0))
+  return(out)
+}
+
+# Regression results
+successive_ch_fi_sig<- pmap_dfr(successive_ols_input %>% mutate(num=seq(1,40,1)),
+                                ch_fi_sig_func) %>% 
+  dplyr::select(cov,outcome,sig_flag) %>% 
+  pivot_wider(names_from = outcome,
+              values_from = sig_flag) %>% 
+  mutate(cov=case_when(cov=='~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+region+'~"Baseline Mode",
+                       T~gsub(".*~ e_ch_fs_dummy\\+e_cg_fs_dummy\\+(.*?)\\+region_north_east\\+region_northern\\+region_upper_east\\+region_upper_west\\+region\\+.*", "\\1", cov)),
+         across(-cov,~case_when(.==1~"X",
+                                T~"")))
+
+# Export
+write.csv(successive_ch_fi_sig,
+          '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/stat_sig.csv')
+
+# Create Latex Table
+xtable(successive_ch_fi_sig, type = "latex")
 
 

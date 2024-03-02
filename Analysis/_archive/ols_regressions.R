@@ -14,9 +14,26 @@ rm(list=ls())
 # Set working directory
 setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
+# Load packages
+# library(foreign)
+# library(haven)
 library(tidyverse)
 library(stargazer)
+# library(psych)
+# library(corrr)
+# library(tibble)
+# library(writexl)
+# library(timechange)
+# library(rnoaa)
+# library(base)
+# library(arsenal)
+# library(labelled)
+# library(zoo)
 library(AER)
+# library(GGally)
+# library(broom.helpers)
+# library(jtools)
+# library(janitor)
 library(dataCompareR)
 library(broom)
 library(xtable)
@@ -26,6 +43,7 @@ library(xtable)
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
+#full_data_l <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds')
 
 ##########################################################################################
 ######################################## Regression Functions ############################
@@ -50,6 +68,13 @@ cluster_robust_func <- function(category, results_str){
   
   results<-get(results_str)
   reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+
+  # # Compute cluster-robust standard errors
+  # cluster_robust_se <- vcovCL(results[[category]], cluster = full_data_w)
+  # 
+  # # Extract coefficients and standard errors
+  # coefficients <- coef(model)
+  # cluster_robust_standard_errors <- sqrt(diag(cluster_robust_se))
   
   return(reg_robust)
 }
@@ -61,6 +86,200 @@ tidy_func <- function(category, results_str){
     mutate(category=category)
   return(out)
 }
+
+# ##########################################################################################
+# ######################################## Base OLS Regression ############################
+# ##########################################################################################
+# 
+# # Define base OLS input
+# base_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                               model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+'))
+# 
+# # Regression results
+# base_ols_results<- pmap(base_ols_input,
+#                             reg_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Define base OLS Robust input
+# base_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                               results_str='base_ols_results') %>% 
+#   mutate(across(everything(),~as.character(.)))
+# 
+# # Cluster Robust Standard Error results
+# base_ols_robust_errors <- pmap(base_ols_robust_input,
+#                                cluster_robust_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# ############################## Exporting Results ###############################
+# 
+# stargazer(base_ols_results,
+#           title="Base OLS Regression",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+#           # covariate.labels=c("Child-Reported Food Insecurity","Caregiver-Reported Food Insecurity","Midline Education Outcome","Constant"),
+#           se=list(base_ols_robust_errors[['lit']][,2],base_ols_robust_errors[['num']][,2],base_ols_robust_errors[['ef']][,2],base_ols_robust_errors[['sel']][,2]),
+#           p=list(base_ols_robust_errors[['lit']][,4],base_ols_robust_errors[['num']][,4],base_ols_robust_errors[['ef']][,4],base_ols_robust_errors[['sel']][,4]),
+#           star.cutoffs = c(.05, .01, NA),
+#           notes.append     = FALSE,
+#           notes            = "*$p<0.05$; **$p<0.01$",
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_results/base_ols.html"
+#           )
+# 
+# ##########################################################################################
+# ############################## OLS Regression w/ Covariates ##############################
+# ##########################################################################################
+# 
+# # Define base OLS input
+# multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                               model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_schooling +poverty+hh_size+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+'))
+# 
+# # Regression results
+# multivar_ols_results<- pmap(multivar_ols_input,
+#                         reg_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Define base OLS Robust input
+# multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                                      results_str='multivar_ols_results') %>% 
+#   mutate(across(everything(),~as.character(.)))
+# 
+# # Cluster Robust Standard Error results
+# multivar_ols_robust_errors <- pmap(multivar_ols_robust_input,
+#                                cluster_robust_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Export tidy results
+# multivar_ols_df <-pmap_dfr(multivar_ols_robust_input %>% select(category),
+#                      tidy_func)
+# 
+# ############################## Exporting Results ###############################
+# 
+# stargazer(multivar_ols_results,
+#           title="Multivariate OLS Regression",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           # covariate.labels=variables,
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+#           # omit=omitted_variables,
+#           se=list(multivar_ols_robust_errors[['lit']][,2],multivar_ols_robust_errors[['num']][,2],multivar_ols_robust_errors[['ef']][,2],multivar_ols_robust_errors[['sel']][,2]),
+#           p=list(multivar_ols_robust_errors[['lit']][,4],multivar_ols_robust_errors[['num']][,4],multivar_ols_robust_errors[['ef']][,4],multivar_ols_robust_errors[['sel']][,4]),
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/ols_results/multivar_ols.html")
+# 
+# # Shortened table for paper
+# stargazer(multivar_ols_results,
+#           title="Multivariate OLS Regression",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           # covariate.labels=c(variables[1:3],variables[38]),
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+#           omit=omitted_variables,
+#           se=list(lit_reg_full_robust[,2],num_reg_full_robust[,2],ef_reg_full_robust[,2],sel_reg_full_robust[,2]),
+#           p=list(lit_reg_full_robust[,4],num_reg_full_robust[,4],ef_reg_full_robust[,4],sel_reg_full_robust[,4]))
+
+# ###### Export regression coefficients as bar charts. First, create data frame of all regression coefficients #####
+# multivar_for_chart<-multivar_ols_df %>% 
+#   mutate(category=as.factor(category)) %>% 
+#   filter(str_detect(term,'dummy'))
+# 
+# # Create regression bar chart
+# multivar_full_coef_plot<-ggplot(multivar_for_chart,
+#        aes(x=term, y=estimate)) +
+#   geom_bar(stat = "identity") +
+#   xlab("Variables") + 
+#   ylab("Estimate") +
+#   geom_errorbar(aes(ymin=estimate - 1.96 * std.error,
+#                     ymax=estimate + 1.96 * std.error),
+#                 size=.75, width=.3) +
+#   facet_grid(~category) +
+#   theme_bw() +
+#   theme(text=element_text(family="Times", size=12))
+# 
+# ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/results_with_frongillo_code/ols_full_bar_chart.png",
+#        width=9.26,
+#        height=5.5,
+#        units="in")
+
+# ####################################################################################################################
+# ########################## Base OLS Model: Weather Deviance as X variable ###############################
+# #########################################################################################################################
+# 
+# # Define base OLS input
+# base_weather_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                               model=c('~ optimal_t_dev+optimal_p_dev+'))
+# 
+# # Regression results
+# base_weather_ols_results<- pmap(base_weather_ols_input,
+#                         reg_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Define base OLS Robust input
+# base_weather_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                                      results_str='base_weather_ols_results') %>% 
+#   mutate(across(everything(),~as.character(.)))
+# 
+# # Cluster Robust Standard Error results
+# base_weather_ols_robust_errors <- pmap(base_weather_ols_robust_input,
+#                                robust_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# ############################## Exporting Results ###############################
+# 
+# stargazer(base_weather_ols_results,
+#           title="Base OLS Regression",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+#           # covariate.labels=c("Child-Reported Food Insecurity","Caregiver-Reported Food Insecurity","Midline Education Outcome","Constant"),
+#           se=list(base_weather_ols_robust_errors[['lit']][,2],base_weather_ols_robust_errors[['num']][,2],base_weather_ols_robust_errors[['ef']][,2],base_weather_ols_robust_errors[['sel']][,2]),
+#           p=list(base_weather_ols_robust_errors[['lit']][,4],base_weather_ols_robust_errors[['num']][,4],base_weather_ols_robust_errors[['ef']][,4],base_weather_ols_robust_errors[['sel']][,4]),
+#           star.cutoffs = c(.05, .01, NA),
+#           notes.append     = FALSE,
+#           notes            = "*$p<0.05$; **$p<0.01$",
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.10.2024_weather_dev_ols/base_ols.html")
+# 
+# ####################################################################################################################
+# ########################## Multivar OLS Model: Weather Deviance as X variable ###############################
+# #########################################################################################################################
+# 
+# # Define base OLS input
+# reduced_multivar_weather_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                                           model=c('~ optimal_t_dev+optimal_p_dev+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language+'))
+# 
+# # Regression results
+# reduced_multivar_weather_ols_results<- pmap(reduced_multivar_weather_ols_input,
+#                                     reg_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Define base OLS Robust input
+# reduced_multivar_weather_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+#                                                  results_str='reduced_multivar_weather_ols_results') %>% 
+#   mutate(across(everything(),~as.character(.)))
+# 
+# # Cluster Robust Standard Error results
+# multivar_weather_ols_robust_errors <- pmap(reduced_multivar_weather_ols_robust_input,
+#                                            robust_func) %>% 
+#   set_names('lit','num','ef','sel')
+# 
+# # Export tidy results
+# reduced_multivar_weather_ols_df <-pmap_dfr(reduced_multivar_weather_ols_robust_input %>% dplyr::select(category),
+#                                    tidy_func)
+# 
+# ############################## Exporting Results ###############################
+# 
+# stargazer(reduced_multivar_weather_ols_results,
+#           title="Multivariate OLS Regression",
+#           dep.var.caption = "Endline Dependent Variable:",
+#           # covariate.labels=variables,
+#           column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+#           omit=c('female','age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+#                  'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+#                  'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+#                  'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
+#                  'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+#                  'languageSissali','languageOther'),
+#           se=list(multivar_weather_ols_robust_errors[['lit']][,2],multivar_weather_ols_robust_errors[['num']][,2],multivar_weather_ols_robust_errors[['ef']][,2],multivar_weather_ols_robust_errors[['sel']][,2]),
+#           p=list(multivar_weather_ols_robust_errors[['lit']][,4],multivar_weather_ols_robust_errors[['num']][,4],multivar_weather_ols_robust_errors[['ef']][,4],multivar_weather_ols_robust_errors[['sel']][,4]),
+#           star.cutoffs = c(.05, .01, NA),
+#           notes.append     = FALSE,
+#           notes            = "*$p<0.05$; **$p<0.01$",
+#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.10.2024_weather_dev_ols/multivar_ols.html")
 
 ####################################################################################################################
 ########################## Base OLS Model: Include Region and Treatment dummies ###############################
@@ -82,7 +301,7 @@ base_ols_robust_input_region_treatment <- expand.grid(category=c('lit','num','ef
 
 # Cluster Robust Standard Error results
 base_ols_robust_errors_region_treatment <- pmap(base_ols_robust_input_region_treatment,
-                                       cluster_robust_func) %>% 
+                                       robust_func) %>% 
   set_names('lit','num','ef','sel')
 
 ############################## Exporting Results ###############################

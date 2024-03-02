@@ -15,26 +15,26 @@ rm(list=ls())
 setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
 # Load packages
-library(foreign)
+# library(foreign)
 library(haven)
 library(tidyverse)
-library(stargazer)
-library(psych)
-library(corrr)
-library(tibble)
-library(writexl)
-library(timechange)
-library(rnoaa)
-library(base)
-library(arsenal)
-library(labelled)
-library(zoo)
-library(AER)
-library(GGally)
-library(broom.helpers)
-library(jtools)
+# library(stargazer)
+# library(psych)
+# library(corrr)
+# library(tibble)
+# library(writexl)
+# library(timechange)
+# library(rnoaa)
+# library(base)
+# library(arsenal)
+# library(labelled)
+# library(zoo)
+# library(AER)
+# library(GGally)
+# library(broom.helpers)
+# library(jtools)
 library(janitor)
-library(fastDummies)
+# library(fastDummies)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -47,8 +47,7 @@ cg_pe <- read_rds("build/cg_pe.rds") %>%
   clean_names()
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   dplyr::select(-contains("gb")) %>% 
-  mutate(careid=as.double(caseid),
-         childid=as.double(childid))
+  mutate(across(contains('id'),~as.double(.)))
 e_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
   mutate(careid=as.double(careid),
          childid=as.double(childid))
@@ -59,28 +58,10 @@ iv <- read_rds("build/iv.rds") %>%
 e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
 baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
   mutate(careid=as.double(careid))
-
-# ##########################################################################################
-# ########################## Calculate household size variable #############################
-# ##########################################################################################
-# num_kids <- e_household %>% 
-#   dplyr::select(careid, contains('c_ind'), contains('cr2_')) %>% 
-#   mutate(across(everything(),~as.double(str_trim(.))),
-#          num_kidstest = pmax(c_ind_1,
-#                           c_ind_2,
-#                           c_ind_3,
-#                           c_ind_4,
-#                           c_ind_5,
-#                           c_ind_6,
-#                           c_ind_7,
-#                           c_ind_8,
-#                           c_ind_9,
-#                           c_ind_10,
-#                           c_ind_11,
-#                           c_ind_12,
-#                           na.rm=T),
-#          careid=as.double(careid)) %>% 
-#   dplyr::select(-contains('c_ind'))
+m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
+  mutate(across(contains('id'),~as.double(.)))
+m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
+  mutate(across(contains('id'),~as.double(.)))
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -92,19 +73,24 @@ full_data_w <- e_child %>%
          childid,
          age=childage,
          current_class=ed3,
-         private_school=ed2,
+         e_private_school=ed2,
+         e_enroll_ch=ed1,
+         # e_ch_attend=ed7b,
          language=io1,
-         region
+         region,
+         e_ch_health=cw1,
+         e_ch_health_rel=cw2
          ) %>% 
   dplyr::right_join(e_cg %>% dplyr::select(careid, 
                                     childid, 
-                                    enrolled_in_school=cr7,
+                                    e_enroll_cg=cr7,
+                                    e_attend=cr8,
                                     female=cr3,
                                     cg_age=cb1,
                                     cg_female=cb2,
                                     #cg_edu=cb3,
                                     marital_status=cb5,
-                                    num_books=pe7,
+                                    # num_books=pe7,
                                     treatment,
                                     contains('gb')
                                     ),
@@ -120,7 +106,10 @@ full_data_w <- e_child %>%
                                     pe_pc3=pc3,
                                     pe_pc4=pc4,),
                    by=c("childid","careid")) %>% 
-  dplyr::left_join(treatment,
+  dplyr::left_join(treatment %>% 
+                     select(childid,
+                            careid,
+                            contains('fs_dummy')),
                    by=c("childid","careid")) %>%
   dplyr::left_join(child_order %>% dplyr::select(childid,
                                           careid,
@@ -128,17 +117,38 @@ full_data_w <- e_child %>%
                                           #,num_kids
                                           ),
                    by=c("childid","careid")) %>%
-  dplyr::left_join(iv %>% dplyr::select(-region),
-                   by=c("careid","childid")) %>% 
+  # dplyr::left_join(iv %>% dplyr::select(-region),
+  #                  by=c("careid","childid")) %>% 
   dplyr::left_join(baseline_enrollment_reg %>% 
                      dplyr::select(careid,
                             hh_size=ps1,
                             cg_schooling=hr10),
                    by=c('careid')) %>% 
+  left_join(m_child %>%
+              select(careid,
+                     childid,
+                     m_ch_health=cw1,
+                     m_ch_health_rel=cw2,
+                     m_enroll_ch=ed1,
+                     m_private_school=ed2
+                     # m_ch_attend=ed7b
+                     ),
+            by=c('childid','careid')
+            ) %>%
+  left_join(m_cg %>%
+              select(careid,
+                     childid,
+                     m_enroll_cg=cr7,
+                     m_attend=cr8,
+              ),
+            by=c('childid','careid')
+  ) %>%
   # Adjust variables to become ordinal/binary
-  mutate(female=if_else(female==1,0,1),
+  mutate(across(contains('enroll_ch'),~case_when(.!=1~0,
+                                                 T~1)),
+         female=if_else(female==1,0,1),
          cg_female=if_else(cg_female==1,0,1),
-         private_school=if_else(private_school==1,0,1),
+         across(contains('private_school'),~if_else(.==1,0,1)),
          marital_status=case_when(marital_status==3~1,
                                   marital_status==4~1,
                                   T~0),
@@ -168,7 +178,7 @@ full_data_w <- e_child %>%
   # Filter out NAs
   filter(!is.na(female),
          !is.na(age),
-         !is.na(e_ch_fs_pc),
+         !is.na(e_ch_fs_dummy),
          !is.na(e_cg_fs_dummy),
          !is.na(cg_age),
          !is.na(cg_female),
@@ -178,27 +188,27 @@ full_data_w <- e_child %>%
          !is.na(pe_pc3),
          !is.na(pe_pc4),
          !is.na(treatment),
-         !is.na(language),
-         !is.na(private_school)
+         !is.na(language)
+         # !is.na(private_school)
          ) %>% 
   # left_join(num_kids,by=c('careid')) %>% 
   fastDummies::dummy_cols(select_columns='region') %>% 
   clean_names()
 
-# Create long version of the data
-
-full_data_l <- full_data_w %>% 
-  # Pivot the data such that education columns only represent midline and endline education outcomes
-  pivot_longer(cols=c('m_sel_per','m_lit_per','m_ef_per',"m_num_per"),
-               names_to="m_outcome_type",
-               values_to="m_edu") %>% 
-  pivot_longer(cols=c('e_sel_per','e_lit_per','e_ef_per',"e_num_per"),
-               names_to="e_outcome_type",
-               values_to="e_edu") %>% 
-  # Mutate the data such that education type columns are the same names. Then filter for rows with same education type
-  mutate(m_outcome_type = substr(m_outcome_type, 3, nchar(m_outcome_type)),
-         e_outcome_type = substr(e_outcome_type, 3, nchar(e_outcome_type))) %>% 
-  filter(m_outcome_type==e_outcome_type)
+# # Create long version of the data
+# 
+# full_data_l <- full_data_w %>% 
+#   # Pivot the data such that education columns only represent midline and endline education outcomes
+#   pivot_longer(cols=c('m_sel_per','m_lit_per','m_ef_per',"m_num_per"),
+#                names_to="m_outcome_type",
+#                values_to="m_edu") %>% 
+#   pivot_longer(cols=c('e_sel_per','e_lit_per','e_ef_per',"e_num_per"),
+#                names_to="e_outcome_type",
+#                values_to="e_edu") %>% 
+#   # Mutate the data such that education type columns are the same names. Then filter for rows with same education type
+#   mutate(m_outcome_type = substr(m_outcome_type, 3, nchar(m_outcome_type)),
+#          e_outcome_type = substr(e_outcome_type, 3, nchar(e_outcome_type))) %>% 
+#   filter(m_outcome_type==e_outcome_type)
 
 # Export
 saveRDS(full_data_w, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")

@@ -131,11 +131,11 @@ full_data_w <- e_child %>%
   dplyr::left_join(iv %>% dplyr::select(-region),
                    by=c("careid","childid")) %>% 
   dplyr::left_join(baseline_enrollment_reg %>% 
-                     select(careid,
+                     dplyr::select(careid,
                             hh_size=ps1,
                             cg_schooling=hr10),
                    by=c('careid')) %>% 
-  # Adjsut variables to become ordinal/binary
+  # Adjust variables to become ordinal/binary
   mutate(female=if_else(female==1,0,1),
          cg_female=if_else(cg_female==1,0,1),
          private_school=if_else(private_school==1,0,1),
@@ -178,7 +178,8 @@ full_data_w <- e_child %>%
          !is.na(pe_pc3),
          !is.na(pe_pc4),
          !is.na(treatment),
-         !is.na(language)
+         !is.na(language),
+         !is.na(private_school)
          ) %>% 
   # left_join(num_kids,by=c('careid')) %>% 
   fastDummies::dummy_cols(select_columns='region') %>% 

@@ -29,6 +29,7 @@ library(base)
 library(arsenal)
 library(labelled)
 library(zoo)
+library(janitor)
 
 ##########################################################################################
 ###################################### FS data cleaning ##################################
@@ -251,14 +252,24 @@ stargazer(e_fs_cor,
 # Midline
 m_ch_fs_pc$m_ch_fies=rowSums(m_ch_fs_pc[,3:12])
 m_ch_fs_pc<-m_ch_fs_pc %>%
-  mutate(m_ch_fs_dummy=if_else(m_ch_fies>=7,1,0)) %>% 
-  dplyr::select(careid,childid,m_ch_fs_pc,m_ch_fies,m_ch_fs_dummy)
+  mutate(m_ch_fs_dummy=if_else(m_ch_fies>=7,1,0),
+         m_ch_fies=as.factor(case_when(m_ch_fies==0 ~ 0,
+                             m_ch_fies>=1 & m_ch_fies<=6~1,
+                             m_ch_fies>=7 & m_ch_fies<=10~2,
+                             T~4))
+         ) %>% 
+  dplyr::select(careid,childid,m_ch_fs_pc,m_ch_fies,m_ch_fs_dummy,m_ch_fies)
 
 # Endline
 e_ch_fs_pc$e_ch_fies=rowSums(e_ch_fs_pc[,3:12])
 e_ch_fs_pc<-e_ch_fs_pc %>%
-  mutate(e_ch_fs_dummy=if_else(e_ch_fies>=7,1,0)) %>% 
-  dplyr::select(careid,childid,e_ch_fs_pc,e_ch_fies,e_ch_fs_dummy)
+  mutate(e_ch_fs_dummy=if_else(e_ch_fies>=7,1,0),
+         e_ch_fies=as.factor(case_when(e_ch_fies==0 ~ 0,
+                                       e_ch_fies>=1 & e_ch_fies<=6~1,
+                                       e_ch_fies>=7 & e_ch_fies<=10~2,
+                                       T~4))
+         ) %>% 
+  dplyr::select(careid,childid,e_ch_fs_pc,e_ch_fies,e_ch_fs_dummy,e_ch_fies)
 
 ###################################### Caregiver ######################################################
 

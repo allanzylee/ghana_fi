@@ -41,7 +41,7 @@ library(janitor)
 ##########################################################################################
 
 outcome <- read_rds("build/outcome.rds")
-treatment <- read_rds("build/treatment.rds")%>% 
+fi <- read_rds("build/treatment.rds")%>% 
   mutate(across(contains('id'),~as.double(.)))
 cg_pe <- read_rds("build/cg_pe.rds") %>% 
   clean_names()
@@ -55,7 +55,7 @@ child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>%
   dplyr::select(-community, -region)
 iv <- read_rds("build/iv.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
-e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
+# e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
 baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
   mutate(careid=as.double(careid))
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 

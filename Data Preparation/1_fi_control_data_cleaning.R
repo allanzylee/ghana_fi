@@ -15,20 +15,20 @@ rm(list=ls())
 setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
 # Load packages
-library(foreign)
+# library(foreign)
 library(haven)
 library(tidyverse)
-library(stargazer)
-library(psych)
-library(corrr)
-library(tibble)
-library(writexl)
-library(timechange)
-library(rnoaa)
-library(base)
-library(arsenal)
-library(labelled)
-library(zoo)
+# library(stargazer)
+# library(psych)
+# library(corrr)
+# library(tibble)
+# library(writexl)
+# library(timechange)
+# library(rnoaa)
+# library(base)
+# library(arsenal)
+# library(labelled)
+# library(zoo)
 library(janitor)
 
 ##########################################################################################
@@ -40,7 +40,13 @@ fs_cols_child<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8","fs9","fs10")
 fs_cols_cg<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8")
 
 # Load relevant data
-m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta")
+m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
+  mutate_at(fs_cols_child,as.numeric) %>% 
+  mutate_at(fs_cols_child,funs(new=case_when(. == 1 ~ 2,
+                                             . == 2 ~ 1,
+                                             . == 3 ~ 0,
+                                             TRUE ~ NA_real_))) %>% 
+  dplyr::select(-all_of(fs_cols_child))
 m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta")
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   rename(careid=caseid) %>% 
@@ -76,11 +82,11 @@ names(e_child) = gsub(pattern = "_new", replacement = "", x = names(e_child))
 
 # # dplyr::select relevant variables in the food security data and convert them to numeric.
 # 
-# m_ch_fs <- m_child %>% 
-#   dplyr::select(careid,childid,starts_with("fs"))
-# m_cg_fs <- m_cg %>% 
-#   dplyr::select(careid,starts_with("fs")) %>% 
-#   distinct(.keep_all = T)
+m_ch_fs <- m_child %>%
+  dplyr::select(careid,childid,starts_with("fs"))
+m_cg_fs <- m_cg %>%
+  dplyr::select(childid,careid,starts_with("fs")) %>%
+  distinct(.keep_all = T)
 e_ch_fs <- e_child %>%
   dplyr::select(careid,childid,starts_with("fs")) %>%
   dplyr::select(-fs_id)
@@ -90,16 +96,16 @@ e_cg_fs <- e_cg %>%
   dplyr::select(-fsid)
 
 # I will replace the NAs with an average of all other FS values.
-# m_ch_fs[fs_cols_child] <- apply(m_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(m_ch_fs[fs_cols_child], na.rm = TRUE), x))
-# m_cg_fs[fs_cols_cg] <- apply(m_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(m_cg_fs[fs_cols_cg], na.rm = TRUE), x))
+m_ch_fs[fs_cols_child] <- apply(m_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(m_ch_fs[fs_cols_child], na.rm = TRUE), x))
+m_cg_fs[fs_cols_cg] <- apply(m_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(m_cg_fs[fs_cols_cg], na.rm = TRUE), x))
 e_ch_fs[fs_cols_child] <- apply(e_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(e_ch_fs[fs_cols_child], na.rm = TRUE), x))
 e_cg_fs[fs_cols_cg] <- apply(e_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(e_cg_fs[fs_cols_cg], na.rm = TRUE), x))
 
 # Drop the remaining rows in ch_fs that have only NAs.
-# m_ch_fs<-m_ch_fs %>% 
-#   na.omit()
-# m_cg_fs<-m_cg_fs %>% 
-#   na.omit()
+m_ch_fs<-m_ch_fs %>%
+  na.omit()
+m_cg_fs<-m_cg_fs %>%
+  na.omit()
 e_ch_fs<-e_ch_fs %>% 
   na.omit()
 e_cg_fs<-e_cg_fs %>% 
@@ -248,16 +254,16 @@ e_cg_fs<-e_cg_fs %>%
 
 ### The FIES reduces the dimensionality of the FS questions by creating a dummy variable that =1 if the sum of FS questions >7 (Frongillo Page 2139)
 # 
-# # Midline
-# m_ch_fs_pc$m_ch_fies=rowSums(m_ch_fs_pc[,3:12])
-# m_ch_fs_pc<-m_ch_fs_pc %>%
-#   mutate(m_ch_fs_dummy=if_else(m_ch_fies>=7,1,0),
-#          m_ch_fies=as.factor(case_when(m_ch_fies==0 ~ 0,
-#                              m_ch_fies>=1 & m_ch_fies<=6~1,
-#                              m_ch_fies>=7 & m_ch_fies<=10~2,
-#                              T~4))
-#          ) %>% 
-#   dplyr::select(careid,childid,m_ch_fs_pc,m_ch_fies,m_ch_fs_dummy,m_ch_fies)
+# Midline
+m_cfies<-m_ch_fs %>% 
+  mutate(fs_sum=rowSums(select(.,fs_cols_child))) %>% 
+  mutate(m_ch_fs_dummy=if_else(fs_sum>=7,1,0),
+         m_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
+                                       fs_sum>=1 & fs_sum<=6~1,
+                                       fs_sum>=7 & fs_sum<=10~2,
+                                       T~4))
+  ) %>% 
+  dplyr::select(careid,childid,m_ch_fs_dummy,m_ch_fies)
 
 # Endline
 e_cfies<-e_ch_fs %>% 
@@ -273,53 +279,94 @@ e_cfies<-e_ch_fs %>%
 ###################################### Caregiver ######################################################
 
 ### The FIES reduces the dimensionality of the FS questions by creating a dummy variable that =1 if any of FSQ5-Q8 =1
+# Midline
+m_cg_fies<-m_cg_fs %>% 
+  mutate(m_cg_fs_dummy=case_when(fs5==1|fs6==1|fs7==1|fs8==1~1,
+                                 T~0),
+         m_fies=as.factor(case_when(fs5==1~1,
+                                    fs8==1~2,
+                                    T~0)),
+         m_fies_scale=as.factor(case_when((fs1==1|fs2==1|fs3==1) & (fs4!=1 & fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 0,
+                                          (fs4==1|fs5==1|fs6==1) & (fs1!=1 & fs2!=1& fs3!=1& fs7!=1& fs8!=1) ~ 1,
+                                          T~2
+         )
+         )) %>% 
+  dplyr::select(-matches("fs[0-9]"))
+
+# Endline
 e_cg_fies<-e_cg_fs %>% 
   mutate(e_cg_fs_dummy=case_when(fs5==1|fs6==1|fs7==1|fs8==1~1,
-                                 T~0))
+                                 T~0),
+         e_fies=as.factor(case_when(fs5==1~1,
+                          fs8==1~2,
+                          T~0)),
+         e_fies_scale=as.factor(case_when((fs1==1|fs2==1|fs3==1) & (fs4!=1 & fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 0,
+                                (fs4==1|fs5==1|fs6==1) & (fs1!=1 & fs2!=1& fs3!=1& fs7!=1& fs8!=1) ~ 1,
+                                T~2
+                                )
+                                )) %>% 
+  dplyr::select(-matches("fs[0-9]"))
 
-m_cg_fs_pc$m_cg_fies=rowSums(m_cg_fs_pc[,6:9])
-m_cg_fs_pc<-m_cg_fs_pc %>% 
-  mutate(m_cg_fs_dummy=ifelse(m_cg_fies>=1,1,0)) %>% 
-  dplyr::select(careid,m_cg_fs_pc,m_cg_fies,m_cg_fs_dummy)
-
-e_cg_fs_pc$e_cg_fies=rowSums(e_cg_fs_pc[,6:9])
-e_cg_fs_pc<-e_cg_fs_pc %>% 
-  mutate(e_cg_fs_dummy=ifelse(e_cg_fies>=1,1,0)) %>% 
-  dplyr::select(careid,e_cg_fs_pc,e_cg_fies,e_cg_fs_dummy)
-
-m_fs_pc$m_fs_fies=rowSums(m_fs_pc[,3:20])
-m_fs_pc<-m_fs_pc %>% 
-  dplyr::select(careid,childid,PC1,PC2,PC3,m_fs_fies) %>% 
-  rename(m_fs_pc1=PC1,
-         m_fs_pc2=PC2,
-         m_fs_pc3=PC3)
-
-e_fs_pc$e_fs_fies=rowSums(e_fs_pc[,3:20])
-e_fs_pc<-e_fs_pc %>% 
-  dplyr::select(careid,childid,PC1,PC2,PC3,e_fs_fies) %>% 
-  rename(e_fs_pc1=PC1,
-         e_fs_pc2=PC2,
-         e_fs_pc3=PC3)
+# m_cg_fs_pc$m_cg_fies=rowSums(m_cg_fs_pc[,6:9])
+# m_cg_fs_pc<-m_cg_fs_pc %>% 
+#   mutate(m_cg_fs_dummy=ifelse(m_cg_fies>=1,1,0)) %>% 
+#   dplyr::select(careid,m_cg_fs_pc,m_cg_fies,m_cg_fs_dummy)
+# 
+# e_cg_fs_pc$e_cg_fies=rowSums(e_cg_fs_pc[,6:9])
+# e_cg_fs_pc<-e_cg_fs_pc %>% 
+#   mutate(e_cg_fs_dummy=ifelse(e_cg_fies>=1,1,0)) %>% 
+#   dplyr::select(careid,e_cg_fs_pc,e_cg_fies,e_cg_fs_dummy)
+# 
+# m_fs_pc$m_fs_fies=rowSums(m_fs_pc[,3:20])
+# m_fs_pc<-m_fs_pc %>% 
+#   dplyr::select(careid,childid,PC1,PC2,PC3,m_fs_fies) %>% 
+#   rename(m_fs_pc1=PC1,
+#          m_fs_pc2=PC2,
+#          m_fs_pc3=PC3)
+# 
+# e_fs_pc$e_fs_fies=rowSums(e_fs_pc[,3:20])
+# e_fs_pc<-e_fs_pc %>% 
+#   dplyr::select(careid,childid,PC1,PC2,PC3,e_fs_fies) %>% 
+#   rename(e_fs_pc1=PC1,
+#          e_fs_pc2=PC2,
+#          e_fs_pc3=PC3)
 
 ###################################### Putting all treatment data together #############################
 
-treatment <- m_ch_fs_pc %>% 
-  inner_join(m_cg_fs_pc,by=c("careid")) %>% 
-  inner_join(e_ch_fs_pc,by=c("careid","childid")) %>% 
-  inner_join(e_cg_fs_pc,by=c("careid")) %>% 
-  inner_join(m_fs_pc,by=c("careid","childid")) %>%
-  inner_join(e_fs_pc,by=c("careid","childid"))
+fi <- e_cfies %>% 
+  inner_join(e_cg_fies,by=c("careid","childid")) %>% 
+  inner_join(m_cfies,by=c("careid","childid")) %>% 
+  inner_join(m_cg_fies,by=c("careid","childid"))
 
 ###################################################################################################
 #################### Caregiver-Reported Parental Engagement data cleaning #########################
 ###################################################################################################
 
-# # Load relevant data.
-# e_cg <- read_dta("04 Endline Survey/02_PNP_Endline_CaregiverSurvey.dta")
-# dplyr::select the careid, childid, and PE variables
-cg_pe <- e_cg %>% 
+# Midline
+m_cg_pe <- m_cg %>% 
   dplyr::select(careid,childid,starts_with("pe")) %>% 
-  # Dedplyr::select the variables regarding which caregiver engaged the child and also PE7
+  # select the variables regarding which caregiver engaged the child and also PE7
+  dplyr::select(matches("^[^_]+$"),-pe7,-ends_with("b"),pe10b) %>% 
+  # Change the ordinal form of PE8 and PE9
+  mutate_at(vars(pe8,pe9),funs(new=case_when(. == 4 ~ 3,
+                                             . == 3 ~ 2,
+                                             . == 2 ~ 1,
+                                             . == 1 ~ 0,
+                                             TRUE ~ NA_real_))) %>% 
+  # Drop the old pe8 and pe9; replace with the new ones and then reorder
+  # dplyr::select(-pe8,-pe9) %>% 
+  # rename("pe8"="pe8_new",
+  #        "pe9"="pe9_new") %>% 
+  dplyr::select(careid,childid,pe1a:pe6a,pe8=pe8_new,pe9=pe9_new,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
+  # Ensure that all columns are numeric
+  mutate_if(is.double,as.numeric) %>% 
+  mutate_if(is.character,as.numeric) %>%
+  mutate(hh_engaegment=select(., contains("pe")) %>% rowSums())
+
+# Endline
+e_cg_pe <- e_cg %>% 
+  dplyr::select(careid,childid,starts_with("pe")) %>% 
+  # select the variables regarding which caregiver engaged the child and also PE7
   dplyr::select(matches("^[^_]+$"),-pe7,-ends_with("b"),pe10b) %>% 
   # Change the ordinal form of PE8 and PE9
   mutate_at(vars(pe8,pe9),funs(new=case_when(. == 4 ~ 3,
@@ -328,15 +375,14 @@ cg_pe <- e_cg %>%
                                        . == 1 ~ 0,
                                        TRUE ~ NA_real_))) %>% 
   # Drop the old pe8 and pe9; replace with the new ones and then reorder
-  dplyr::select(-pe8,-pe9) %>% 
-  rename("pe8"="pe8_new",
-         "pe9"="pe9_new") %>% 
-  dplyr::select(careid,childid,pe1a:pe6a,pe8,pe9,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
+  # dplyr::select(-pe8,-pe9) %>% 
+  # rename("pe8"="pe8_new",
+  #        "pe9"="pe9_new") %>% 
+  dplyr::select(careid,childid,pe1a:pe6a,pe8=pe8_new,pe9=pe9_new,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
   # Ensure that all columns are numeric
   mutate_if(is.double,as.numeric) %>% 
   mutate_if(is.character,as.numeric) %>%
-  # Turn into data frame
-  as.data.frame()
+  mutate(hh_engaegment=select(., contains("pe")) %>% rowSums())
 # The correlation between parental engagement variables are approximately 0.5 or lower, suggesting a moderate linear relationship.
 # Multicollinearity is not a significant issue and the parental engagement variables can be kept in their current form.
 # However, I will conduct PCA and linear combinations of PE variables still.
@@ -374,7 +420,7 @@ stargazer(cor(cg_pe[,3:15],cg_pe[,16:19]))
 ################################## Exporting Relevant Data ###############################
 ##########################################################################################
 
-saveRDS(treatment, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/treatment.rds")
+saveRDS(fi, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/fi.rds")
 saveRDS(cg_pe, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/cg_pe.rds")
 
 

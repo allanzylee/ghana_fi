@@ -59,6 +59,9 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
 e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>% 
   mutate_at(fs_cols_cg,as.numeric)
 
+baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
+  mutate(careid=as.double(careid))
+
 # # Denote the relevant fs variables
 # fs_cols_child<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8","fs9","fs10")
 # fs_cols_cg<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8")
@@ -418,6 +421,22 @@ cg_pe<-cbind(cg_pe,cg_pe_pc) %>%
 
 # Create a correlation matrix for caregiver engagement PC and original data
 # stargazer::stargazer(cor(cg_pe[,3:15],cg_pe[,16:19]))
+
+###################################################################################################
+#################### Clean HH Size, CG_Schooling, Motivation, and Self-Esteem #########################
+###################################################################################################
+
+baseline_char <- baseline_enrollment_reg %>% 
+  select(childid,
+         careid,
+         hh_size=ps1,
+         cg_schooling=hr10) 
+
+e_ch_motiv_esteem <- e_child %>% 
+  mutate(across(contains("mo"),~as.double(.)),
+         across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
+  mutate(ch_motiv=select(., contains("mo")) %>% rowSums()) %>% 
+  mutate(across())
 
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################

@@ -361,7 +361,7 @@ m_cg_pe <- m_cg %>%
   # Ensure that all columns are numeric
   mutate_if(is.double,as.numeric) %>% 
   mutate_if(is.character,as.numeric) %>%
-  mutate(hh_engaegment=select(., contains("pe")) %>% rowSums())
+  mutate(m_hh_engagement=select(., contains("pe")) %>% rowSums())
 
 # Endline
 e_cg_pe <- e_cg %>% 
@@ -382,7 +382,7 @@ e_cg_pe <- e_cg %>%
   # Ensure that all columns are numeric
   mutate_if(is.double,as.numeric) %>% 
   mutate_if(is.character,as.numeric) %>%
-  mutate(hh_engaegment=select(., contains("pe")) %>% rowSums())
+  mutate(e_hh_engagement=select(., contains("pe")) %>% rowSums())
 # The correlation between parental engagement variables are approximately 0.5 or lower, suggesting a moderate linear relationship.
 # Multicollinearity is not a significant issue and the parental engagement variables can be kept in their current form.
 # However, I will conduct PCA and linear combinations of PE variables still.
@@ -390,7 +390,7 @@ e_cg_pe <- e_cg %>%
 ###################################### PCA #############################
 
 # Replace the NAs for children from their siblings and then omit the NAs that don't have any data
-cg_pe <- cg_pe %>%
+cg_pe <- e_cg_pe %>%
   # Group by family
   group_by(careid) %>%
   # Replace NAs with data from their siblings
@@ -411,10 +411,13 @@ screeplot(cg_pe_pca, type="l", main="Screeplot for Caregiver-Reported Parental E
 # Now, extract the principal components and combine with the rest of the FS data.
 cg_pe_pc<-cg_pe_pca$x[,1:4]
 cg_pe<-cbind(cg_pe,cg_pe_pc) %>% 
-  clean_names()
+  clean_names() %>% 
+  select(childid,careid,e_hh_engagement,matches('pc[0-9]')) %>% 
+  inner_join(m_cg_pe %>% select(-matches('pe[0-9]')),
+             by=c('childid','careid'))
 
 # Create a correlation matrix for caregiver engagement PC and original data
-stargazer(cor(cg_pe[,3:15],cg_pe[,16:19]))
+# stargazer::stargazer(cor(cg_pe[,3:15],cg_pe[,16:19]))
 
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################

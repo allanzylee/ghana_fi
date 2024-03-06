@@ -41,7 +41,7 @@ library(janitor)
 ##########################################################################################
 
 outcome <- read_rds("build/outcome.rds")
-fi <- read_rds("build/treatment.rds")%>% 
+fi <- read_rds("build/fi.rds")%>% 
   mutate(across(contains('id'),~as.double(.)))
 cg_pe <- read_rds("build/cg_pe.rds") %>% 
   clean_names()

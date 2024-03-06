@@ -426,23 +426,54 @@ cg_pe<-cbind(cg_pe,cg_pe_pc) %>%
 #################### Clean HH Size, CG_Schooling, Motivation, and Self-Esteem #########################
 ###################################################################################################
 
+# Household Size and Caregiver Schooling
 baseline_char <- baseline_enrollment_reg %>% 
   select(childid,
          careid,
          hh_size=ps1,
-         cg_schooling=hr10) 
+         cg_schooling=hr10)
 
+# Midline Child Motivation and Esteem
+m_ch_motiv_esteem <- m_child %>% 
+  mutate(across(contains("mo"),~as.double(.)),
+         across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
+  mutate(m_ch_motiv=select(., contains("mo")) %>% rowSums()) %>% 
+  mutate(across(matches("se[0-9]"),~as.double(.)),
+         across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+                                              . == 3 ~ 2,
+                                              . == 2 ~ 3,
+                                              . == 1 ~ 4,
+                                              TRUE ~ NA_real_))
+  ) %>% 
+  mutate(m_ch_esteem=select(., matches("se[0-9]")) %>% rowSums()) %>% 
+  select(childid,careid,m_ch_motiv,m_ch_esteem)
+
+# Endline Child Motivation and Estee
 e_ch_motiv_esteem <- e_child %>% 
   mutate(across(contains("mo"),~as.double(.)),
          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-  mutate(ch_motiv=select(., contains("mo")) %>% rowSums()) %>% 
-  mutate(across())
+  mutate(e_ch_motiv=select(., contains("mo")) %>% rowSums()) %>% 
+  mutate(across(matches("se[0-9]"),~as.double(.)),
+         across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+                                             . == 3 ~ 2,
+                                             . == 2 ~ 3,
+                                             . == 1 ~ 4,
+                                             TRUE ~ NA_real_))
+         ) %>% 
+  mutate(e_ch_esteem=select(., matches("se[0-9]")) %>% rowSums()) %>% 
+  select(childid,careid,e_ch_motiv,e_ch_esteem)
 
+################################### Create control data for export ######################
+controls<-e_ch_motiv_esteem %>% 
+  left_join(m_ch_motiv_esteem,by=c('childid','careid')) %>% 
+  mutate(across(c(childid,careid),~as.double(.))) %>% 
+  left_join(cg_pe,by=c('childid','careid'))
+  
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################
 ##########################################################################################
 
 saveRDS(fi, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/fi.rds")
-saveRDS(cg_pe, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/cg_pe.rds")
-
+#saveRDS(cg_pe, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/cg_pe.rds")
+saveRDS(controls, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/controls.rds")
 

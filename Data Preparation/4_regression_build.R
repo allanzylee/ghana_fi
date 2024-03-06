@@ -43,7 +43,7 @@ library(janitor)
 outcome <- read_rds("build/outcome.rds")
 fi <- read_rds("build/fi.rds")%>% 
   mutate(across(contains('id'),~as.double(.)))
-cg_pe <- read_rds("build/cg_pe.rds") %>% 
+controls <- read_rds("build/controls.rds") %>% 
   clean_names()
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   dplyr::select(-contains("gb")) %>% 
@@ -102,8 +102,7 @@ full_data_w <- e_child %>%
                                       careid, 
                                       contains('per')),
                    by=c("childid","careid")) %>% 
-  dplyr::left_join(cg_pe %>% dplyr::select(childid,
-                                    careid,
+  dplyr::left_join(controls %>% rename(
                                     pe_pc1=pc1,
                                     pe_pc2=pc2,
                                     pe_pc3=pc3,

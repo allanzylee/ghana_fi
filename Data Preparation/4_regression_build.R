@@ -47,7 +47,8 @@ cg_pe <- read_rds("build/cg_pe.rds") %>%
   clean_names()
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   dplyr::select(-contains("gb")) %>% 
-  mutate(across(contains('id'),~as.double(.)))
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  rename(careid=caseid)
 e_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
   mutate(careid=as.double(careid),
          childid=as.double(childid))
@@ -106,7 +107,7 @@ full_data_w <- e_child %>%
                                     pe_pc3=pc3,
                                     pe_pc4=pc4,),
                    by=c("childid","careid")) %>% 
-  dplyr::left_join(treatment %>% 
+  dplyr::left_join(fi %>% 
                      select(childid,
                             careid,
                             contains('fs_dummy')),

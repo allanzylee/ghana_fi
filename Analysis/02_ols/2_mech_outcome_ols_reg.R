@@ -32,9 +32,9 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 ##########################################################################################
 
 # Define base OLS functions
-reg_func <- function(category, model){
-  m_category_str<-paste0("m_",category,"_per")
-  e_category_str<-paste0("e_",category,"_per")
+ols_func <- function(category, model){
+  m_category_str<-paste0("m_",category)
+  e_category_str<-paste0("e_",category)
   
   for_reg<-full_data_w %>% 
     rename(lagged_outcome=m_category_str)
@@ -65,6 +65,15 @@ tidy_func <- function(category, results_str){
 ##########################################################################################
 ####################################### Enrollment #######################################
 ##########################################################################################
+
+# Define base OLS input
+base_ols_input_region_treatment <- expand.grid(category=c('ch_health','ch_health_rel',
+                                                          'enroll_ch','private_school',
+                                                          'hh_engagement',
+                                                          'ch_motiv','ch_esteem',
+                                                          'attend'),
+                                               model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+
 
 # Base OLS
 base_enrollment_reg <- glm(enrolled_in_school ~ e_ch_fs_dummy+e_cg_fs_dummy,

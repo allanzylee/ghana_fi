@@ -64,8 +64,6 @@ m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>%
 m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
   mutate(across(contains('id'),~as.double(.)))
 
-
-
 ##########################################################################################
 ################################## Putting all data together #############################
 ##########################################################################################

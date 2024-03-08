@@ -50,31 +50,31 @@ reg_func <- function(category, model){
               data=for_reg)
   }
   
-  reg_robust <- coeftest(reg, vcovCL, cluster=full_data_w$careid)
-  
-  return(reg_robust)
+  return(reg)
 }
 
-# # Define function for standard errors
-# cluster_robust_func <- function(category, results_str){
-#   
-#   results<-get(results_str)
-#   reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
-#   
-#   return(reg_robust)
-# }
+# Define function for standard errors
+cluster_robust_func <- function(category, results_str){
+
+  results<-get(results_str)
+  reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+
+  return(reg_robust[,2])
+}
 
 # Define function for creating tidy results
-tidy_func <- function(category, results_str){
-  results<-get(results_str)
-  out<-tidy(results[[category]]) %>% 
-    mutate(category=category)
-  return(out)
-}
+# tidy_func <- function(category, results_str){
+#   results<-get(results_str)
+#   out<-tidy(results[[category]]) %>% 
+#     mutate(category=category)
+#   return(out)
+# }
 
 ##########################################################################################
 ####################################### Regress #######################################
 ##########################################################################################
+
+####################################### Base #######################################
 
 # Define list of relevant mechanisms
 mechs<-c('ch_health','ch_health_rel',
@@ -84,59 +84,57 @@ mechs<-c('ch_health','ch_health_rel',
          'attend')
 
 # Define reg_input
-reg_input <- expand.grid(category=mechs,
-                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+base_reg_input <- expand.grid(category=mechs,
+                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
 
 # Regress (with derive cluster robust errors)
-base_mech_results<- pmap(reg_input,
+base_mech_results<- pmap(base_reg_input,
                          reg_func) %>% 
+  set_names(mechs)
+
+# Define base OLS Robust input
+base_mech_cluster_input <- expand.grid(category=mechs,
+                                       results_str='base_mech_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+base_mech_cluster_results <- pmap(base_mech_cluster_input,
+                                  cluster_robust_func) %>%
   set_names(mechs)
 
 stargazer(base_mech_results,
           column.labels = chartr("_"," ",mechs),
+          se=base_mech_cluster_results,
+          # p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/01_base_mech_results.html")
 
-####################################### Add effects of child age and sex #######################################
+####################################### Multivariate #######################################
 
 # Define reg_input
-reg_input_age_sex <- expand.grid(category=mechs,
-                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+multi_reg_input<- expand.grid(category=mechs,
+                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
 
 # Regress (with derive cluster robust errors)
-base_mech_results_age_sex<- pmap(reg_input_age_sex,
-                         reg_func) %>% 
+multi_mech_results<- pmap(multi_reg_input,
+                          reg_func) %>% 
   set_names(mechs)
 
-stargazer(base_mech_results_age_sex,
+# Define base OLS Robust input
+multi_mech_cluster_input <- expand.grid(category=mechs,
+                                       results_str='multi_mech_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+multi_mech_cluster_results <- pmap(multi_mech_cluster_input,
+                                  cluster_robust_func) %>%
+  set_names(mechs)
+
+stargazer(multi_mech_results, 
           column.labels = chartr("_"," ",mechs),
           star.cutoffs = c(.05, .01, NA),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/02_base_mech_age_sex_results.html")
+          se=multi_mech_cluster_results,
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/02_multi_mech_results.html")
 
-
-
-#
-# 
-# # Base OLS
-# base_enrollment_reg <- glm(enrolled_in_school ~ e_ch_fs_dummy+e_cg_fs_dummy,
-#                            data=full_data_w, family='binomial')
-# 
-# summary(base_enrollment_reg)
-# 
-# # Multivariate OLS
-# multivar_enrollment_reg <- glm(enrolled_in_school ~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_edu +poverty+num_kids+pe_pc1+pe_pc2+pe_pc3+pe_pc4+treatment+language,
-#                                data=full_data_w, family='binomial')
-# 
-# summary(multivar_enrollment_reg)
-
-# ####################################### Export #######################################
-# enrollment_regs <- list(base_enrollment_reg, multivar_enrollment_reg)
-# 
-# stargazer(enrollment_regs,
-#           title="Enrollment Regression",
-#           dep.var.caption = "Endline Dependent Variable:",
-#           omit=c('female','age','cg_age','cg_female','marital_status','cg_edu','poverty','num_kids','pe_pc1','pe_pc2','pe_pc3','pe_pc4','treatment','language'),
-#           column.labels = c("Base",'Multivariate'),
-#           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/1.6.24_enrollment_reg/enrolled_reg.html")
 
 

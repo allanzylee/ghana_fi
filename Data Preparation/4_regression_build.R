@@ -49,13 +49,13 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
   dplyr::select(-contains("gb")) %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
   rename(careid=caseid)
-e_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
+e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>% 
   mutate(careid=as.double(careid),
          childid=as.double(childid))
 child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>% 
   dplyr::select(-community, -region)
-iv <- read_rds("build/iv.rds") %>% 
-  mutate(across(contains('id'),~as.double(.)))
+# iv <- read_rds("build/iv.rds") %>% 
+#   mutate(across(contains('id'),~as.double(.)))
 # e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
 baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
   mutate(careid=as.double(careid))
@@ -87,8 +87,6 @@ full_data_w <- e_child %>%
                                     e_enroll_cg=cr7,
                                     e_attend=cr8,
                                     female=cr3,
-                                    cg_age=cb1,
-                                    cg_female=cb2,
                                     #cg_edu=cb3,
                                     marital_status=cb5,
                                     # num_books=pe7,
@@ -140,6 +138,8 @@ full_data_w <- e_child %>%
                      childid,
                      m_enroll_cg=cr7,
                      m_attend=cr8,
+                     cg_age=cb1,
+                     cg_female=cb2,
               ),
             by=c('childid','careid')
   ) %>%

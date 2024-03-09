@@ -107,7 +107,8 @@ full_data_w <- e_child %>%
   dplyr::left_join(fi %>% 
                      select(childid,
                             careid,
-                            contains('fs_dummy')),
+                            contains('fs_dummy'),
+                            contains('fies')),
                    by=c("childid","careid")) %>%
   dplyr::left_join(child_order %>% dplyr::select(childid,
                                           careid,

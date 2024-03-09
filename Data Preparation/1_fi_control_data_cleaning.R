@@ -264,7 +264,7 @@ m_cfies<-m_ch_fs %>%
          m_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
                                        fs_sum>=1 & fs_sum<=6~1,
                                        fs_sum>=7 & fs_sum<=10~2,
-                                       T~4))
+                                       T~3))
   ) %>% 
   dplyr::select(careid,childid,m_ch_fs_dummy,m_ch_fies)
 
@@ -275,7 +275,7 @@ e_cfies<-e_ch_fs %>%
          e_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
                                        fs_sum>=1 & fs_sum<=6~1,
                                        fs_sum>=7 & fs_sum<=10~2,
-                                       T~4))
+                                       T~3))
          ) %>% 
   dplyr::select(careid,childid,e_ch_fs_dummy,e_ch_fies)
 
@@ -428,8 +428,7 @@ cg_pe<-cbind(cg_pe,cg_pe_pc) %>%
 
 # Household Size and Caregiver Schooling
 baseline_char <- baseline_enrollment_reg %>% 
-  select(childid,
-         careid,
+  select(careid,
          hh_size=ps1,
          cg_schooling=hr10)
 

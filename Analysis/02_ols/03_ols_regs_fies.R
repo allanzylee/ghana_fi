@@ -69,7 +69,7 @@ tidy_func <- function(category, results_str){
 
 # Define base OLS input
 base_ols_input_region_treatment <- expand.grid(category=c('lit','num','ef','sel'),
-                                      model=c('~ e_ch_fies+e_fies+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+                                      model=c('~ e_ch_fies+e_fies_scale+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
 
 # Regression results
 base_ols_results_region_treatment<- pmap(base_ols_input_region_treatment,
@@ -99,7 +99,7 @@ stargazer(base_ols_results_region_treatment,
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
           omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/01_fies/01_base_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/02_fies_scale/01_base_ols.html")
 
 ##########################################################################################
 ############################## Multivariate OLS Regression w/ Region and PNP Treatment ##############################
@@ -107,7 +107,7 @@ stargazer(base_ols_results_region_treatment,
 
 # Define base OLS input
 reduced_multivar_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                          model=c('~ e_ch_fies+e_fies+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                          model=c('~ e_ch_fies+e_fies_scale+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 reduced_multivar_ols_region_results<- pmap(reduced_multivar_ols_input_region,
@@ -146,7 +146,7 @@ stargazer(reduced_multivar_ols_region_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/01_fies/02_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/02_fies_scale/02_multivar_ols.html")
 
 ########################################################################################################################
 ############################## OLS Regression w/ Covariates and GENDER INTERACTION ##############################
@@ -156,7 +156,7 @@ stargazer(reduced_multivar_ols_region_results,
 
 # Define base OLS input
 gender_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                         model=c('~ e_ch_fies+e_fies+e_ch_fies*female+e_fies*female+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+                                         model=c('~ e_ch_fies+e_fies_scale+e_ch_fies*female+e_fies_scale*female+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 gender_multivar_ols_results<- pmap(gender_multivar_ols_input,
@@ -195,7 +195,7 @@ stargazer(gender_multivar_ols_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/01_fies/03_gender_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/02_fies_scale/03_gender_multivar_ols.html")
 
 ########################################################################################################################
 ############################## OLS Regression w/ Covariates and AGE INTERACTION ##############################
@@ -205,7 +205,7 @@ stargazer(gender_multivar_ols_results,
 
 # Define base OLS input
 age_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                      model=c('~ e_ch_fies+e_fies+e_ch_fies*age+e_fies*age+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+                                      model=c('~ e_ch_fies+e_fies_scale+e_ch_fies*age+e_fies_scale*age+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 age_multivar_ols_results<- pmap(age_multivar_ols_input,
@@ -244,5 +244,5 @@ stargazer(age_multivar_ols_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/01_fies/04_age_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/02_fies_scale/04_age_multivar_ols.html")
 

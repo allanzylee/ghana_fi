@@ -85,7 +85,7 @@ mechs<-c('ch_health','ch_health_rel',
 
 # Define reg_input
 base_reg_input <- expand.grid(category=mechs,
-                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+                         model=c('~ e_ch_fies+e_fies+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
 
 # Regress (with derive cluster robust errors)
 base_mech_results<- pmap(base_reg_input,
@@ -107,13 +107,13 @@ stargazer(base_mech_results,
           se=base_mech_cluster_results,
           # p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/01_base_mech_results.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/04_mech_outcome_ols_reg_fies/01_base_mech_results.html")
 
 ####################################### Multivariate #######################################
 
 # Define reg_input
 multi_reg_input<- expand.grid(category=mechs,
-                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+                                 model=c('~ e_ch_fies+e_fies+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
 
 # Regress (with derive cluster robust errors)
 multi_mech_results<- pmap(multi_reg_input,
@@ -134,7 +134,7 @@ stargazer(multi_mech_results,
           column.labels = chartr("_"," ",mechs),
           star.cutoffs = c(.05, .01, NA),
           se=multi_mech_cluster_results,
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/02_multi_mech_results.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/04_mech_outcome_ols_reg_fies/02_multi_mech_results.html")
 
 
 

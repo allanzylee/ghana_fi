@@ -53,7 +53,18 @@ reg_func <- function(category, model){
 
 # High level summary of all relevant variables
 summary_stat<-full_data_w %>% 
-  dplyr::select(e_ch_fs_dummy, e_cg_fs_dummy, female,age_num,enrolled_in_school,private_school,cg_age,cg_female,cg_schooling,marital_status,poverty,hh_size) %>% 
+  dplyr::select(e_ch_fs_dummy,
+                e_cg_fs_dummy,
+                female,
+                age_num,
+                # enrolled_in_school,
+                # private_school,
+                cg_age,
+                cg_female,
+                cg_schooling,
+                marital_status,
+                # poverty,
+                hh_size) %>% 
   as.data.frame()
 
 # Export the summary statistic table
@@ -61,8 +72,18 @@ stargazer(summary_stat,
           header=FALSE, 
           type='latex',
           title = "Child Demographics Summary Statistics",
-          covariate.labels=c("Child Food Insecurity","Caregiver Food Insecurity","Child is Female","Child Age","Enrolled in School", "Attends Private School",
-                             "Caregiver Age","Caregiver is Female","Caregiver Has Completed Any Schooling","Caregiver Marital Status","Poverty","Household Size")
+          covariate.labels=c("Child-Reported FI",
+                             "Caregiver-Reported FI",
+                             "Child Sex",
+                             "Child Age",
+                             # "Enrolled in School", 
+                             # "Attends Private School",
+                             "Caregiver Age",
+                             "Caregiver Sex",
+                             "Caregiver Has Completed Any Schooling",
+                             "Caregiver Marital Status",
+                             # "Poverty",
+                             "Household Size")
           )
 
 ############################# Language Summary Statistics ###############################

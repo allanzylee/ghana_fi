@@ -92,25 +92,25 @@ lan_break_down<-as.data.frame(table(full_data_w$language)/nrow(full_data_w)) %>%
   rename(language=var1,frequency=freq)
 # write_xlsx(lan_break_down, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/lan_break_down.xlsx")
 
-############################# "Extreme" Weather Deviance Summary Statistics ###############################
-extreme_weather_deviation <- full_data_w %>%
-  dplyr::select(contains('extreme')) %>% 
-  summarise(across(starts_with("extreme"), ~mean(.,na.rm=T))) %>% 
-  rename("Optimal Precipitation Deviance Indicator"=extreme_o_p_dev,
-         "Optimal Temperature Deviance Indicator"=extreme_o_t_dev,
-         "Mean Precipitation Deviance Indicator"=extreme_m_p_dev,
-         "Mean Temperature Deviance Indicator"=extreme_m_t_dev,
-         "Regional Precipitation Deviance Indicator"=extreme_s_p_dev,
-         "Regional Temperature Deviance Indicator"=extreme_s_t_dev) %>% 
-  pivot_longer(cols=c(everything()),
-               names_to="Variable",
-               values_to="Larger than One SD") %>% 
-  mutate(`Larger than One SD`=round(`Larger than One SD`,digits=2),
-         `Smaller than One SD`=1-`Larger than One SD`)
-  
-stargazer(extreme_weather_deviation,
-          summary=FALSE,
-          rownames=FALSE)
+# ############################# "Extreme" Weather Deviance Summary Statistics ###############################
+# extreme_weather_deviation <- full_data_w %>%
+#   dplyr::select(contains('extreme')) %>% 
+#   summarise(across(starts_with("extreme"), ~mean(.,na.rm=T))) %>% 
+#   rename("Optimal Precipitation Deviance Indicator"=extreme_o_p_dev,
+#          "Optimal Temperature Deviance Indicator"=extreme_o_t_dev,
+#          "Mean Precipitation Deviance Indicator"=extreme_m_p_dev,
+#          "Mean Temperature Deviance Indicator"=extreme_m_t_dev,
+#          "Regional Precipitation Deviance Indicator"=extreme_s_p_dev,
+#          "Regional Temperature Deviance Indicator"=extreme_s_t_dev) %>% 
+#   pivot_longer(cols=c(everything()),
+#                names_to="Variable",
+#                values_to="Larger than One SD") %>% 
+#   mutate(`Larger than One SD`=round(`Larger than One SD`,digits=2),
+#          `Smaller than One SD`=1-`Larger than One SD`)
+#   
+# stargazer(extreme_weather_deviation,
+#           summary=FALSE,
+#           rownames=FALSE)
 
 ############################# Gender Bias Summary Statistics ###############################
 gender_bias <- full_data_w %>% 
@@ -293,8 +293,8 @@ m_e_ch_cg_corr_input <- tribble(
   ~var_group_str, ~str_1, ~str_0,
   NA, '', '',
   'female',      "Female", "Male",
-  'age', 'Child is 10-17', 'Child is 5-9',
-  'private_school', 'Child attends private school', 'Child does not attend private school',
+  'age', 'Child is 10-17', 'Child is 5-9'
+  # 'private_school', 'Child attends private school', 'Child does not attend private school',
   
 ) 
 
@@ -518,7 +518,7 @@ successive_ols_results<- pmap(successive_ols_input,
 
 # Extract child_food_insecurity and note the instances when it is not all significant
 ch_fi_sig_func <- function(num,model,category){
-  out<-tidy(successive_ols_results[[num]]) %>% 
+  out<-broom::tidy(successive_ols_results[[num]]) %>% 
     janitor::clean_names() %>% 
     mutate(cov=model,
            outcome=category) %>% 

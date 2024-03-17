@@ -398,8 +398,8 @@ outcome_sum_stat_input <- tribble(
   NA, '', '',
   'female',      "Female", "Male",
   'age', 'Child is 10-17', 'Child is 5-9',
-  # 'private_school', 'Child attends private school', 'Child does not attend private school',
-  
+  'e_ch_fs_dummy', 'Child-reported FI', 'Child-reported not FI',
+  'e_cg_fs_dummy', 'Caregiver-reported FI', 'Caregiver-reported not FI',
 )
 
 # Female * Age
@@ -473,6 +473,8 @@ m_e_ch_outcome_cor_output <-pmap_dfr(m_e_ch_outcome_cor_input,
 
 # Print as Latex
 xtable(m_e_ch_outcome_cor_output, type = "latex")
+
+############################# Outcome by FI Level ###############################
 
 ########################################## Export ########################################################
 # Make list of summary statistic results

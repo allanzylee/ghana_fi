@@ -74,7 +74,7 @@ full_data_w <- e_child %>%
          childid,
          age=childage,
          current_class=ed3,
-         e_private_school=ed2,
+         e_school_type=ed2,
          e_enroll_ch=ed1,
          # e_ch_attend=ed7b,
          language=io1,
@@ -82,7 +82,7 @@ full_data_w <- e_child %>%
          e_ch_health=cw1,
          e_ch_health_rel=cw2
          ) %>% 
-  dplyr::right_join(e_cg %>% dplyr::select(careid, 
+  dplyr::left_join(e_cg %>% dplyr::select(careid, 
                                     childid, 
                                     e_enroll_cg=cr7,
                                     e_attend=cr8,
@@ -105,7 +105,7 @@ full_data_w <- e_child %>%
                                     pe_pc4=pc4,),
                    by=c("childid","careid")) %>% 
   dplyr::left_join(fi %>% 
-                     select(childid,
+                     dplyr::select(childid,
                             careid,
                             contains('fs_dummy'),
                             contains('fies')),
@@ -124,18 +124,18 @@ full_data_w <- e_child %>%
                             cg_schooling=hr10),
                    by=c('careid')) %>% 
   left_join(m_child %>%
-              select(careid,
+              dplyr::select(careid,
                      childid,
                      m_ch_health=cw1,
                      m_ch_health_rel=cw2,
                      m_enroll_ch=ed1,
-                     m_private_school=ed2
+                     m_school_type=ed2
                      # m_ch_attend=ed7b
                      ),
             by=c('childid','careid')
             ) %>%
   left_join(m_cg %>%
-              select(careid,
+              dplyr::select(careid,
                      childid,
                      m_enroll_cg=cr7,
                      m_attend=cr8,
@@ -149,7 +149,17 @@ full_data_w <- e_child %>%
                                                  T~1)),
          female=if_else(female==1,0,1),
          cg_female=if_else(cg_female==1,0,1),
-         across(contains('private_school'),~if_else(.==1,0,1)),
+         m_public_school=case_when(m_school_type==1~1,
+                                   T~0),
+         m_private_school=case_when(m_school_type==2~1,
+                                   is.na(m_school_type)~0,
+                                   T~0),
+         e_public_school=case_when(e_school_type==1~1,
+                                   T~0),
+         e_private_school=case_when(e_school_type==2~1,
+                                    is.na(e_school_type)~0,
+                                   T~0),
+         across(contains('school_type'),~if_else(.==1,0,1)),
          marital_status=case_when(marital_status==3~1,
                                   marital_status==4~1,
                                   T~0),
@@ -166,7 +176,7 @@ full_data_w <- e_child %>%
                                  T~current_class)),
          region=case_when(region==""~"Northern",
                           T~region)
-         ) %>% 
+         ) %>%
   # Standardize outcome data
   mutate(m_sel_per=scale(m_sel_per)[,1],
          m_lit_per=scale(m_lit_per)[,1],
@@ -175,7 +185,7 @@ full_data_w <- e_child %>%
          e_sel_per=scale(e_sel_per)[,1],
          e_lit_per=scale(e_lit_per)[,1],
          e_ef_per=scale(e_ef_per)[,1],
-         e_num_per=scale(e_num_per)[,1]) %>% 
+         e_num_per=scale(e_num_per)[,1]) %>%
   # Filter out NAs
   filter(!is.na(female),
          !is.na(age),
@@ -190,10 +200,9 @@ full_data_w <- e_child %>%
          !is.na(pe_pc4),
          !is.na(treatment),
          !is.na(language)
-         # !is.na(private_school)
-         ) %>% 
-  # left_join(num_kids,by=c('careid')) %>% 
-  fastDummies::dummy_cols(select_columns='region') %>% 
+         ) %>%
+  # left_join(num_kids,by=c('careid')) %>%
+  fastDummies::dummy_cols(select_columns='region') %>%
   clean_names()
 
 # # Create long version of the data

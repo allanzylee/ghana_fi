@@ -32,7 +32,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 ##########################################################################################
 
 # Define base OLS functions
-reg_func <- function(category, model){
+reg_func <- function(category, model, only_enrolled=F){
   m_category_str<-paste0("m_",category)
   e_category_str<-paste0("e_",category)
   
@@ -41,11 +41,25 @@ reg_func <- function(category, model){
   
   fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
   
-  if(category=='enroll_ch'|category=='private_school'){
+  if(category=='private_school'){
+    
+    if(only_enrolled==T){
+    
+      for_reg_only_enrolled<-for_reg %>% 
+      filter(e_enroll_ch==1)
+    } else{
+      for_reg_only_enrolled<-for_reg
+    }
+    
     reg<-glm(fm,
-        data=for_reg,
+        data=for_reg_only_enrolled,
         family='binomial')
-  }else{
+  }else if(category=='enroll_ch'){
+    reg<-glm(fm,
+             data=for_reg,
+             family='binomial')
+    
+  } else {
     reg <- lm(fm,
               data=for_reg)
   }
@@ -54,10 +68,23 @@ reg_func <- function(category, model){
 }
 
 # Define function for standard errors
-cluster_robust_func <- function(category, results_str){
+cluster_robust_func <- function(category, results_str, only_enrolled=F){
 
   results<-get(results_str)
-  reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+  if(category=='private_school'){
+    
+    if(only_enrolled==T){
+      
+      for_robust<-full_data_w %>% 
+        filter(e_enroll_ch==1)
+    } else{
+      for_robust<-full_data_w
+    }
+    
+    reg_robust <- coeftest(results[[category]], vcovCL, cluster=for_robust$careid)
+  } else{
+    reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+  }
 
   return(reg_robust[,2])
 }
@@ -76,6 +103,9 @@ cluster_robust_func <- function(category, results_str){
 
 ####################################### Base #######################################
 
+# Define flag for whether to only have children who are enrolled in school for private school regression
+only_enrolled_flag<-T
+
 # Define list of relevant mechanisms
 mechs<-c('ch_health','ch_health_rel',
          'enroll_ch','private_school',
@@ -85,7 +115,8 @@ mechs<-c('ch_health','ch_health_rel',
 
 # Define reg_input
 base_reg_input <- expand.grid(category=mechs,
-                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                         only_enrolled=only_enrolled_flag)
 
 # Regress (with derive cluster robust errors)
 base_mech_results<- pmap(base_reg_input,
@@ -94,7 +125,8 @@ base_mech_results<- pmap(base_reg_input,
 
 # Define base OLS Robust input
 base_mech_cluster_input <- expand.grid(category=mechs,
-                                       results_str='base_mech_results') %>%
+                                       results_str='base_mech_results',
+                                       only_enrolled=only_enrolled_flag) %>%
   mutate(across(everything(),~as.character(.)))
 
 # Cluster Robust Standard Error results
@@ -113,7 +145,8 @@ stargazer(base_mech_results,
 
 # Define reg_input
 multi_reg_input<- expand.grid(category=mechs,
-                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                              only_enrolled=only_enrolled_flag)
 
 # Regress (with derive cluster robust errors)
 multi_mech_results<- pmap(multi_reg_input,
@@ -122,7 +155,8 @@ multi_mech_results<- pmap(multi_reg_input,
 
 # Define base OLS Robust input
 multi_mech_cluster_input <- expand.grid(category=mechs,
-                                       results_str='multi_mech_results') %>%
+                                       results_str='multi_mech_results',
+                                       only_enrolled=only_enrolled_flag) %>%
   mutate(across(everything(),~as.character(.)))
 
 # Cluster Robust Standard Error results

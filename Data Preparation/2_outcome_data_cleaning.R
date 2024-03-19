@@ -24,13 +24,13 @@ m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>%
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   rename(careid=caseid) %>% 
   mutate(across(contains('id'),~as.double(.)))
-child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>% 
-  mutate(across(contains('id'),~as.double(.)))
+# child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>% 
+#   mutate(across(contains('id'),~as.double(.)))
 
 # Create child age variable
-child_age <- m_child %>% 
-  dplyr::select(careid,childid,cr6) %>% 
-  rename(child_age=cr6)
+child_age <- e_child %>% 
+  dplyr::select(careid,childid,childage) %>% 
+  rename(child_age=childage)
 
 ##########################################################################################
 ###################################### Outcome data cleaning #############################

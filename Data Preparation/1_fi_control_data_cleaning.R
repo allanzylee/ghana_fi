@@ -99,10 +99,10 @@ e_cg_fs <- e_cg %>%
   dplyr::select(-fsid)
 
 # I will replace the NAs with an average of all other FS values.
-m_ch_fs[fs_cols_child] <- apply(m_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(m_ch_fs[fs_cols_child], na.rm = TRUE), x))
-m_cg_fs[fs_cols_cg] <- apply(m_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(m_cg_fs[fs_cols_cg], na.rm = TRUE), x))
-e_ch_fs[fs_cols_child] <- apply(e_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(e_ch_fs[fs_cols_child], na.rm = TRUE), x))
-e_cg_fs[fs_cols_cg] <- apply(e_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(e_cg_fs[fs_cols_cg], na.rm = TRUE), x))
+# m_ch_fs[fs_cols_child] <- apply(m_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(m_ch_fs[fs_cols_child], na.rm = TRUE), x))
+# m_cg_fs[fs_cols_cg] <- apply(m_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(m_cg_fs[fs_cols_cg], na.rm = TRUE), x))
+# e_ch_fs[fs_cols_child] <- apply(e_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(e_ch_fs[fs_cols_child], na.rm = TRUE), x))
+# e_cg_fs[fs_cols_cg] <- apply(e_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(e_cg_fs[fs_cols_cg], na.rm = TRUE), x))
 
 # Drop the remaining rows in ch_fs that have only NAs.
 m_ch_fs<-m_ch_fs %>%
@@ -259,7 +259,7 @@ e_cg_fs<-e_cg_fs %>%
 # 
 # Midline
 m_cfies<-m_ch_fs %>% 
-  mutate(fs_sum=rowSums(select(.,fs_cols_child))) %>% 
+  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child))) %>% 
   mutate(m_ch_fs_dummy=if_else(fs_sum>=7,1,0),
          m_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
                                        fs_sum>=1 & fs_sum<=6~1,
@@ -270,7 +270,7 @@ m_cfies<-m_ch_fs %>%
 
 # Endline
 e_cfies<-e_ch_fs %>% 
-  mutate(fs_sum=rowSums(select(.,fs_cols_child))) %>% 
+  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child))) %>% 
   mutate(e_ch_fs_dummy=if_else(fs_sum>=7,1,0),
          e_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
                                        fs_sum>=1 & fs_sum<=6~1,

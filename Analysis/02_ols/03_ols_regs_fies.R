@@ -69,7 +69,7 @@ tidy_func <- function(category, results_str){
 
 # Define whether to use FIES or FIES Scale (FAO)
 
-fies_scale_indicator=F
+fies_scale_indicator=T
 
 if(fies_scale_indicator==T){
   fies<-"e_fies_scale"
@@ -119,7 +119,7 @@ cov_labels <-c("CFIES: Few Experiences",
                "Constant")
 
 stargazer(base_ols_results_region_treatment,
-          title="Base OLS Regression wit Region and Treatment FE",
+          title="Base OLS Regression with Region and Treatment FE",
           dep.var.caption = "Endline Dependent Variable:",
           column.labels = outcome_lables,
           covariate.labels=cov_labels,
@@ -128,7 +128,7 @@ stargazer(base_ols_results_region_treatment,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
+          # omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
           out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/03_ols_regs_fies/{folder}//01_base_ols.html"))
 
 ##########################################################################################

@@ -20,6 +20,7 @@ library(AER)
 library(dataCompareR)
 library(broom)
 library(xtable)
+library(dplyr)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -97,15 +98,85 @@ cluster_robust_func <- function(category, results_str, only_enrolled=F){
 #   return(out)
 # }
 
+####################################################################################################################
+########################## Define terms to use and label ###############################
+#########################################################################################################################
+# Define whether to use FIES or FIES Scale (FAO) and whether to limit private school regression data to only enrolled children
+fies_scale_indicator=F
+only_enrolled_flag<-F
+
+if(fies_scale_indicator==T){
+  fies<-"e_fies_scale"
+  folder<-"02_fies_scale"
+  
+  fies_labels<-c("CFIES: Few Experiences",
+                 "CFIES: Several Experiences",
+                 "CFIES: Many Experiences",
+                 "FIES: Mild",
+                 "FIES: Moderate",
+                 "FIES: Severe")
+  
+} else {
+  fies<-"e_fies_sum"
+  folder<-"01_fies_sum"
+  
+  fies_labels <-c("CFIES: Few Experiences",
+                  "CFIES: Several Experiences",
+                  "CFIES: Many Experiences",
+                  "FIES")
+}
+
+# Define Stargazer Labels
+outcome_lables<-c("Literacy","Numeracy","Executive Function","SEL")
+
+# Base labels
+cov_labels <-c(fies_labels,
+               "Child Female",
+               "Child is 10–17",
+               "Region: North East",
+               "Region: Northern",
+               "Region: Upper East",
+               "Region: Upper West",
+               "PNP Treatment",
+               "Lagged Outcome",
+               "Constant")
+
+# Multi labels
+multi_cov_labels <-c(fies_labels,
+                     "Child Female",
+                     "Child is 10–17",
+                     "Caregiver Age",
+                     "Caregiver Female",
+                     "Caregiver has a Partner",
+                     "Caregiver Completed Primary School",
+                     "Household Size",
+                     "Language: Dagbani",
+                     "Language: Gruni",
+                     "Language: Other",
+                     "Language: Sissali",
+                     "Region: North East",
+                     "Region: Northern",
+                     "Region: Upper East",
+                     "Region: Upper West",
+                     "PNP Treatment",
+                     "Lagged Outcome",
+                     "Constant")
+
+private_school_label <-case_when(only_enrolled_flag==T~"Child is Enrolled in Private School (Subset)",
+                                 T~"Child is Enrolled in Private School") 
+
+mechs_labels<-c('Child-Reported Health','Child-Reported Relative Health',
+                'Child is Enrolled in School',private_school_label,
+                'Household Engagement',
+                'Child Motivation','Child Self-Esteem',
+                'Child Attended School')
+
 ##########################################################################################
 ####################################### Regress #######################################
 ##########################################################################################
 
 ####################################### Base #######################################
-# Define flag for whether to only have children who are enrolled in school for private school regression
-only_enrolled_flag<-F
-private_school_label <-case_when(only_enrolled_flag==T~"Child is Enrolled in Private School (Subset)",
-                                 T~"Child is Enrolled in Private School") 
+
 # Define list of relevant mechanisms
 mechs<-c('ch_health','ch_health_rel',
          'enroll_ch','private_school',
@@ -115,7 +186,7 @@ mechs<-c('ch_health','ch_health_rel',
 
 # Define reg_input
 base_reg_input <- expand.grid(category=mechs,
-                         model=c('~ e_ch_fies+e_fies+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                         model=c(glue('~ e_ch_fies+{fies}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')),
                          only_enrolled=only_enrolled_flag)
 
 # Regress (with derive cluster robust errors)
@@ -134,41 +205,19 @@ base_mech_cluster_results <- pmap(base_mech_cluster_input,
                                   cluster_robust_func) %>%
   set_names(mechs)
 
-# Define Stargazer labels
-mechs_labels<-c('Child-Reported Health','Child-Reported Relative Health',
-               'Child is Enrolled in School',private_school_label,
-               'Household Engagement',
-               'Child Motivation','Child Self-Esteem',
-               'Child Attended School')
-
-cov_labels <-c("CFIES: Few Experiences",
-               "CFIES: Several Experiences",
-               "CFIES: Many Experiences",
-               "FIES: Moderate",
-               "FIES: Severe",
-               "Child Female",
-               "Child is 10–17",
-               "Region: North East",
-               "Region: Northern",
-               "Region: Upper East",
-               "Region: Upper West",
-               "PNP Treatment",
-               "Lagged Outcome",
-               "Constant")
-
 stargazer(base_mech_results,
           column.labels = chartr("_"," ",mechs_labels),
           se=base_mech_cluster_results,
           # p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
           covariate.labels=cov_labels,
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/04_mech_outcome_ols_reg_fies/01_base_mech_results.html")
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/04_mech_outcome_ols_reg_fies/{folder}/01_base_mech_results.html"))
 
 ####################################### Multivariate #######################################
 
 # Define reg_input
 multi_reg_input<- expand.grid(category=mechs,
-                                 model=c('~ e_ch_fies+e_fies+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                                 model=c(glue('~ e_ch_fies+{fies}+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')),
                               only_enrolled=only_enrolled_flag)
 
 # Regress (with derive cluster robust errors)
@@ -189,36 +238,12 @@ multi_mech_cluster_results <- pmap(multi_mech_cluster_input,
 
 # Define Stargazer labels
 
-multi_cov_labels <-c("CFIES: Few Experiences",
-               "CFIES: Several Experiences",
-               "CFIES: Many Experiences",
-               "FIES: Moderate",
-               "FIES: Severe",
-               "Child Female",
-               "Child is 10–17",
-               "Caregiver Age",
-               "Caregiver Female",
-               "Caregiver has a Partner",
-               "Caregiver Completed Primary School",
-               "Household Size",
-               "Language: Dagbani",
-               "Language: Gruni",
-               "Language: Other",
-               "Language: Sissali",
-               "Region: North East",
-               "Region: Northern",
-               "Region: Upper East",
-               "Region: Upper West",
-               "PNP Treatment",
-               "Lagged Outcome",
-               "Constant")
-
 stargazer(multi_mech_results, 
           column.labels = chartr("_"," ",mechs_labels),
           star.cutoffs = c(.05, .01, NA),
           se=multi_mech_cluster_results,
           covariate.labels=multi_cov_labels,
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/04_mech_outcome_ols_reg_fies/02_multi_mech_results.html")
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/04_mech_outcome_ols_reg_fies/{folder}/02_multi_mech_results.html"))
 
 
 

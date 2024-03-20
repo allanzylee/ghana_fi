@@ -64,6 +64,226 @@ tidy_func <- function(category, results_str){
 }
 
 ####################################################################################################################
+########################## Define terms to use and label ###############################
+#########################################################################################################################
+
+# Define whether to use FIES or FIES Scale (FAO)
+
+fies_scale_indicator=T
+
+if(fies_scale_indicator==T){
+  fies<-"e_fies_scale"
+  folder<-"02_fies_scale"
+  
+  # Base labels
+  cov_labels <-c("CFIES: Few Experiences",
+                 "CFIES: Several Experiences",
+                 "CFIES: Many Experiences",
+                 "FIES: Mild",
+                 "FIES: Moderate",
+                 "FIES: Severe",
+                 "Region: North East",
+                 "Region: Northern",
+                 "Region: Upper East",
+                 "Region: Upper West",
+                 "PNP Treatment",
+                 "Lagged Outcome",
+                 "Constant")
+  
+  # Multi labels
+  multi_cov_labels <-c("CFIES: Few Experiences",
+                       "CFIES: Several Experiences",
+                       "CFIES: Many Experiences",
+                       "FIES: Mild",
+                       "FIES: Moderate",
+                       "FIES: Severe",
+                       "Child Female",
+                       "Child is 10–17",
+                       "Caregiver Age",
+                       "Caregiver Female",
+                       "Caregiver has a Partner",
+                       "Caregiver Completed Primary School",
+                       "Household Size",
+                       "Language: Dagbani",
+                       "Language: Gruni",
+                       "Language: Other",
+                       "Language: Sissali",
+                       "Region: North East",
+                       "Region: Northern",
+                       "Region: Upper East",
+                       "Region: Upper West",
+                       "PNP Treatment",
+                       "Lagged Outcome",
+                       "Constant")
+  
+  # Sex Label
+  sex_multi_cov_labels <-c("CFIES: Few Experiences",
+                           "CFIES: Several Experiences",
+                           "CFIES: Many Experiences",
+                           "FIES: Mild",
+                           "FIES: Moderate",
+                           "FIES: Severe",
+                           "Child Female",
+                           "Child is 10–17",
+                           "Caregiver Age",
+                           "Caregiver Female",
+                           "Caregiver has a Partner",
+                           "Caregiver Completed Primary School",
+                           "Household Size",
+                           "Language: Dagbani",
+                           "Language: Gruni",
+                           "Language: Other",
+                           "Language: Sissali",
+                           "Region: North East",
+                           "Region: Northern",
+                           "Region: Upper East",
+                           "Region: Upper West",
+                           "PNP Treatment",
+                           "Lagged Outcome",
+                           "CFIES: Few Experiences x Child Female",
+                           "CFIES: Several Experiences x Child Female",
+                           "CFIES: Many Experiences x Child Female",
+                           "FIES: Mild x Child Female",   
+                           "FIES: Moderate x Child Female",
+                           "FIES: Severe x Child Female",
+                           "Constant")
+  
+  # Age labels
+  age_multi_cov_labels <-c("CFIES: Few Experiences",
+                           "CFIES: Several Experiences",
+                           "CFIES: Many Experiences",
+                           "FIES: Mild",
+                           "FIES: Moderate",
+                           "FIES: Severe",
+                           "Child is 10–17",
+                           "Child Female",
+                           "Caregiver Age",
+                           "Caregiver Female",
+                           "Caregiver has a Partner",
+                           "Caregiver Completed Primary School",
+                           "Household Size",
+                           "Language: Dagbani",
+                           "Language: Gruni",
+                           "Language: Other",
+                           "Language: Sissali",
+                           "Region: North East",
+                           "Region: Northern",
+                           "Region: Upper East",
+                           "Region: Upper West",
+                           "PNP Treatment",
+                           "Lagged Outcome",
+                           "CFIES: Few Experiences x Child is 10–17",
+                           "CFIES: Several Experiences x Child is 10–17",
+                           "CFIES: Many Experiences x Child is 10–17",
+                           "FIES: Mild x Child is 10–17",
+                           "FIES: Moderate x Child is 10–17",
+                           "FIES: Severe x Child is 10–17",
+                           "Constant")
+  
+} else {
+  fies<-"e_fies_sum"
+  folder<-"01_fies_sum"
+  
+  # Base labels
+  cov_labels <-c("CFIES: Few Experiences",
+                 "CFIES: Several Experiences",
+                 "CFIES: Many Experiences",
+                 "FIES",
+                 # "Child Female",
+                 # "Child is 10–17",
+                 "Region: North East",
+                 "Region: Northern",
+                 "Region: Upper East",
+                 "Region: Upper West",
+                 "PNP Treatment",
+                 "Lagged Outcome",
+                 "Constant")
+  
+  # Multi labels
+  multi_cov_labels <-c("CFIES: Few Experiences",
+                       "CFIES: Several Experiences",
+                       "CFIES: Many Experiences",
+                       "FIES",
+                       "Child Female",
+                       "Child is 10–17",
+                       "Caregiver Age",
+                       "Caregiver Female",
+                       "Caregiver has a Partner",
+                       "Caregiver Completed Primary School",
+                       "Household Size",
+                       "Language: Dagbani",
+                       "Language: Gruni",
+                       "Language: Other",
+                       "Language: Sissali",
+                       "Region: North East",
+                       "Region: Northern",
+                       "Region: Upper East",
+                       "Region: Upper West",
+                       "PNP Treatment",
+                       "Lagged Outcome",
+                       "Constant")
+  
+  # Sex Label
+  sex_multi_cov_labels <-c("CFIES: Few Experiences",
+                           "CFIES: Several Experiences",
+                           "CFIES: Many Experiences",
+                           "FIES",
+                           "Child Female",
+                           "Child is 10–17",
+                           "Caregiver Age",
+                           "Caregiver Female",
+                           "Caregiver has a Partner",
+                           "Caregiver Completed Primary School",
+                           "Household Size",
+                           "Language: Dagbani",
+                           "Language: Gruni",
+                           "Language: Other",
+                           "Language: Sissali",
+                           "Region: North East",
+                           "Region: Northern",
+                           "Region: Upper East",
+                           "Region: Upper West",
+                           "PNP Treatment",
+                           "Lagged Outcome",
+                           "CFIES: Few Experiences x Child Female",
+                           "CFIES: Several Experiences x Child Female",
+                           "CFIES: Many Experiences x Child Female",
+                           "FIES x Child Female",
+                           "Constant")
+  
+  # Age labels
+  age_multi_cov_labels <-c("CFIES: Few Experiences",
+                           "CFIES: Several Experiences",
+                           "CFIES: Many Experiences",
+                           "FIES",
+                           "Child is 10–17",
+                           "Child Female",
+                           "Caregiver Age",
+                           "Caregiver Female",
+                           "Caregiver has a Partner",
+                           "Caregiver Completed Primary School",
+                           "Household Size",
+                           "Language: Dagbani",
+                           "Language: Gruni",
+                           "Language: Other",
+                           "Language: Sissali",
+                           "Region: North East",
+                           "Region: Northern",
+                           "Region: Upper East",
+                           "Region: Upper West",
+                           "PNP Treatment",
+                           "Lagged Outcome",
+                           "CFIES: Few Experiences x Child is 10–17",
+                           "CFIES: Several Experiences x Child is 10–17",
+                           "CFIES: Many Experiences x Child is 10–17",
+                           "FIES x Child is 10–17",
+                           "Constant")
+}
+
+# Define Stargazer Labels
+outcome_lables<-c("Literacy","Numeracy","Executive Function","SEL")
+
+####################################################################################################################
 ########################## Base OLS Model: Include Region and Treatment dummies ###############################
 #########################################################################################################################
 
@@ -91,7 +311,7 @@ base_ols_robust_errors <- pmap(base_ols_robust_input,
 stargazer(base_ols_results,
           title="Base OLS Regression wit Region and Treatment FE",
           dep.var.caption = "Endline Dependent Variable:",
-          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+          column.labels = outcome_lables,
           # covariate.labels=c("Child-Reported Food Insecurity","Caregiver-Reported Food Insecurity","Midline Education Outcome","Constant"),
           se=base_ols_robust_errors,
           # p=list(base_ols_robust_errors[['lit']][,4],base_ols_robust_errors[['num']][,4],base_ols_robust_errors[['ef']][,4],base_ols_robust_errors[['sel']][,4]),
@@ -123,10 +343,6 @@ ols_edu_results_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
 ols_edu_robust_errors <- pmap(ols_edu_results_robust_input,
                                            cluster_robust_func) %>%
   set_names('lit','num','ef','sel')
-
-# # Export tidy results
-# reduced_multivar_ols_region_df <-pmap_dfr(reduced_multivar_ols_robust_region_input %>% dplyr::select(category),
-#                                    tidy_func)
 
 ############################## Exporting Results ###############################
 

@@ -165,8 +165,6 @@ full_data_w <- e_child %>%
                                   T~0),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
-         #cg_edu=case_when((cg_edu>1 & cg_edu<6)~1,
-         #                  T~0),
          treatment=case_when(treatment>0 ~ 1,
                              T~0),
          current_class=as.double(current_class),
@@ -175,7 +173,9 @@ full_data_w <- e_child %>%
          current_class=as.factor(case_when(current_class<0~NA_real_,
                                  T~current_class)),
          region=case_when(region==""~"Northern",
-                          T~region)
+                          T~region),
+         across(contains('health'),~as.factor(case_when(as.double(.)<0~NA_real_,
+                                              T~as.double(.))))
          ) %>%
   # Standardize outcome data
   mutate(m_sel_per=scale(m_sel_per)[,1],

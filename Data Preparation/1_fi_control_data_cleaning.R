@@ -17,7 +17,8 @@ setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 # Load packages
 # library(foreign)
 library(haven)
-library(tidyverse)
+# library(tidyverse)
+library(dplyr)
 # library(stargazer)
 # library(psych)
 # library(corrr)
@@ -281,65 +282,49 @@ e_cfies<-e_ch_fs %>%
 
 ###################################### Caregiver ######################################################
 
-### The FIES reduces the dimensionality of the FS questions by creating a dummy variable that =1 if any of FSQ5-Q8 =1
+### The FIES is coded in a few ways
+# 1. Dummy variable if any of Q5-Q8 is 1
+# 2. A sum of the scores
+# 3. 
+
 # Midline
 m_cg_fies<-m_cg_fs %>% 
   mutate(m_cg_fs_dummy=case_when(fs5==1|fs6==1|fs7==1|fs8==1~1,
                                  T~0),
-         m_fies=as.factor(case_when(fs5==1~1,
-                                    fs8==1~2,
-                                    T~0)),
-         m_fies_scale=as.factor(case_when((fs1==1|fs2==1|fs3==1) & (fs4!=1 & fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 0,
-                                          (fs4==1|fs5==1|fs6==1) & (fs1!=1 & fs2!=1& fs3!=1& fs7!=1& fs8!=1) ~ 1,
-                                          T~2
-         )
-         )) %>% 
+         m_fies_sum=rowSums(dplyr::select(.,fs_cols_cg)),
+         m_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg)) == 0 ~ 0,
+                                          (fs1==1|fs2==1|fs3==1|fs4==1) & (fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 1,
+                                          (fs5==1|fs6==1|fs7==1) & (fs8!=1) ~ 2,
+                                          fs8==1 ~ 3,
+                                          T~NA_real_
+         )),
+         across(matches("fs[0-9]"),~as.double(.))
+         
+         ) %>%
   dplyr::select(-matches("fs[0-9]"))
 
 # Endline
 e_cg_fies<-e_cg_fs %>% 
   mutate(e_cg_fs_dummy=case_when(fs5==1|fs6==1|fs7==1|fs8==1~1,
                                  T~0),
-         e_fies=as.factor(case_when(fs5==1~1,
-                          fs8==1~2,
-                          T~0)),
-         e_fies_scale=as.factor(case_when((fs1==1|fs2==1|fs3==1) & (fs4!=1 & fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 0,
-                                (fs4==1|fs5==1|fs6==1) & (fs1!=1 & fs2!=1& fs3!=1& fs7!=1& fs8!=1) ~ 1,
-                                T~2
-                                )
-                                )) %>% 
+         e_fies_sum=rowSums(dplyr::select(.,fs_cols_cg)),
+         e_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg)) == 0 ~ 0,
+                                          (fs1==1|fs2==1|fs3==1|fs4==1) & (fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 1,
+                                          (fs5==1|fs6==1|fs7==1) & (fs8!=1) ~ 2,
+                                          fs8==1 ~ 3,
+                                          T~NA_real_
+         )),
+         across(matches("fs[0-9]"),~as.double(.))
+         
+  ) %>% 
   dplyr::select(-matches("fs[0-9]"))
-
-# m_cg_fs_pc$m_cg_fies=rowSums(m_cg_fs_pc[,6:9])
-# m_cg_fs_pc<-m_cg_fs_pc %>% 
-#   mutate(m_cg_fs_dummy=ifelse(m_cg_fies>=1,1,0)) %>% 
-#   dplyr::select(careid,m_cg_fs_pc,m_cg_fies,m_cg_fs_dummy)
-# 
-# e_cg_fs_pc$e_cg_fies=rowSums(e_cg_fs_pc[,6:9])
-# e_cg_fs_pc<-e_cg_fs_pc %>% 
-#   mutate(e_cg_fs_dummy=ifelse(e_cg_fies>=1,1,0)) %>% 
-#   dplyr::select(careid,e_cg_fs_pc,e_cg_fies,e_cg_fs_dummy)
-# 
-# m_fs_pc$m_fs_fies=rowSums(m_fs_pc[,3:20])
-# m_fs_pc<-m_fs_pc %>% 
-#   dplyr::select(careid,childid,PC1,PC2,PC3,m_fs_fies) %>% 
-#   rename(m_fs_pc1=PC1,
-#          m_fs_pc2=PC2,
-#          m_fs_pc3=PC3)
-# 
-# e_fs_pc$e_fs_fies=rowSums(e_fs_pc[,3:20])
-# e_fs_pc<-e_fs_pc %>% 
-#   dplyr::select(careid,childid,PC1,PC2,PC3,e_fs_fies) %>% 
-#   rename(e_fs_pc1=PC1,
-#          e_fs_pc2=PC2,
-#          e_fs_pc3=PC3)
 
 ###################################### Putting all treatment data together #############################
 
 fi <- e_cfies %>% 
   inner_join(e_cg_fies,by=c("careid","childid")) %>% 
-  inner_join(m_cfies,by=c("careid","childid")) %>% 
-  inner_join(m_cg_fies,by=c("careid","childid"))
+  left_join(m_cfies,by=c("careid","childid")) %>% 
+  left_join(m_cg_fies,by=c("careid","childid"))
 
 ###################################################################################################
 #################### Caregiver-Reported Parental Engagement data cleaning #########################
@@ -364,7 +349,7 @@ m_cg_pe <- m_cg %>%
   # Ensure that all columns are numeric
   mutate_if(is.double,as.numeric) %>% 
   mutate_if(is.character,as.numeric) %>%
-  mutate(m_hh_engagement=select(., contains("pe")) %>% rowSums())
+  mutate(m_hh_engagement=dplyr::select(., contains("pe")) %>% rowSums())
 
 # Endline
 e_cg_pe <- e_cg %>% 
@@ -385,7 +370,7 @@ e_cg_pe <- e_cg %>%
   # Ensure that all columns are numeric
   mutate_if(is.double,as.numeric) %>% 
   mutate_if(is.character,as.numeric) %>%
-  mutate(e_hh_engagement=select(., contains("pe")) %>% rowSums())
+  mutate(e_hh_engagement=dplyr::select(., contains("pe")) %>% rowSums())
 # The correlation between parental engagement variables are approximately 0.5 or lower, suggesting a moderate linear relationship.
 # Multicollinearity is not a significant issue and the parental engagement variables can be kept in their current form.
 # However, I will conduct PCA and linear combinations of PE variables still.
@@ -415,8 +400,8 @@ screeplot(cg_pe_pca, type="l", main="Screeplot for Caregiver-Reported Parental E
 cg_pe_pc<-cg_pe_pca$x[,1:4]
 cg_pe<-cbind(cg_pe,cg_pe_pc) %>% 
   clean_names() %>% 
-  select(childid,careid,e_hh_engagement,matches('pc[0-9]')) %>% 
-  inner_join(m_cg_pe %>% select(-matches('pe[0-9]')),
+  dplyr::select(childid,careid,e_hh_engagement,matches('pc[0-9]')) %>% 
+  inner_join(m_cg_pe %>% dplyr::select(-matches('pe[0-9]')),
              by=c('childid','careid'))
 
 # Create a correlation matrix for caregiver engagement PC and original data
@@ -428,7 +413,7 @@ cg_pe<-cbind(cg_pe,cg_pe_pc) %>%
 
 # Household Size and Caregiver Schooling
 baseline_char <- baseline_enrollment_reg %>% 
-  select(careid,
+  dplyr::select(careid,
          hh_size=ps1,
          cg_schooling=hr10)
 
@@ -436,7 +421,7 @@ baseline_char <- baseline_enrollment_reg %>%
 m_ch_motiv_esteem <- m_child %>% 
   mutate(across(contains("mo"),~as.double(.)),
          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-  mutate(m_ch_motiv=select(., contains("mo")) %>% rowSums()) %>% 
+  mutate(m_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
   mutate(across(matches("se[0-9]"),~as.double(.)),
          across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
                                               . == 3 ~ 2,
@@ -444,14 +429,14 @@ m_ch_motiv_esteem <- m_child %>%
                                               . == 1 ~ 4,
                                               TRUE ~ NA_real_))
   ) %>% 
-  mutate(m_ch_esteem=select(., matches("se[0-9]")) %>% rowSums()) %>% 
-  select(childid,careid,m_ch_motiv,m_ch_esteem)
+  mutate(m_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
+  dplyr::select(childid,careid,m_ch_motiv,m_ch_esteem)
 
 # Endline Child Motivation and Estee
 e_ch_motiv_esteem <- e_child %>% 
   mutate(across(contains("mo"),~as.double(.)),
          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-  mutate(e_ch_motiv=select(., contains("mo")) %>% rowSums()) %>% 
+  mutate(e_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
   mutate(across(matches("se[0-9]"),~as.double(.)),
          across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
                                              . == 3 ~ 2,
@@ -459,8 +444,8 @@ e_ch_motiv_esteem <- e_child %>%
                                              . == 1 ~ 4,
                                              TRUE ~ NA_real_))
          ) %>% 
-  mutate(e_ch_esteem=select(., matches("se[0-9]")) %>% rowSums()) %>% 
-  select(childid,careid,e_ch_motiv,e_ch_esteem)
+  mutate(e_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
+  dplyr::select(childid,careid,e_ch_motiv,e_ch_esteem)
 
 ################################### Create control data for export ######################
 controls<-e_ch_motiv_esteem %>% 

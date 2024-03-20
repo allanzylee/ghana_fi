@@ -175,7 +175,8 @@ full_data_w <- e_child %>%
          region=case_when(region==""~"Northern",
                           T~region),
          across(contains('health'),~as.factor(case_when(as.double(.)<0~NA_real_,
-                                              T~as.double(.))))
+                                              T~as.double(.)))),
+         across(contains('attend'),~as.factor(.))
          ) %>%
   # Standardize outcome data
   mutate(m_sel_per=scale(m_sel_per)[,1],

@@ -421,30 +421,32 @@ baseline_char <- baseline_enrollment_reg %>%
 m_ch_motiv_esteem <- m_child %>% 
   mutate(across(contains("mo"),~as.double(.)),
          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-  mutate(m_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
   mutate(across(matches("se[0-9]"),~as.double(.)),
-         across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+         across(matches("se[0-9]"),~case_when(.<0~0,T~.))) %>% 
+  mutate(m_ch_motiv=as.factor(dplyr::select(., contains("mo")) %>% rowSums())) %>% 
+  mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
                                               . == 3 ~ 2,
                                               . == 2 ~ 3,
                                               . == 1 ~ 4,
                                               TRUE ~ NA_real_))
   ) %>% 
-  mutate(m_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
+  mutate(m_ch_esteem=as.factor(dplyr::select(., matches("se[0-9]")) %>% rowSums())) %>% 
   dplyr::select(childid,careid,m_ch_motiv,m_ch_esteem)
 
 # Endline Child Motivation and Estee
 e_ch_motiv_esteem <- e_child %>% 
   mutate(across(contains("mo"),~as.double(.)),
          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-  mutate(e_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
   mutate(across(matches("se[0-9]"),~as.double(.)),
-         across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+         across(matches("se[0-9]"),~case_when(as.double(.)<0~0,T~as.double(.)))) %>% 
+  mutate(e_ch_motiv=as.factor(dplyr::select(., contains("mo")) %>% rowSums())) %>% 
+  mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
                                              . == 3 ~ 2,
                                              . == 2 ~ 3,
                                              . == 1 ~ 4,
                                              TRUE ~ NA_real_))
          ) %>% 
-  mutate(e_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
+  mutate(e_ch_esteem=as.factor(dplyr::select(., matches("se[0-9]")) %>% rowSums())) %>% 
   dplyr::select(childid,careid,e_ch_motiv,e_ch_esteem)
 
 ################################### Create control data for export ######################

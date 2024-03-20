@@ -20,6 +20,8 @@ library(AER)
 library(dataCompareR)
 library(broom)
 library(xtable)
+library(MASS)
+library(dplyr)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -36,32 +38,33 @@ reg_func <- function(category, model, only_enrolled=F){
   m_category_str<-paste0("m_",category)
   e_category_str<-paste0("e_",category)
   
-  for_reg<-full_data_w %>% 
-    rename(lagged_outcome=m_category_str)
+  fm <- as.formula(paste(e_category_str, model, m_category_str))  
   
-  fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
-  
-  if(category=='private_school'){
+  if(only_enrolled==T){
     
-    if(only_enrolled==T){
-    
-      for_reg_only_enrolled<-for_reg %>% 
+    for_reg<-full_data_w %>% 
       filter(e_enroll_ch==1)
-    } else{
-      for_reg_only_enrolled<-for_reg
-    }
+    
+  } else{
+    
+    for_reg<-full_data_w
+  }
+  
+  if(category=='private_school' | category=='enroll_ch'){
     
     reg<-glm(fm,
-        data=for_reg_only_enrolled,
+        data=for_reg,
         family='binomial')
-  }else if(category=='enroll_ch'){
-    reg<-glm(fm,
-             data=for_reg,
-             family='binomial')
+  }else if(category=='hh_engagement' | category=='ch_motiv' | category=='ch_esteem'){
+    
+    reg<-lm(fm,
+             data=for_reg)
     
   } else {
-    reg <- lm(fm,
-              data=for_reg)
+
+    reg <- polr(fm,
+              data=for_reg,
+              Hess = T)
   }
   
   return(reg)
@@ -71,19 +74,47 @@ reg_func <- function(category, model, only_enrolled=F){
 cluster_robust_func <- function(category, results_str, only_enrolled=F){
 
   results<-get(results_str)
-  if(category=='private_school'){
+  m_category_str<-paste0("m_",category)
+  e_category_str<-paste0("e_",category)
+  
+  if(category=='private_school' & only_enrolled_flag==T){
     
-    if(only_enrolled==T){
-      
-      for_robust<-full_data_w %>% 
-        filter(e_enroll_ch==1)
-    } else{
-      for_robust<-full_data_w
-    }
+    for_robust<-full_data_w %>% 
+      filter(e_enroll_ch==1,
+             !is.na(!!sym(m_category_str)),
+             !is.na(!!sym(e_category_str))
+             )
+    
+  } else{
+    
+    for_robust<-full_data_w %>% 
+      filter(!is.na(!!sym(m_category_str)),
+             !is.na(!!sym(e_category_str))
+      )
+  }
+  
+  # if(category=='e_ch_health'|category=='e_ch_health_rel'|category=='e_ch_esteem'){
+  #   
+  #   for_robust<-full_data_w_f %>% 
+  #     filter(age==1)
+  #   
+  # } else{
+  #   
+  #   for_robust<-full_data_w_f
+  # }
+  
+  if(category=='private_school' | category=='enroll_ch'){
     
     reg_robust <- coeftest(results[[category]], vcovCL, cluster=for_robust$careid)
-  } else{
-    reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+    
+  }else if(category=='hh_engagement' | category=='ch_motiv' | category=='ch_esteem'){
+    
+    reg_robust <- coeftest(results[[category]], vcovCL, cluster=for_robust$careid)
+    
+  } else {
+    intermediate<-sandwich::vcovCL(results[[category]], for_robust$careid)
+    reg_robust<-coeftest(results[[category]],
+                         vcov=intermediate)
   }
 
   return(reg_robust[,2])
@@ -104,7 +135,7 @@ cluster_robust_func <- function(category, results_str, only_enrolled=F){
 ####################################### Base #######################################
 
 # Define flag for whether to only have children who are enrolled in school for private school regression
-only_enrolled_flag<-T
+only_enrolled_flag<-F
 private_school_label <-case_when(only_enrolled_flag==T~"Child is Enrolled in Private School (Subset)",
                                  T~"Child is Enrolled in Private School") 
 
@@ -156,9 +187,9 @@ cov_labels <-c("Child-Reported FI",
                "Constant")
 
 stargazer(base_mech_results,
-          column.labels = chartr("_"," ",mechs_label),
-          se=base_mech_cluster_results,
-          covariate.labels=cov_labels,
+          # column.labels = chartr("_"," ",mechs_label),
+          # se=base_mech_cluster_results,
+          # covariate.labels=cov_labels,
           # p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/01_base_mech_results.html")

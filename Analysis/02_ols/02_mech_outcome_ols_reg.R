@@ -149,7 +149,11 @@ mechs<-c('ch_health','ch_health_rel',
 # Define reg_input
 base_reg_input <- expand.grid(category=mechs,
                          model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
-                         only_enrolled=only_enrolled_flag)
+                         only_enrolled=only_enrolled_flag) %>%
+  mutate(across(everything(),~as.character(.))) %>% 
+  mutate(model=case_when(str_detect(category,'health')==T ~'~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                         str_detect(category,'esteem')==T ~'~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                         T~model))
 
 # Regress (with derive cluster robust errors)
 base_mech_results<- pmap(base_reg_input,

@@ -40,7 +40,7 @@ reg_func <- function(category, model, only_enrolled=F){
   
   fm <- as.formula(paste(e_category_str, model, m_category_str))  
   
-  if(only_enrolled==T){
+  if(category=='private_school'& only_enrolled==T){
     
     for_reg<-full_data_w %>% 
       filter(e_enroll_ch==1)
@@ -116,28 +116,44 @@ cluster_robust_func <- function(category, results_str, only_enrolled=F){
     reg_robust<-coeftest(results[[category]],
                          vcov=intermediate)
   }
-
-  return(reg_robust[,2])
+  out<-list(se=reg_robust[,2],
+            p=reg_robust[,4])
+  return(out)
 }
 
-# Define function for creating tidy results
-# tidy_func <- function(category, results_str){
-#   results<-get(results_str)
-#   out<-tidy(results[[category]]) %>% 
-#     mutate(category=category)
-#   return(out)
-# }
+##########################################################################################
+####################################### Choose FI and Define Relevant Terms #######################################
+##########################################################################################
+
+only_enrolled_flag<-T
+dummy_indicator<-F
+# FIES Scale Indicator is only relevant if dummy indicator is false
+fies_scale_indicator<-F
+
+# Define flag for whether to only have children who are enrolled in school for private school regression
+private_school_label <-case_when(only_enrolled_flag==T~"Child is Enrolled in Private School (Subset)",
+                                 T~"Child is Enrolled in Private School") 
+
+# Choose which FI Term to use
+if(dummy_indicator==T){
+  fi<-"e_ch_fs_dummy+e_cg_fs_dummy"
+  folder<-"01_dummy"
+} else{
+  if(fies_scale_indicator==F){
+    fi<-"e_ch_fies+e_fies_sum"
+    folder<-"02_fies_sum"
+  }else{
+    fi<-"e_ch_fies+e_fies_scale"
+    folder<-"03_fies_scale"
+  }
+}
+  
 
 ##########################################################################################
 ####################################### Regress #######################################
 ##########################################################################################
 
 ####################################### Base #######################################
-
-# Define flag for whether to only have children who are enrolled in school for private school regression
-only_enrolled_flag<-F
-private_school_label <-case_when(only_enrolled_flag==T~"Child is Enrolled in Private School (Subset)",
-                                 T~"Child is Enrolled in Private School") 
 
 # Define list of relevant mechanisms
 mechs<-c('ch_health','ch_health_rel',
@@ -148,11 +164,11 @@ mechs<-c('ch_health','ch_health_rel',
 
 # Define reg_input
 base_reg_input <- expand.grid(category=mechs,
-                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                         model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')),
                          only_enrolled=only_enrolled_flag) %>%
   mutate(across(everything(),~as.character(.))) %>% 
-  mutate(model=case_when(str_detect(category,'health')==T ~'~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
-                         str_detect(category,'esteem')==T ~'~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+  mutate(model=case_when(str_detect(category,'health')==T ~glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                         str_detect(category,'esteem')==T ~glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
                          T~model))
 
 # Regress (with derive cluster robust errors)
@@ -192,18 +208,22 @@ cov_labels <-c("Child-Reported FI",
 
 stargazer(base_mech_results,
           # column.labels = chartr("_"," ",mechs_label),
-          # se=base_mech_cluster_results,
+          se=lapply(base_mech_cluster_results, function(x) x$se),
+          p=lapply(base_mech_cluster_results, function(x) x$p),
           # covariate.labels=cov_labels,
-          # p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/01_base_mech_results.html")
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome/{folder}/01_base_mech_results.html"))
 
 ####################################### Multivariate #######################################
 
 # Define reg_input
 multi_reg_input<- expand.grid(category=mechs,
-                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
-                              only_enrolled=only_enrolled_flag)
+                                 model=c(glue('~ {fi}+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')),
+                              only_enrolled=only_enrolled_flag) %>% 
+  mutate(across(everything(),~as.character(.))) %>% 
+  mutate(model=case_when(str_detect(category,'health')==T ~glue('~ {fi}+female+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                         str_detect(category,'esteem')==T ~glue('~ {fi}+female+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                         T~model))
 
 # Regress (with derive cluster robust errors)
 multi_mech_results<- pmap(multi_reg_input,
@@ -246,9 +266,10 @@ multi_cov_labels <-c("Child-Reported FI",
 stargazer(multi_mech_results, 
           column.labels = chartr("_"," ",mechs_label),
           star.cutoffs = c(.05, .01, NA),
-          se=multi_mech_cluster_results,
-          covariate.labels=multi_cov_labels,
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome_ols_reg/02_multi_mech_results.html")
+          se=lapply(multi_mech_cluster_results, function(x) x$se),
+          p=lapply(multi_mech_cluster_results, function(x) x$p),
+          # covariate.labels=multi_cov_labels,
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome/{folder}/02_multi_mech_results.html"))
 
 
 

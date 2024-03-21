@@ -102,7 +102,7 @@ stargazer(base_ols_results_region_treatment,
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
           omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/01_ols_regs/02_baseline_region_fe/01_base_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/01_base_ols.html")
 
 ##########################################################################################
 ############################## Multivariate OLS Regression w/ Region and PNP Treatment ##############################
@@ -150,7 +150,7 @@ stargazer(reduced_multivar_ols_region_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/01_ols_regs/02_baseline_region_fe/02_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/02_multivar_ols.html")
 
 ########################################################################################################################
 ############################## OLS Regression w/ Covariates and GENDER INTERACTION ##############################
@@ -201,7 +201,7 @@ stargazer(gender_multivar_ols_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/01_ols_regs/02_baseline_region_fe/03_gender_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/03_gender_multivar_ols.html")
 
 ########################################################################################################################
 ############################## OLS Regression w/ Covariates and AGE INTERACTION ##############################
@@ -251,5 +251,5 @@ stargazer(age_multivar_ols_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/01_ols_regs/02_baseline_region_fe/04_age_multivar_ols.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/04_age_multivar_ols.html")
 

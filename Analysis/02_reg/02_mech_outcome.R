@@ -212,7 +212,7 @@ stargazer(base_mech_results,
           p=lapply(base_mech_cluster_results, function(x) x$p),
           # covariate.labels=cov_labels,
           star.cutoffs = c(.05, .01, NA),
-          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome/{folder}/01_base_mech_results.html"))
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/02_mech_outcome/{folder}/01_base_mech_results.html"))
 
 ####################################### Multivariate #######################################
 
@@ -269,7 +269,7 @@ stargazer(multi_mech_results,
           se=lapply(multi_mech_cluster_results, function(x) x$se),
           p=lapply(multi_mech_cluster_results, function(x) x$p),
           # covariate.labels=multi_cov_labels,
-          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/02_mech_outcome/{folder}/02_multi_mech_results.html"))
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/02_mech_outcome/{folder}/02_multi_mech_results.html"))
 
 
 

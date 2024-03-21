@@ -77,7 +77,7 @@ fies_scale_indicator<-F
 if(dummy_indicator==T){
   
   fi<-"e_ch_fs_dummy+e_cg_fs_dummy"
-  folder<-"01_fies_dummy"
+  folder<-"01_dummy"
   
 } else {
   if(fies_scale_indicator==T){
@@ -147,7 +147,7 @@ outcome_lables<-c("Literacy","Numeracy","Executive Function","SEL")
 
 # Define base OLS input
 base_ols_input<- expand.grid(category=c('lit','num','ef','sel'),
-                                      model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
+                                      model=c(glue('~ {fi} +female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
 
 # Regression results
 base_ols_results<- pmap(base_ols_input,
@@ -177,7 +177,7 @@ stargazer(base_ols_results,
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
           omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/05_mech_controls_ols_reg/01_base_ols.html")
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/01_base_ols.html"))
 
 #######################################################################################################################
 ############################## Multivariate OLS Regression w/ Educational Investments Mechanisms ##############################
@@ -185,7 +185,7 @@ stargazer(base_ols_results,
 
 # Define base OLS input
 ols_input_edu <- expand.grid(category=c('lit','num','ef','sel'),
-                                          model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+e_enroll_ch+e_private_school+'))
+                                          model=c(glue('~ {fi}+female+age+e_enroll_ch+e_private_school+')))
 
 # Regression results
 ols_edu_results<- pmap(ols_input_edu,
@@ -214,5 +214,5 @@ stargazer(ols_edu_results,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_ols/05_mech_controls_ols_reg/02_ols_edu.html")
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/02_reg_edu.html"))
 

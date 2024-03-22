@@ -52,7 +52,9 @@ cluster_robust_func <- function(category, results_str){
   results<-get(results_str)
   reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
 
-  return(reg_robust[,2])
+  out<-list(se=reg_robust[,2],
+            p=reg_robust[,4])
+  return(out)
 }
 
 # Define function for creating tidy results
@@ -69,7 +71,7 @@ tidy_func <- function(category, results_str){
 
 # Define whether to use FIES or FIES Scale (FAO)
 
-fies_scale_indicator=T
+fies_scale_indicator=F
 
 if(fies_scale_indicator==T){
   fies<-"e_fies_scale"
@@ -228,8 +230,8 @@ stargazer(base_ols_results_region_treatment,
           dep.var.caption = "Endline Dependent Variable:",
           column.labels = outcome_labels,
           covariate.labels=cov_labels,
-          se=base_ols_robust_errors_region_treatment,
-          # p=list(base_ols_robust_errors_region_treatment[['lit']][,4],base_ols_robust_errors_region_treatment[['num']][,4],base_ols_robust_errors_region_treatment[['ef']][,4],base_ols_robust_errors_region_treatment[['sel']][,4]),
+          se=lapply(base_ols_robust_errors_region_treatment, function(x) x$se),
+          p=lapply(base_ols_robust_errors_region_treatment, function(x) x$p),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
@@ -276,8 +278,8 @@ stargazer(reduced_multivar_ols_region_results,
           #        'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
           #        'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
           #        'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
-          se=reduced_multivar_ols_region_robust_errors,
-          # p=list(reduced_multivar_ols_region_robust_errors[['lit']][,4],reduced_multivar_ols_region_robust_errors[['num']][,4],reduced_multivar_ols_region_robust_errors[['ef']][,4],reduced_multivar_ols_region_robust_errors[['sel']][,4]),
+          se=lapply(reduced_multivar_ols_region_robust_errors, function(x) x$se),
+          p=lapply(reduced_multivar_ols_region_robust_errors, function(x) x$p),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
@@ -325,8 +327,8 @@ stargazer(gender_multivar_ols_results,
           #        'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
           #        'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
           #        'languageSissali','languageOther','languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
-          se=gender_multivar_ols_robust_errors,
-          # p=list(gender_multivar_ols_robust_errors[['lit']][,4],gender_multivar_ols_robust_errors[['num']][,4],gender_multivar_ols_robust_errors[['ef']][,4],gender_multivar_ols_robust_errors[['sel']][,4]),
+          se=lapply(gender_multivar_ols_robust_errors, function(x) x$se),
+          p=lapply(gender_multivar_ols_robust_errors, function(x) x$p),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
@@ -374,7 +376,8 @@ stargazer(age_multivar_ols_results,
           #        'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
           #        'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
           #        'languageSissali','languageOther',                 'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
-          se=age_multivar_ols_robust_errors,
+          se=lapply(age_multivar_ols_robust_errors, function(x) x$se),
+          p=lapply(age_multivar_ols_robust_errors, function(x) x$p),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",

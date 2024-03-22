@@ -52,7 +52,10 @@ cluster_robust_func <- function(category, results_str){
   results<-get(results_str)
   reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
 
-  return(reg_robust[,2])
+  out <-list(reg_robust[,2],
+             reg_robust[,4])
+  
+  return(out)
 }
 
 # Define function for creating tidy results
@@ -216,3 +219,39 @@ stargazer(ols_edu_results,
           notes            = "*$p<0.05$; **$p<0.01$",
           out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/02_reg_edu.html"))
 
+#######################################################################################################################
+############################## Multivariate OLS Regression w/ Health Investment Mechanism ##############################
+#######################################################################################################################
+
+# Define base OLS input
+ols_input_health <- expand.grid(category=c('lit','num','ef','sel'),
+                             model=c(glue('~ {fi}+female+age+e_ch_health+e_ch_health_rel+')))
+
+# Regression results
+ols_health_results<- pmap(ols_input_health,
+                       reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+ols_health_results_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                            results_str='ols_health_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+ols_health_robust_errors <- pmap(ols_health_results_robust_input,
+                              cluster_robust_func) %>%
+  set_names('lit','num','ef','sel')
+
+############################## Exporting Results ###############################
+
+stargazer(ols_health_results,
+          title="Multivariate OLS Regression: Educational Investment Mechanism",
+          dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+          se=ols_edu_robust_errors,
+          # p=list(reduced_multivar_ols_region_robust_errors[['lit']][,4],reduced_multivar_ols_region_robust_errors[['num']][,4],reduced_multivar_ols_region_robust_errors[['ef']][,4],reduced_multivar_ols_region_robust_errors[['sel']][,4]),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/02_reg_edu.html"))

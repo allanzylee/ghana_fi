@@ -178,6 +178,16 @@ full_data_w <- e_child %>%
                                               T~as.double(.)))),
          across(contains('attend'),~as.factor(.))
          ) %>%
+  # Create binary variables for health
+  mutate(across(contains('health'),
+                ~as.double(case_when(.==4~1,
+                          .==5~1,
+                          .==3~0,
+                          .==2~0,
+                          .==1~0,
+                          T~NA_real_)),
+                .names = "{col}_dummy"
+                )) %>% 
   # Standardize outcome data
   mutate(m_sel_per=scale(m_sel_per)[,1],
          m_lit_per=scale(m_lit_per)[,1],

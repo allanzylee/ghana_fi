@@ -50,7 +50,7 @@ reg_func <- function(category, model, only_enrolled=F){
     for_reg<-full_data_w
   }
   
-  if(category=='private_school' | category=='enroll_ch'){
+  if(category=='private_school' | category=='enroll_ch'|category=='ch_health_dummy'|category=='ch_health_rel_dummy'){
     
     reg<-glm(fm,
         data=for_reg,
@@ -128,7 +128,7 @@ cluster_robust_func <- function(category, results_str, only_enrolled=F){
 only_enrolled_flag<-T
 dummy_indicator<-F
 # FIES Scale Indicator is only relevant if dummy indicator is false
-fies_scale_indicator<-F
+fies_scale_indicator<-T
 
 # Define flag for whether to only have children who are enrolled in school for private school regression
 private_school_label <-case_when(only_enrolled_flag==T~"Child is Enrolled in Private School (Subset)",
@@ -156,7 +156,7 @@ if(dummy_indicator==T){
 ####################################### Base #######################################
 
 # Define list of relevant mechanisms
-mechs<-c('ch_health','ch_health_rel',
+mechs<-c('ch_health','ch_health_rel','ch_health_dummy','ch_health_rel_dummy',
          'enroll_ch','private_school',
          'hh_engagement',
          'ch_motiv','ch_esteem',
@@ -188,7 +188,7 @@ base_mech_cluster_results <- pmap(base_mech_cluster_input,
   set_names(mechs)
 
 # Define Stargazer labels
-mechs_label<-c('Child-Reported Health','Child-Reported Relative Health',
+mechs_label<-c('Child-Reported Health','Child-Reported Relative Health','Child-Reported Health Dummy','Child-Reported Relative Health Dummy',
                'Child is Enrolled in School',private_school_label,
                'Household Engagement',
                'Child Motivation','Child Self-Esteem',
@@ -207,7 +207,7 @@ cov_labels <-c("Child-Reported FI",
                "Constant")
 
 stargazer(base_mech_results,
-          # column.labels = chartr("_"," ",mechs_label),
+          column.labels = chartr("_"," ",mechs_label),
           se=lapply(base_mech_cluster_results, function(x) x$se),
           p=lapply(base_mech_cluster_results, function(x) x$p),
           # covariate.labels=cov_labels,

@@ -43,23 +43,17 @@ m_sel <- m_child %>%
          cr1:re11) %>%
   dplyr::select(-re5,-re8) %>% 
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
+  mutate(across(everything(),~as.numeric(.))) %>% 
   # Change CR SEL questions to be 1/0 binary
-  mutate(cr1=ifelse(cr1==2,0,1),
-         cr2=ifelse(cr2==2,0,1),
-         cr3=ifelse(cr3==2,0,1),
-         cr4=ifelse(cr4==2,0,1)) %>% 
+  mutate(across(contains('cr'),~case_when(.==2~0,
+                                          .==1~1,
+                                          T~NA_real_))) %>% 
   # Add child age variable
   left_join(child_age,by=c("childid","careid")) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(m_sel_total=(rowSums(across(c(cr1:re11)),na.rm=T)),
-         m_num_sel_questions=ifelse(child_age<10,10,13),
+  mutate(m_sel_total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
+         m_num_sel_questions = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
          m_sel_per=m_sel_total/m_num_sel_questions) %>%
-  # Modify the question count for those whose age do not match their question count
-  mutate(m_num_sel_questions=ifelse(m_sel_per>1,13,m_num_sel_questions),
-         m_sel_per=m_sel_total/m_num_sel_questions) %>% 
-  # Keep relevant variables
   dplyr::select(careid,childid,child_age,m_sel_total,m_num_sel_questions,m_sel_per)
 
 ############################################### Midline Literacy ######################################
@@ -69,21 +63,19 @@ m_lit <- m_child %>%
   # dplyr::select relevant literacy questions
   dplyr::select(careid,
          childid,
-         starts_with("ov"),
+         # starts_with("ov"),
          starts_with("nr"),
          starts_with("sp"),
          starts_with("or"),
          starts_with("oc"),
-         starts_with("pa"),
-         -starts_with("paa")) %>% 
+         matches("pa[0-9]")) %>% 
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>% 
-  # Change any negative values to 0
-  mutate(ov2=ifelse(ov2<0,0,ov2)) %>% 
+  mutate(across(everything(),~as.double(.))) %>% 
+  # # Change any negative values to 0
+  # mutate(ov2=ifelse(ov2<0,0,ov2)) %>% 
   # Given that all literacy variables are binary, they can be added together and calculated as a percentage.
-  mutate(m_lit_total=(rowSums(across(c(ov1:pa3)),na.rm=T)),
-         m_num_lit_questions=168,
+  mutate(m_lit_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         m_num_lit_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          m_lit_per=m_lit_total/m_num_lit_questions) %>% 
   # Keep relevant variables
   dplyr::select(careid,childid,m_lit_total,m_num_lit_questions,m_lit_per)
@@ -95,24 +87,20 @@ m_num <- m_child %>%
   # dplyr::select relevant numeracy questions
   dplyr::select(careid,
          childid,
-         starts_with("co"),
+         matches("co[0-9]"),
          starts_with("nd"),
          starts_with("mn"),
          starts_with("nu"),
          starts_with("wp"),
          starts_with("ad"),
-         starts_with("su"),
+         matches("su[0-9]"),
          starts_with("mu"),
-         starts_with("di"),
-         -community,
-         -submissiondate,
-         -district) %>%
+         matches("di[0-9]")) %>%
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
+  mutate(across(everything(),~as.double(.))) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(m_num_total=(rowSums(across(c(co1:di1)),na.rm=T)),
-         m_num_num_questions=53,
+  mutate(m_num_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         m_num_num_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          m_num_per=m_num_total/m_num_num_questions) %>% 
   # Keep relevant variables
   dplyr::select(careid,childid,m_num_total,m_num_num_questions,m_num_per)
@@ -127,16 +115,15 @@ m_ef <- m_child %>%
          starts_with("wm"),
          starts_with("sm")) %>%
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
-  # Add child age variable
-  left_join(child_age,by=c("childid","careid")) %>% 
+  mutate(across(everything(),~as.double(.))) %>% 
+  # # Add child age variable
+  # left_join(child_age,by=c("childid","careid")) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(m_ef_total=(rowSums(across(c(wm1:sm7)),na.rm=T)),
-         m_num_ef_questions=ifelse(child_age<10,15,17),
+  mutate(m_ef_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         m_num_ef_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          m_ef_per=m_ef_total/m_num_ef_questions) %>%
   # Keep relevant variables
-  dplyr::select(careid,childid,child_age,m_ef_total,m_num_ef_questions,m_ef_per)
+  dplyr::select(careid,childid,m_ef_total,m_num_ef_questions,m_ef_per)
 
 ############################################### Endline: SEL ######################################
 
@@ -148,26 +135,24 @@ e_sel <- e_child %>%
   # Dedplyr::select friends question
   dplyr::select(-re5,-re8) %>% 
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
+  mutate(across(everything(),~as.double(.))) %>% 
   # Turn negatives into NA
   mutate_all((~ifelse(. < 0, NA, .))) %>% 
   # Change CR SEL questions to be 1/0 binary
-  mutate(cr1=ifelse(cr1==2,0,1),
-         cr2=ifelse(cr2==2,0,1),
-         cr3=ifelse(cr3==2,0,1),
-         cr4=ifelse(cr4==2,0,1)) %>% 
-  # Add child age variable
-  left_join(child_age,by=c("childid","careid")) %>% 
+  mutate(across(contains('cr'),~case_when(.==2~0,
+                                          .==1~1,
+                                          T~NA_real_))) %>% 
+  # # Add child age variable
+  # left_join(child_age,by=c("childid","careid")) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(e_sel_total=(rowSums(across(c(cr1:re11)),na.rm=T)),
-         e_num_sel_questions=ifelse(child_age<10,10,13),
+  mutate(e_sel_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         e_num_sel_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          e_sel_per=e_sel_total/e_num_sel_questions) %>%
   # Modify the question count for those whose age do not match their question count
   mutate(e_num_sel_questions=ifelse(e_sel_per>1,13,e_num_sel_questions),
          e_sel_per=e_sel_total/e_num_sel_questions) %>% 
   # Keep relevant variables
-  dplyr::select(careid,childid,child_age,e_sel_total,e_num_sel_questions,e_sel_per)
+  dplyr::select(careid,childid,e_sel_total,e_num_sel_questions,e_sel_per)
 
 ############################################### Endline Literacy ######################################
 # Note that within the literacy category, there are 168 questions.
@@ -175,22 +160,20 @@ e_sel <- e_child %>%
 e_lit <- e_child %>% 
   # dplyr::select relevant literacy questions
   dplyr::select(careid,
-         childid,
-         starts_with("ov"),
-         starts_with("nr"),
-         starts_with("sp"),
-         starts_with("or"),
-         starts_with("oc"),
-         starts_with("pa"),
-         -starts_with("paa")) %>% 
+                childid,
+                # starts_with("ov"),
+                starts_with("nr"),
+                starts_with("sp"),
+                starts_with("or"),
+                starts_with("oc"),
+                matches("pa[0-9]")) %>% 
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>% 
+  mutate(across(everything(),~as.double(.))) %>% 
   # Turn negatives into NA
   mutate_all((~ifelse(. < 0, NA, .))) %>% 
   # Given that all literacy variables are binary, they can be added together and calculated as a percentage.
-  mutate(e_lit_total=(rowSums(across(c(ov1:pa3)),na.rm=T)),
-         e_num_lit_questions=168,
+  mutate(e_lit_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         e_num_lit_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          e_lit_per=e_lit_total/e_num_lit_questions) %>% 
   # Keep relevant variables
   dplyr::select(careid,childid,e_lit_total,e_num_lit_questions,e_lit_per)
@@ -201,26 +184,23 @@ e_lit <- e_child %>%
 e_num <- e_child %>% 
   # dplyr::select relevant numeracy questions
   dplyr::select(careid,
-         childid,
-         starts_with("co"),
-         starts_with("nd"),
-         starts_with("mn"),
-         starts_with("nu"),
-         starts_with("wp"),
-         starts_with("ad"),
-         starts_with("su"),
-         starts_with("mu"),
-         starts_with("di"),
-         -submissiondate,
-         -district) %>%
+                childid,
+                matches("co[0-9]"),
+                starts_with("nd"),
+                starts_with("mn"),
+                starts_with("nu"),
+                starts_with("wp"),
+                starts_with("ad"),
+                matches("su[0-9]"),
+                starts_with("mu"),
+                matches("di[0-9]")) %>%
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
+  mutate(across(everything(),~as.double(.))) %>% 
   # Turn negatives into NA
   mutate_all((~ifelse(. < 0, NA, .))) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(e_num_total=(rowSums(across(c(co1:di1)),na.rm=T)),
-         e_num_num_questions=53,
+  mutate(e_num_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         e_num_num_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          e_num_per=e_num_total/e_num_num_questions) %>% 
   # Keep relevant variables
   dplyr::select(careid,childid,e_num_total,e_num_num_questions,e_num_per)
@@ -232,23 +212,21 @@ e_ef <- e_child %>%
   # dplyr::select relevant numeracy questions
   dplyr::select(careid,
          childid,
-         childage,
+         # childage,
          starts_with("wm"),
          starts_with("sm")) %>%
   # Change all columns to numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
+  mutate(across(everything(),~as.double(.))) %>% 
   # Turn negatives into NA
   mutate_all((~ifelse(. < 0, NA, .))) %>% 
   # Add child age data
-  left_join(child_age,by=c("childid","careid")) %>% 
+  # left_join(child_age,by=c("childid","careid")) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(e_ef_total=(rowSums(across(c(wm1:sm7)),na.rm=T)),
-         e_num_ef_questions=ifelse(child_age<10,15,17),
-         e_num_ef_questions=ifelse(childid==5234501201,17,e_num_ef_questions),
+  mutate(e_ef_total=(rowSums(across(-c(careid,childid)),na.rm=T)),
+         e_num_ef_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid)))),
          e_ef_per=e_ef_total/e_num_ef_questions) %>% 
   # Keep relevant variables
-  dplyr::select(careid,childid,child_age,e_ef_total,e_num_ef_questions,e_ef_per)
+  dplyr::select(careid,childid,e_ef_total,e_num_ef_questions,e_ef_per)
 
 ############################################### Putting outcome data together ######################################
   

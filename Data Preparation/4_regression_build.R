@@ -94,7 +94,7 @@ full_data_w <- e_child %>%
                                     contains('gb')
                                     ),
                     by=c("childid",'careid')) %>% 
-  dplyr::left_join(outcome %>% dplyr::select(childid, 
+  dplyr::inner_join(outcome %>% dplyr::select(childid, 
                                       careid, 
                                       contains('per')),
                    by=c("childid","careid")) %>% 

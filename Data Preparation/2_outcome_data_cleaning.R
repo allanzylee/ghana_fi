@@ -256,7 +256,7 @@ e_ef <- e_child %>%
 plot<-function(data){
   
   for_plot<-get(data) %>% 
-    
+    dplyr::select()
 }
 
 ############################################### Putting outcome data together ######################################
@@ -285,6 +285,13 @@ child_exclude <- m_child %>%
 out<-outcome %>% 
   filter(!(childid %in% child_exclude))
   
+test<-as.data.frame(table(e_ef$answered_q_perc)) %>% clean_names() %>% 
+  ggplot()+
+  geom_col(aes(x=factor(var1),y=freq))+
+  scale_x_discrete(breaks=seq(0,1,0.1),
+                   labels=seq(0,1,0.1))
+plot(test)
+
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################
 ##########################################################################################

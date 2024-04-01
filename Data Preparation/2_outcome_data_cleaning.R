@@ -29,7 +29,7 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
 ##########################################################################################
 
 # Set threshold to filter out low response kids
-threshold<-0.5
+threshold<-0
 
 ############################################### Midline: SEL ######################################
 

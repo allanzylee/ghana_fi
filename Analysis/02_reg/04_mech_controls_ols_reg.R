@@ -72,7 +72,7 @@ tidy_func <- function(category, results_str){
 
 # Define whether to use FIES or FIES Scale (FAO)
 
-dummy_indicator<-F
+dummy_indicator<-T
 # FIES Scale Indicator is only relevant if dummy indicator is false
 fies_scale_indicator<-F
 
@@ -81,6 +81,9 @@ if(dummy_indicator==T){
   
   fi<-"e_ch_fs_dummy+e_cg_fs_dummy"
   folder<-"01_dummy"
+  # FI labels
+  fi_labels<-c("Child-Reported FI",
+               "Caregiver-Reported FI")
   
 } else {
   if(fies_scale_indicator==T){
@@ -174,7 +177,8 @@ stargazer(base_ols_results,
           dep.var.caption = "Endline Dependent Variable:",
           column.labels = outcome_lables,
           # covariate.labels=c("Child-Reported Food Insecurity","Caregiver-Reported Food Insecurity","Midline Education Outcome","Constant"),
-          se=base_ols_robust_errors,
+          se=lapply(base_ols_robust_errors, function(x) x$se),
+          p=lapply(base_ols_robust_errors, function(x) x$p),
           # p=list(base_ols_robust_errors[['lit']][,4],base_ols_robust_errors[['num']][,4],base_ols_robust_errors[['ef']][,4],base_ols_robust_errors[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
@@ -212,7 +216,8 @@ stargazer(ols_edu_results,
           dep.var.caption = "Endline Dependent Variable:",
           # covariate.labels=variables,
           column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
-          se=ols_edu_robust_errors,
+          se=lapply(ols_edu_robust_errors, function(x) x$se),
+          p=lapply(ols_edu_robust_errors, function(x) x$p),
           # p=list(reduced_multivar_ols_region_robust_errors[['lit']][,4],reduced_multivar_ols_region_robust_errors[['num']][,4],reduced_multivar_ols_region_robust_errors[['ef']][,4],reduced_multivar_ols_region_robust_errors[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
@@ -249,9 +254,49 @@ stargazer(ols_health_results,
           dep.var.caption = "Endline Dependent Variable:",
           # covariate.labels=variables,
           column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
-          se=ols_edu_robust_errors,
+          se=lapply(ols_health_robust_errors, function(x) x$se),
+          p=lapply(ols_health_robust_errors, function(x) x$p),
           # p=list(reduced_multivar_ols_region_robust_errors[['lit']][,4],reduced_multivar_ols_region_robust_errors[['num']][,4],reduced_multivar_ols_region_robust_errors[['ef']][,4],reduced_multivar_ols_region_robust_errors[['sel']][,4]),
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/02_reg_edu.html"))
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/03_reg_health.html"))
+
+
+#######################################################################################################################
+############################## Multivariate OLS Regression w/ Health Investment Mechanism ##############################
+#######################################################################################################################
+
+# Define base OLS input
+ols_input_health <- expand.grid(category=c('lit','num','ef','sel'),
+                                model=c(glue('~ {fi}+female+age+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
+
+# Regression results
+ols_health_results<- pmap(ols_input_health,
+                          reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+ols_health_results_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                               results_str='ols_health_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+ols_health_robust_errors <- pmap(ols_health_results_robust_input,
+                                 cluster_robust_func) %>%
+  set_names('lit','num','ef','sel')
+
+############################## Exporting Results ###############################
+
+stargazer(ols_health_results,
+          title="Multivariate OLS Regression: Educational Investment Mechanism",
+          dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+          se=lapply(ols_health_robust_errors, function(x) x$se),
+          p=lapply(ols_health_robust_errors, function(x) x$p),
+          # p=list(reduced_multivar_ols_region_robust_errors[['lit']][,4],reduced_multivar_ols_region_robust_errors[['num']][,4],reduced_multivar_ols_region_robust_errors[['ef']][,4],reduced_multivar_ols_region_robust_errors[['sel']][,4]),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/04_reg_psyc.html"))

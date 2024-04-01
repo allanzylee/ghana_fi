@@ -80,7 +80,8 @@ full_data_w <- e_child %>%
          language=io1,
          region,
          e_ch_health=cw1,
-         e_ch_health_rel=cw2
+         e_ch_health_rel=cw2,
+         e_ch_edu_asp=ja3
          ) %>% 
   dplyr::left_join(e_cg %>% dplyr::select(careid, 
                                     childid, 
@@ -91,7 +92,8 @@ full_data_w <- e_child %>%
                                     marital_status=cb5,
                                     # num_books=pe7,
                                     treatment,
-                                    contains('gb')
+                                    contains('gb'),
+                                    e_cg_edu_asp=ea1
                                     ),
                     by=c("childid",'careid')) %>% 
   dplyr::inner_join(outcome %>% dplyr::select(childid, 
@@ -176,7 +178,13 @@ full_data_w <- e_child %>%
                           T~region),
          across(contains('health'),~as.factor(case_when(as.double(.)<0~NA_real_,
                                               T~as.double(.)))),
-         across(contains('attend'),~as.factor(.))
+         across(contains('attend'),~as.factor(.)),
+         e_ch_edu_asp=case_when(e_ch_edu_asp>=5~1,
+                                is.na(e_ch_edu_asp) ~ NA_real_, 
+                                T~0),
+         e_cg_edu_asp=case_when(e_cg_edu_asp>=3~1,
+                                is.na(e_cg_edu_asp) ~ NA_real_, 
+                                T~0)
          ) %>%
   # Create binary variables for health
   mutate(across(contains('health'),

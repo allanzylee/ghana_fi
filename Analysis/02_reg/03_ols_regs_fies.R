@@ -20,6 +20,7 @@ library(AER)
 library(dataCompareR)
 library(broom)
 library(xtable)
+library(glue)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -100,6 +101,14 @@ if(fies_scale_indicator==T){
                     "FIES: Severe x Child is 10–17",
                     "Constant")
   
+  cg_schooling_int_labels <-c("CFIES: Few Experiences x Caregiver Attended School",
+                              "CFIES: Several Experiences x Caregiver Attended School",
+                              "CFIES: Many Experiences x Caregiver Attended School",
+                              "FIES: Mild x Caregiver Attended School",
+                              "FIES: Moderate x Caregiver Attended School",
+                              "FIES: Severe x Caregiver Attended School",
+                              "Constant")
+  
 } else {
   fies<-"e_fies_sum"
   folder<-"01_fies_sum"
@@ -119,6 +128,12 @@ if(fies_scale_indicator==T){
                            "CFIES: Several Experiences x Child is 10–17",
                            "CFIES: Many Experiences x Child is 10–17",
                            "FIES x Child is 10–17",
+                           "Constant")
+  
+    cg_schooling_int_labels <-c("CFIES: Few Experiences x Caregiver Attended School",
+                           "CFIES: Several Experiences x Caregiver Attended School",
+                           "CFIES: Many Experiences x Caregiver Attended School",
+                           "FIES x Caregiver Attended School",
                            "Constant")
 }
 
@@ -197,6 +212,27 @@ age_multi_cov_labels <-c(fies_labels,
                          "PNP Treatment",
                          "Lagged Outcome",
                          age_int_labels)
+
+# CG Schooling labels
+cg_schooling_multi_cov_labels <-c(fies_labels,
+                         "Child is 10–17",
+                         "Child Female",
+                         "Caregiver Age",
+                         "Caregiver Female",
+                         "Caregiver has a Partner",
+                         "Caregiver Completed Primary School",
+                         "Household Size",
+                         "Language: Dagbani",
+                         "Language: Gruni",
+                         "Language: Other",
+                         "Language: Sissali",
+                         "Region: North East",
+                         "Region: Northern",
+                         "Region: Upper East",
+                         "Region: Upper West",
+                         "PNP Treatment",
+                         "Lagged Outcome",
+                         cg_schooling_int_labels)
 
 outcome_labels <- c("Literacy","Numeracy","Executive Function","SEL","Constant")
 
@@ -382,4 +418,54 @@ stargazer(age_multivar_ols_results,
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
           out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/03_ols_regs_fies/{folder}/04_age_multivar_ols.html"))
+
+########################################################################################################################
+############################## OLS Regression w/ Covariates and Caregiver Schooling INTERACTION ##############################
+########################################################################################################################
+
+# This version removes enrollment, poverty, number of books, and private school as covariates 
+
+# Define base OLS input
+cg_schooling_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                      model=c(glue('~ e_ch_fies+{fies}+e_ch_fies*cg_schooling+{fies}*cg_schooling+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
+
+# Regression results
+cg_schooling_multivar_ols_results<- pmap(cg_schooling_multivar_ols_input,
+                                reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+cg_schooling_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                             results_str='cg_schooling_multivar_ols_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+cg_schooling_multivar_ols_robust_errors <- pmap(cg_schooling_multivar_ols_robust_input,
+                                       cluster_robust_func) %>%
+  set_names('lit','num','ef','sel')
+# 
+# # Export tidy results
+# age_multivar_ols_df <-pmap_dfr(age_multivar_ols_robust_input %>% dplyr::select(category),
+#                                tidy_func)
+
+############################## Exporting Results ###############################
+
+stargazer(cg_schooling_multivar_ols_results,
+          title="Multivariate OLS Regression with Age Interaction",
+          dep.var.caption = "Endline Dependent Variable:",
+          covariate.labels=cg_schooling_multi_cov_labels,
+          column.labels = outcome_labels,
+          # omit=c('female','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+          #        'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+          #        'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+          #        'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
+          #        'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+          #        'languageSissali','languageOther',                 'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
+          se=lapply(cg_schooling_multivar_ols_robust_errors, function(x) x$se),
+          p=lapply(cg_schooling_multivar_ols_robust_errors, function(x) x$p),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/03_ols_regs_fies/{folder}/05_cg_schooling_multivar_ols.html"))
+
 

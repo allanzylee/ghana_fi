@@ -253,3 +253,53 @@ stargazer(age_multivar_ols_results,
           notes            = "*$p<0.05$; **$p<0.01$",
           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/04_age_multivar_ols.html")
 
+########################################################################################################################
+############################## OLS Regression w/ Covariates and Caregiver Education INTERACTION ##############################
+########################################################################################################################
+
+# This version removes enrollment, poverty, number of books, and private school as covariates 
+
+# Define base OLS input
+cg_schooling_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                      model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*cg_schooling+e_cg_fs_dummy*cg_schooling+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+
+# Regression results
+cg_schooling_multivar_ols_results<- pmap(cg_schooling_multivar_ols_input,
+                                reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+cg_schooling_multivar_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                             results_str='cg_schooling_multivar_ols_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+cg_schooling_multivar_ols_robust_errors <- pmap(cg_schooling_multivar_ols_robust_input,
+                                       cluster_robust_func) %>%
+  set_names('lit','num','ef','sel')
+# 
+# # Export tidy results
+# age_multivar_ols_df <-pmap_dfr(age_multivar_ols_robust_input %>% dplyr::select(category),
+#                                tidy_func)
+
+############################## Exporting Results ###############################
+
+stargazer(cg_schooling_multivar_ols_results,
+          title="Multivariate OLS Regression with Caregiver Schooling Interaction",
+          dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+          # covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Child Age","Lagged Outcome","Child-Reported FI: Child Age","Caregiver-Reported FI: Child Age","Constant"),
+          # omit=c('female','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+          #        'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+          #        'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+          #        'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
+          #        'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+          #        'languageSissali','languageOther',                 'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
+          se=lapply(cg_schooling_multivar_ols_robust_errors, function(x) x$se),
+          p=lapply(cg_schooling_multivar_ols_robust_errors, function(x) x$p),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/05_cg_schooling_multivar_ols.html")
+

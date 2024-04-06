@@ -48,19 +48,18 @@ controls <- read_rds("build/controls.rds") %>%
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   dplyr::select(-contains("gb")) %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
-  rename(careid=caseid)
+  rename(careid=caseid) %>% 
+  filter(io2==1)
 e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>% 
   mutate(careid=as.double(careid),
          childid=as.double(childid))
 child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>% 
   dplyr::select(-community, -region)
-# iv <- read_rds("build/iv.rds") %>% 
-#   mutate(across(contains('id'),~as.double(.)))
-# e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta")
 baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
   mutate(careid=as.double(careid))
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
-  mutate(across(contains('id'),~as.double(.)))
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  filter(io2==1)
 m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
   mutate(across(contains('id'),~as.double(.)))
 

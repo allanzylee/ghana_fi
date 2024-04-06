@@ -16,16 +16,13 @@ setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
 # Load packages
 library(tidyverse)
-library(haven)
 
 # Load relevant data
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
-  mutate(across(contains('id'),~as.double(.))) %>% 
-  filter(io2==1)
+  mutate(across(contains('id'),~as.double(.)))
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   rename(careid=caseid) %>% 
-  mutate(across(contains('id'),~as.double(.))) %>% 
-  filter(io2==1)
+  mutate(across(contains('id'),~as.double(.)))
 
 ##########################################################################################
 ###################################### Outcome data cleaning #############################
@@ -33,104 +30,6 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
 
 # Set threshold to filter out low response kids
 threshold<-0
-
-############################################### Midline: SEL ######################################
-
-m_sel <- m_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                cr1:re11) %>%
-  dplyr::select(-re5,-re8)
-
-############################################### Midline Literacy ######################################
-
-m_lit <- m_child %>% 
-  # dplyr::select relevant literacy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                starts_with("nr"),
-                starts_with("sp"),
-                starts_with("or"),
-                starts_with("oc"),
-                matches("pa[0-9]")) %>%
-  dplyr::select(-oc5) 
-
-############################################### Midline: Numeracy ######################################
-
-m_num <- m_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                matches("co[0-9]"),
-                starts_with("nd"),
-                starts_with("mn"),
-                starts_with("nu"),
-                starts_with("wp"),
-                starts_with("ad"),
-                matches("su[0-9]"),
-                starts_with("mu"),
-                matches("di[0-9]"))
-
-############################################### Midline: EF ######################################
-
-m_ef <- m_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                starts_with("wm"),
-                starts_with("sm"))
-
-############################################### Endline: SEL ######################################
-
-e_sel <- e_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                cr1:re11) %>%
-  # Dedplyr::select friends question
-  dplyr::select(-re5,-re8)
-
-############################################### Endline Literacy ######################################
-
-e_lit <- e_child %>% 
-  # dplyr::select relevant literacy questions
-  dplyr::select(starts_with("nr"),
-                starts_with("sp"),
-                starts_with("or"),
-                starts_with("oc"),
-                matches("pa[0-9]")) 
-
-############################################### Endline: Numeracy ######################################
-# Note that within the literacy category, there are 53 questions.
-
-e_num <- e_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(matches("co[0-9]"),
-                starts_with("nd"),
-                starts_with("mn"),
-                starts_with("nu"),
-                starts_with("wp"),
-                starts_with("ad"),
-                matches("su[0-9]"),
-                starts_with("mu"),
-                matches("di[0-9]"))
-
-############################################### Endline: EF ######################################
-# Note that within the executive function category, there are 15 questions for 5-9 year olds and 17 questions for 10-17 year olds.
-
-e_ef <- e_child %>% 
-  dplyr::select(starts_with("wm"),
-                starts_with("sm"))
-
-#####################################################################################################
-#####################################################################################################
-#####################################################################################################
 
 ############################################### Midline: SEL ######################################
 
@@ -411,22 +310,5 @@ plot(test)
 ##########################################################################################
 
 saveRDS(out, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds")
-
-
-############## Age Investigation
-
-
-# Endline 
-test<-e_child %>% 
-  mutate(under_10=case_when(is.na(sm6)&is.na(sm7)~1,T~0)) %>% 
-  select(childid,childage,under_10) %>% 
-  mutate(age_under_10=case_when(as.double(childage)<10~1,T~0)) %>% 
-  left_join(e_cg %>% 
-              select(childid, cr6),
-            by=c('childid')) %>% 
-  mutate(cg_age_under_10=case_when(as.double(cr6)<10~1,T~0)) %>% 
-  filter(cg_age_under_10!=under_10)
-
-
 
 

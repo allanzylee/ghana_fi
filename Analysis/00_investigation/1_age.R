@@ -55,9 +55,7 @@ m_age<-m_child %>%
   mutate(paa_age_under_10=case_when(as.double(paa1)<10~1,T~0)) %>% 
   left_join(e_age %>% 
               select(childid,e_age_under_10=age_under_10),
-            by=c('childid')) %>% 
-  filter(e_age_under_10!=under_10)
-
+            by=c('childid'))
 # Test if midline and endline questions are consistently asked
 e_m_age<-e_age %>% 
   select(childid,under_10) %>% 

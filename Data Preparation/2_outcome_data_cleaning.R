@@ -27,6 +27,35 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
   mutate(across(contains('id'),~as.double(.))) %>% 
   filter(io2==1)
 
+###################################### Create function to calculate percentage accuracy ######
+accuracy_func<-function(df){
+  
+  total_col_name=glue("{df}_total")
+  per_col_name=glue("{df}_per")
+  
+  # Determine which age variable to us dependent on midline vs endline
+  age_var=case_when(grepl('m_',df)~'cr6',
+                    T~'childage')
+  
+  out<-get(df) %>% 
+    # Change all columns to numeric
+    mutate(across(everything(),~as.numeric(.))) %>% 
+    # Change CR SEL questions to be 1/0 binary
+    mutate(across(contains('cr'),~case_when(.==2~0,
+                                            .==1~1,
+                                            T~NA_real_))) %>% 
+    # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
+    mutate(total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
+           total_q = ifelse(child_age<10,11,14),
+           answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
+           answered_q_perc=answered_q/total_q,
+           per=case_when(answered_q==0~NA_real_,
+                               T~m_sel_total/answered_q)) %>%
+    dplyr::select(careid,childid,child_age,total,answered_q_perc,per) %>% 
+    rename(total_col_name=total,
+           per_col_name=per)
+}
+
 ##########################################################################################
 ###################################### Outcome data cleaning #############################
 ##########################################################################################

@@ -37,6 +37,8 @@ accuracy_func<-function(df){
   age_var=case_when(grepl('m_',df)~'cr6',
                     T~'childage')
   
+  if(grepl('sel'))
+  
   out<-get(df) %>% 
     # Change all columns to numeric
     mutate(across(everything(),~as.numeric(.))) %>% 
@@ -70,7 +72,8 @@ m_sel <- m_child %>%
   dplyr::select(careid,
                 childid,
                 child_age=cr6,
-                cr1:re11) %>%
+                cr1:re11,
+                paa2) %>%
   dplyr::select(-re5,-re8)
 
 ############################################### Midline Literacy ######################################

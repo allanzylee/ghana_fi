@@ -37,25 +37,31 @@ accuracy_func<-function(df){
   age_var=case_when(grepl('m_',df)~'cr6',
                     T~'childage')
   
-  if(grepl('sel'))
+  if(grepl('sel')==T){
+    out<-get(df) %>% 
+      # Change all columns to numeric
+      mutate(across(everything(),~as.numeric(.))) %>% 
+      # Change CR SEL questions to be 1/0 binary
+      mutate(across(contains('cr'),~case_when(.==2~0,
+                                              .==1~1,
+                                              T~NA_real_))) %>% 
+      # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
+      mutate(total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
+             total_q = ifelse(!!sym(age_var)<10,11,14),
+             answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
+             answered_q_perc=answered_q/total_q,
+             per=case_when(answered_q==0~NA_real_,
+                           T~m_sel_total/answered_q)) %>%
+      dplyr::select(careid,childid,child_age,total,answered_q_perc,per) %>% 
+      rename(total_col_name=total,
+             per_col_name=per)
+  }else if(grepl('ef'==T)){
+    
+    
+  } else{
+    
+  }
   
-  out<-get(df) %>% 
-    # Change all columns to numeric
-    mutate(across(everything(),~as.numeric(.))) %>% 
-    # Change CR SEL questions to be 1/0 binary
-    mutate(across(contains('cr'),~case_when(.==2~0,
-                                            .==1~1,
-                                            T~NA_real_))) %>% 
-    # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-    mutate(total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
-           total_q = ifelse(child_age<10,11,14),
-           answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
-           answered_q_perc=answered_q/total_q,
-           per=case_when(answered_q==0~NA_real_,
-                               T~m_sel_total/answered_q)) %>%
-    dplyr::select(careid,childid,child_age,total,answered_q_perc,per) %>% 
-    rename(total_col_name=total,
-           per_col_name=per)
 }
 
 ##########################################################################################

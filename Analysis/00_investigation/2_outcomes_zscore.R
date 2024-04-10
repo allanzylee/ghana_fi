@@ -21,5 +21,5 @@ library(tidyverse)
 library(haven)
 
 # Load relevant data
-outcome <- read_dta("import/outcomes.dta") 
+outcome <- read_dta("import/outcomes_zscore.dta") 
 

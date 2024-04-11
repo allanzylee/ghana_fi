@@ -451,20 +451,6 @@ plot(test)
 saveRDS(out, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds")
 
 
-############## Age Investigation
-
-
-# Endline 
-test<-e_child %>% 
-  mutate(under_10=case_when(is.na(sm6)&is.na(sm7)~1,T~0)) %>% 
-  select(childid,childage,under_10) %>% 
-  mutate(age_under_10=case_when(as.double(childage)<10~1,T~0)) %>% 
-  left_join(e_cg %>% 
-              select(childid, cr6),
-            by=c('childid')) %>% 
-  mutate(cg_age_under_10=case_when(as.double(cr6)<10~1,T~0)) %>% 
-  filter(cg_age_under_10!=under_10)
-
 
 
 

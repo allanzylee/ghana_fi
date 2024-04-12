@@ -84,36 +84,38 @@ baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta
 names(m_child) = gsub(pattern = "_new", replacement = "", x = names(m_child))
 names(e_child) = gsub(pattern = "_new", replacement = "", x = names(e_child))
 
-# # dplyr::select relevant variables in the food security data and convert them to numeric.
-# 
+# # dplyr::select relevant variables in the food security data and convert them to numeric. Filter out NAs based on threshold
+
+child_na_threshold <- 3
+cg_na_threshold<-0
+
 m_ch_fs <- m_child %>%
-  dplyr::select(careid,childid,starts_with("fs"))
+  dplyr::select(careid,childid,starts_with("fs")) %>% 
+  mutate(na=rowSums(is.na(.))) %>% 
+  filter(na<=child_na_threshold)
 m_cg_fs <- m_cg %>%
   dplyr::select(childid,careid,starts_with("fs")) %>%
-  distinct(.keep_all = T)
+  distinct(.keep_all = T) %>% 
+  mutate(na=rowSums(is.na(.)))%>% 
+  filter(na<=cg_na_threshold)
 e_ch_fs <- e_child %>%
   dplyr::select(careid,childid,starts_with("fs")) %>%
-  dplyr::select(-fs_id)
+  dplyr::select(-fs_id)%>% 
+  mutate(na=rowSums(is.na(.))) %>% 
+  filter(na<=child_na_threshold)
+
 e_cg_fs <- e_cg %>%
   dplyr::select(childid,careid,starts_with("fs")) %>%
   distinct(.keep_all = T) %>%
-  dplyr::select(-fsid)
+  dplyr::select(-fsid)%>% 
+  mutate(na=rowSums(is.na(.))) %>% 
+  filter(na<=cg_na_threshold)
 
 # I will replace the NAs with an average of all other FS values.
 # m_ch_fs[fs_cols_child] <- apply(m_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(m_ch_fs[fs_cols_child], na.rm = TRUE), x))
 # m_cg_fs[fs_cols_cg] <- apply(m_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(m_cg_fs[fs_cols_cg], na.rm = TRUE), x))
 # e_ch_fs[fs_cols_child] <- apply(e_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(e_ch_fs[fs_cols_child], na.rm = TRUE), x))
 # e_cg_fs[fs_cols_cg] <- apply(e_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(e_cg_fs[fs_cols_cg], na.rm = TRUE), x))
-
-# Drop the remaining rows in ch_fs that have only NAs.
-m_ch_fs<-m_ch_fs %>%
-  na.omit()
-m_cg_fs<-m_cg_fs %>%
-  na.omit()
-e_ch_fs<-e_ch_fs %>%
-  na.omit()
-e_cg_fs<-e_cg_fs %>%
-  na.omit()
 
 # Join the data by midline and endline
 # m_fs <- m_ch_fs %>% 
@@ -260,7 +262,7 @@ e_cg_fs<-e_cg_fs %>%
 # 
 # Midline
 m_cfies<-m_ch_fs %>% 
-  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child))) %>% 
+  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child),na.rm=T)) %>% 
   mutate(m_ch_fs_dummy=if_else(fs_sum>=7,1,0),
          m_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
                                        fs_sum>=1 & fs_sum<=6~1,
@@ -271,7 +273,7 @@ m_cfies<-m_ch_fs %>%
 
 # Endline
 e_cfies<-e_ch_fs %>% 
-  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child))) %>% 
+  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child),na.rm=T)) %>% 
   mutate(e_ch_fs_dummy=if_else(fs_sum>=7,1,0),
          e_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
                                        fs_sum>=1 & fs_sum<=6~1,

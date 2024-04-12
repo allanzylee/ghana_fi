@@ -87,7 +87,7 @@ if(child_indicator==T){
     fi_labels<-c("Child-Reported FI")
   } else {
     fi<-"e_ch_fies"
-    folder<-"01_child/01_cfies"
+    folder<-"01_child/02_cfies"
     fi_labels<-c("CFIES: Few Experiences",
                  "CFIES: Several Experiences",
                  "CFIES: Many Experiences")
@@ -95,7 +95,7 @@ if(child_indicator==T){
   
 } else {
   
-  if(dummy_indicator==T & fies_scale_indicator==F){
+  if(dummy_indicator==T){
     fi<-"e_cg_fs_dummy"
     folder<-"02_cg/01_dummy"
     

@@ -22,6 +22,7 @@ library(broom)
 library(xtable)
 library(MASS)
 library(dplyr)
+library(glue)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -125,7 +126,7 @@ cluster_robust_func <- function(category, results_str, only_enrolled=F){
 ####################################### Choose FI and Define Relevant Terms #######################################
 ##########################################################################################
 
-only_enrolled_flag<-T
+only_enrolled_flag<-F
 dummy_indicator<-F
 # FIES Scale Indicator is only relevant if dummy indicator is false
 fies_scale_indicator<-T

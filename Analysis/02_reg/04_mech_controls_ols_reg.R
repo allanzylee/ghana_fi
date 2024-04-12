@@ -72,7 +72,7 @@ tidy_func <- function(category, results_str){
 
 # Define whether to use FIES or FIES Scale (FAO)
 
-dummy_indicator<-T
+dummy_indicator<-F
 # FIES Scale Indicator is only relevant if dummy indicator is false
 fies_scale_indicator<-F
 

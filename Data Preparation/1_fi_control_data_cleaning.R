@@ -110,9 +110,9 @@ m_ch_fs<-m_ch_fs %>%
   na.omit()
 m_cg_fs<-m_cg_fs %>%
   na.omit()
-e_ch_fs<-e_ch_fs %>% 
+e_ch_fs<-e_ch_fs %>%
   na.omit()
-e_cg_fs<-e_cg_fs %>% 
+e_cg_fs<-e_cg_fs %>%
   na.omit()
 
 # Join the data by midline and endline
@@ -285,7 +285,6 @@ e_cfies<-e_ch_fs %>%
 ### The FIES is coded in a few ways
 # 1. Dummy variable if any of Q5-Q8 is 1
 # 2. A sum of the scores
-# 3. 
 
 # Midline
 m_cg_fies<-m_cg_fs %>% 

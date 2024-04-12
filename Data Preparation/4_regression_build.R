@@ -206,17 +206,14 @@ full_data_w <- e_child %>%
   #        e_ef_per=scale(e_ef_per)[,1],
   #        e_num_per=scale(e_num_per)[,1]) %>%
   # Filter out NAs
-  filter(!is.na(female),
+  filter(
+    !is.na(female),
          !is.na(age),
          !is.na(e_ch_fs_dummy),
          !is.na(e_cg_fs_dummy),
          !is.na(cg_age),
          !is.na(cg_female),
          !is.na(marital_status),
-         !is.na(pe_pc1),
-         !is.na(pe_pc2),
-         !is.na(pe_pc3),
-         !is.na(pe_pc4),
          !is.na(treatment),
          !is.na(language)
          ) %>%

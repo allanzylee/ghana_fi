@@ -86,7 +86,7 @@ names(e_child) = gsub(pattern = "_new", replacement = "", x = names(e_child))
 
 # # dplyr::select relevant variables in the food security data and convert them to numeric. Filter out NAs based on threshold
 
-child_na_threshold <- 3
+child_na_threshold <- 0
 cg_na_threshold<-0
 
 m_ch_fs <- m_child %>%

@@ -1,5 +1,5 @@
 ---
-title: "Report1"
+title: "OLS_Results"
 output:
   pdf_document:
     latex_engine: xelatex

@@ -156,6 +156,25 @@
                   "Lagged Outcome",
                   "Constant")
   
+  all_labels <-c(fi_labels,
+                  "Child Female",
+                  "Child Age",
+                 "Child is Enrolled in School",
+                 "Child Attends Private Shool",
+                 "Child Reported Poor Health",
+                 "Child Reported Average Health",
+                 "Child Reported Good Health",
+                 "Child Reported Very Good Health",
+                 "Child Reported Worse Relative Health",
+                 "Child Reported Same Relative Health",
+                 "Child Reported Better Relative Health",
+                 "Child Reported Much Better Relative Health",
+                  "Child Self-Esteem",
+                  "Child Education Aspiration",
+                  "Caregiver Education Aspiration for Child",
+                  "Lagged Outcome",
+                  "Constant")
+  
   # Define Stargazer Labels
   outcome_lables<-c("Literacy","Numeracy","Executive Function","SEL")
   
@@ -283,7 +302,7 @@
   
   # Define base OLS input
   ols_input_psyc <- expand.grid(category=c('lit','num','ef','sel'),
-                                  model=c(glue('~ {fi}+female+age_num_region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
+                                  model=c(glue('~ {fi}+female+age_num+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
   
   # Regression results
   ols_psyc_results<- pmap(ols_input_psyc,
@@ -315,3 +334,43 @@
             notes            = "*$p<0.05$; **$p<0.01$",
             omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
             out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/04_reg_psyc.html"))
+
+  #######################################################################################################################
+  ############################## Multivariate OLS Regression w/ All Investment Mechanism ##############################
+  #######################################################################################################################
+  
+  # Define base OLS input
+  ols_input_all <- expand.grid(category=c('lit','num','ef','sel'),
+                                model=c(glue('~ {fi}+female+age_num+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_enroll_ch+e_private_school+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
+  
+  # Regression results
+  ols_all_results<- pmap(ols_input_all,
+                          reg_func) %>% 
+    set_names('lit','num','ef','sel')
+  
+  # Define base OLS Robust input
+  ols_all_results_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                               results_str='ols_all_results') %>%
+    mutate(across(everything(),~as.character(.)))
+  
+  # Cluster Robust Standard Error results
+  ols_all_robust_errors <- pmap(ols_all_results_robust_input,
+                                 cluster_robust_func) %>%
+    set_names('lit','num','ef','sel')
+  
+  ############################## Exporting Results ###############################
+  
+  stargazer(ols_all_results,
+            title="Multivariate OLS Regression: All Investment Mechanisms",
+            dep.var.caption = "Endline Dependent Variable:",
+            covariate.labels=all_labels,
+            column.labels = c("Literacy","Numeracy","Executive Function","SEL","Constant"),
+            se=lapply(ols_health_robust_errors, function(x) x$se),
+            p=lapply(ols_health_robust_errors, function(x) x$p),
+            # p=list(reduced_multivar_ols_region_robust_errors[['lit']][,4],reduced_multivar_ols_region_robust_errors[['num']][,4],reduced_multivar_ols_region_robust_errors[['ef']][,4],reduced_multivar_ols_region_robust_errors[['sel']][,4]),
+            star.cutoffs = c(.05, .01, NA),
+            notes.append     = FALSE,
+            notes            = "*$p<0.05$; **$p<0.01$",
+            omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment'),
+            out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/{folder}/04_reg_psyc.html"))
+  

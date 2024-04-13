@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.4.12)  13 APR 2024 10:19
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.4.12)  13 APR 2024 13:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -689,24 +689,33 @@ LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
 (Font)              scaled to size 6.99925pt on input line 85.
 LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
 (Font)              scaled to size 4.99947pt on input line 85.
-
-Overfull \hbox (21.46506pt too wide) in paragraph at lines 202--254
- [][] 
- []
-
-
-Overfull \hbox (25.82506pt too wide) in paragraph at lines 268--320
- [][] 
- []
-
-
-Overfull \hbox (80.82506pt too wide) in paragraph at lines 335--387
- [][] 
- []
-
 [1
 
-] [2] [3] [4] [5] [6] (./03_ols_reg_fies.aux)
+]
+Overfull \hbox (21.46506pt too wide) in paragraph at lines 199--263
+ [][] 
+ []
+
+
+LaTeX Warning: Float too large for page by 64.97398pt on input line 263.
+
+[2] [3]
+Overfull \hbox (25.82506pt too wide) in paragraph at lines 277--341
+ [][] 
+ []
+
+
+LaTeX Warning: Float too large for page by 65.08398pt on input line 341.
+
+
+Overfull \hbox (80.82506pt too wide) in paragraph at lines 356--420
+ [][] 
+ []
+
+
+LaTeX Warning: Float too large for page by 64.97398pt on input line 420.
+
+[4] [5] [6] (./03_ols_reg_fies.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-03-14>
@@ -718,7 +727,7 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  16710 strings out of 476760
  307165 string characters out of 5801554
- 1981145 words of memory out of 5000000
+ 1959145 words of memory out of 5000000
  38554 multiletter control sequences out of 15000+600000
  564464 words of font info for 82 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191

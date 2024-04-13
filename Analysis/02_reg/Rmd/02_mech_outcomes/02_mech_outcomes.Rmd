@@ -295,6 +295,7 @@ stargazer(multi_mech_results,
           no.space = TRUE, # to remove the spaces after each line of coefficients
 
           column.sep.width = "-50pt", # to reduce column width
+          
 
           font.size = "small" # to make font size smaller
           )

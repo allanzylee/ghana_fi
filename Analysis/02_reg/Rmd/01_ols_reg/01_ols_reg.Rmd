@@ -192,7 +192,7 @@ cg_schooling_multivar_ols_robust_errors <- pmap(cg_schooling_multivar_ols_robust
 ############################## Exporting Results ###############################
 
 stargazer(base_ols_results_region_treatment,
-          title="Base OLS Regression wit Region and Treatment FE",
+          title="Base OLS Regression with Region and Treatment FE",
           dep.var.caption = "Endline Dependent Variable:",
           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
           covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Lagged Outcome","Constant"),
@@ -239,7 +239,7 @@ cat('\\newpage')
 ```{r Child Sex, results = "asis", echo=F}
 
 stargazer(gender_multivar_ols_results,
-          title="Multivariate OLS Regression with Gender Interaction",
+          title="Multivariate OLS Regression with Child Sex Interaction",
           dep.var.caption = "Endline Dependent Variable:",
           # covariate.labels=variables,
           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),

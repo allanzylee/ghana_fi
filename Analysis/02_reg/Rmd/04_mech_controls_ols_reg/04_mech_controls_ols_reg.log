@@ -1,9 +1,9 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.4.12)  13 APR 2024 10:22
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.4.12)  13 APR 2024 11:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**01_ols_reg.tex
-(./01_ols_reg.tex
+**04_mech_controls_ols_reg.tex
+(./04_mech_controls_ols_reg.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-03-14>
 (/Users/AllanLee/Library/TinyTeX/texmf-dist/tex/latex/base/article.cls
@@ -340,10 +340,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 28
 ) (/Users/AllanLee/Library/TinyTeX/texmf-dist/tex/latex/bookmark/bkm-dvipdfm.def
 File: bkm-dvipdfm.def 2023-12-10 v1.31 bookmark driver for dvipdfm (HO)
 \BKM@id=\count305
-)) (./01_ols_reg.aux
-
-LaTeX Warning: Label `' multiply defined.
-
+)) (./04_mech_controls_ols_reg.aux
 
 LaTeX Warning: Label `' multiply defined.
 
@@ -354,7 +351,7 @@ LaTeX Warning: Label `' multiply defined.
 LaTeX Warning: Label `' multiply defined.
 
 )
-\openout1 = `01_ols_reg.aux'.
+\openout1 = `04_mech_controls_ols_reg.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 72.
 LaTeX Font Info:    ... okay on input line 72.
@@ -691,12 +688,20 @@ LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
 (Font)              scaled to size 4.99947pt on input line 85.
 [1
 
-]
-Overfull \hbox (57.59506pt too wide) in paragraph at lines 284--324
+] [2]
+Overfull \hbox (27.37506pt too wide) in paragraph at lines 195--256
  [][] 
  []
 
-[2] [3] [4] [5] (./01_ols_reg.aux)
+
+LaTeX Warning: Float too large for page by 28.97398pt on input line 256.
+
+
+Overfull \hbox (10.85507pt too wide) in paragraph at lines 271--317
+ [][] 
+ []
+
+[3] [4] [5] (./04_mech_controls_ols_reg.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-03-14>
@@ -706,12 +711,12 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 16710 strings out of 476760
- 307105 string characters out of 5801554
- 1959145 words of memory out of 5000000
- 38554 multiletter control sequences out of 15000+600000
+ 16708 strings out of 476760
+ 307302 string characters out of 5801554
+ 1954145 words of memory out of 5000000
+ 38552 multiletter control sequences out of 15000+600000
  564464 words of font info for 82 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 90i,10n,121p,353b,351s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,10n,121p,367b,335s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on 01_ols_reg.pdf (5 pages).
+Output written on 04_mech_controls_ols_reg.pdf (5 pages).

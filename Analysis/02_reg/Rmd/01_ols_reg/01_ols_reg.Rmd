@@ -294,11 +294,11 @@ cat('\\newpage')
 
 ```{r Caregiver Education, results = "asis", echo=F}
 stargazer(cg_schooling_multivar_ols_results,
-          title="Multivariate OLS Regression with Caregiver Schooling Interaction",
+          title="Multivariate OLS Regression with Caregiver Attended School Interaction",
           dep.var.caption = "Endline Dependent Variable:",
           # covariate.labels=variables,
           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Caregiver Schooling","Lagged Outcome","Child-Reported FI x Caregiver Schooling","Caregiver-Reported FI x Caregiver Schooling","Constant"),
+          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Caregiver Attended School","Lagged Outcome","Child-Reported FI x Caregiver Attended School","Caregiver-Reported FI x Caregiver Attended School","Constant"),
           omit=c('age','female','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
                  'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
                  'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',

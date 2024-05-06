@@ -28,8 +28,6 @@ library(writexl)
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
-outcomes <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds') %>% 
-  dplyr::select(childid,careid,contains('_per'))
 
 ###################################### Load relevant functions ################################
 
@@ -164,7 +162,7 @@ ch_sum_stat_input <- tribble(
   
 )
 
-# Endline Overall
+# Overall
 ch_fi_sum_stat_overall <- full_data_w %>% 
   dplyr::select(contains('fs')) %>% 
   summarize(across(matches('ch_fs_dummy$'),
@@ -173,7 +171,7 @@ ch_fi_sum_stat_overall <- full_data_w %>%
   ) %>% 
   mutate(group='Overall')
 
-# Endline by Gender and Age
+# By Gender and Age
 ch_fi_sum_stat_female_age <- full_data_w %>% 
   dplyr::select(contains('fs'),
                 female,

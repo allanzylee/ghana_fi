@@ -137,74 +137,52 @@ ch_cg_fi_cor<- pmap_dfr(ch_cg_cor_input,
   bind_rows(ch_cg_fi_cor_age_female) %>% 
   rename(ch_cg_reports_cor=cor)
 
-############################# Child and CG Reports of FI: Mean and SD ###############################
+############################# Child Reports of FI: Mean by Group/Round ###############################
 
 # Define function
-ch_cg_sum_stat_func <- function(var_group_str, str_1, str_0) {
+ch_sum_stat_func <- function(var_group_str, str_1, str_0) {
 
  var_group <- ensym(var_group_str)
  sum_stat <- full_data_w %>% 
    dplyr::select(!!var_group,
                  contains('fs')) %>% 
     group_by(group=!!var_group) %>% 
-    summarize(across(matches('^e_.*dummy$'),
+    summarize(across(matches('ch_fs_dummy$'),
                      ~mean(., na.rm=T),
-                     .names = "mean.{col}"),
-              across(matches('^e_.*dummy$'),
-                     ~sd(., na.rm=T),
-                     .names = "sd.{col}")
-    ) %>% 
-    pivot_longer(-group, 
-                 names_to = c("category", ".value"), 
-                 names_sep="_" ) %>% 
+                     .names = "mean.{col}")
+    ) %>%
     mutate(group=case_when(group==1 ~ str_1,
                            T~str_0))
   return(sum_stat)
 }
 
 # Define Input
-ch_cg_sum_stat_input <- tribble(
+ch_sum_stat_input <- tribble(
   ~var_group_str, ~str_1, ~str_0,
   'female',      "Female", "Male",
   'age', 'Child is 10-17', 'Child is 5-9',
   
-)  
+)
 
-# By round
-ch_cg_fi_sum_stat_overall <- full_data_w %>% 
+# Endline Overall
+ch_fi_sum_stat_overall <- full_data_w %>% 
   dplyr::select(contains('fs')) %>% 
-  summarize(across(contains('_dummy'),
+  summarize(across(matches('ch_fs_dummy$'),
                    ~mean(., na.rm=T),
-                   .names = "mean.{col}"),
-            across(contains('_dummy'),
-                   ~sd(., na.rm=T),
-                   .names = "sd.{col}")
-            ) %>% 
-  dplyr::select(-contains('sd.mean')) %>% 
-  pivot_longer(everything(), 
-               names_to = c("category", ".value"), 
-               names_sep="_" ) %>% 
-  mutate(group=case_when(str_sub(category,start=-1)=='m'~ "Midline Reports",
-                         T~'Endline Reports'))
+                   .names = "mean.{col}")
+  ) %>% 
+  mutate(group='Overall')
 
 # Endline by Gender and Age
-e_ch_cg_fi_sum_stat_female_age <- full_data_w %>% 
+ch_fi_sum_stat_female_age <- full_data_w %>% 
   dplyr::select(contains('fs'),
                 female,
                 age) %>% 
   group_by(female, age) %>% 
-  summarize(across(matches('^e_.*dummy$'),
+  summarize(across(matches('ch_fs_dummy$'),
                    ~mean(., na.rm=T),
-                   .names = "mean.{col}"),
-            across(matches('^e_.*dummy$'),
-                   ~sd(., na.rm=T),
-                   .names = "sd.{col}")
-  ) %>% 
-  pivot_longer(-c(female,age), 
-               names_to = c("category", ".value"), 
-               names_sep="_" ) %>% 
-  # pivot_wider(names_from = category,
-  #             values_from=c(ch,cg)) %>% 
+                   .names = "mean.{col}")
+  ) %>%
   mutate(group=case_when(age==1 & female==1 ~ 'Female (10-17)',
                             age==1 & female==0 ~ 'Male (10-17)',
                             age==0 & female==1 ~ 'Female (5-9)',
@@ -213,15 +191,12 @@ e_ch_cg_fi_sum_stat_female_age <- full_data_w %>%
   dplyr::select(-age,-female)
 
 # Combine results
-ch_cg_fi_sum_stat <- pmap_dfr(ch_cg_sum_stat_input,
-                              ch_cg_sum_stat_func) %>% 
-  bind_rows(ch_cg_fi_sum_stat_overall,
-            e_ch_cg_fi_sum_stat_female_age) %>% 
-  rename(ch_reports=ch,
-         cg_reports=cg) %>% 
-  mutate(category=sub(".[^.]*$", "",category)) %>% 
-  pivot_wider(names_from=category,
-              values_from=c(ch_reports,cg_reports))
+ch_fi_sum_stat <- pmap_dfr(ch_sum_stat_input,
+                              ch_sum_stat_func) %>% 
+  bind_rows(ch_fi_sum_stat_overall,
+            ch_fi_sum_stat_female_age) %>% 
+  rename(e_fs=mean.e_ch_fs_dummy,
+         m_fs=mean.m_ch_fs_dummy)
 
 ### OLD BELOW
 

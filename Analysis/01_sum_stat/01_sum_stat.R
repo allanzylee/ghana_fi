@@ -191,12 +191,14 @@ ch_fi_sum_stat_female_age <- full_data_w %>%
   dplyr::select(-age,-female)
 
 # Combine results
-ch_fi_sum_stat <- pmap_dfr(ch_sum_stat_input,
-                              ch_sum_stat_func) %>% 
-  bind_rows(ch_fi_sum_stat_overall,
+ch_fi_sum_stat <- ch_fi_sum_stat_overall %>% 
+  bind_rows(pmap_dfr(ch_sum_stat_input,ch_sum_stat_func),
             ch_fi_sum_stat_female_age) %>% 
   rename(e_fs=mean.e_ch_fs_dummy,
-         m_fs=mean.m_ch_fs_dummy)
+         m_fs=mean.m_ch_fs_dummy) %>% 
+  dplyr::select(group,e_fs,m_fs)
+  
+xtable(ch_fi_sum_stat)
 
 ### OLD BELOW
 

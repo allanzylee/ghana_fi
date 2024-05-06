@@ -53,9 +53,7 @@ reg_func <- function(category, model){
 
 # High level summary of all relevant variables
 summary_stat<-full_data_w %>% 
-  dplyr::select(m_ch_fs_dummy,
-                m_cg_fs_dummy,
-                e_ch_fs_dummy,
+  dplyr::select(e_ch_fs_dummy,
                 e_cg_fs_dummy,
                 female,
                 age_num,
@@ -74,10 +72,8 @@ stargazer(summary_stat,
           header=FALSE, 
           type='latex',
           title = "Child Demographics Summary Statistics",
-          covariate.labels=c("Midline Child-Reported FI",
-                             "Midline Caregiver-Reported FI",
-                             "Endline Child-Reported FI",
-                             "Endline Caregiver-Reported FI",
+          covariate.labels=c("Child-Reported FI",
+                             "Caregiver-Reported FI",
                              "Child Sex",
                              "Child Age",
                              # "Enrolled in School", 
@@ -89,6 +85,23 @@ stargazer(summary_stat,
                              # "Poverty",
                              "Household Size")
           )
+
+############################# Language Summary Statistics ###############################
+lan_break_down<-as.data.frame(table(full_data_w$language)/nrow(full_data_w)) %>% 
+  janitor::clean_names() %>% 
+  rename(language=var1,frequency=freq)
+# write_xlsx(lan_break_down, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/lan_break_down.xlsx")
+
+############################# Gender Bias Summary Statistics ###############################
+gender_bias <- full_data_w %>% 
+  dplyr::select(childid,careid,contains("gb")) %>% 
+  dplyr::mutate(across(contains('gb'),~case_when(.==1~0,
+                                               T~1))) %>% 
+  dplyr::select(-childid,-careid) %>% 
+  rename_with(toupper) %>% 
+  as.data.frame()
+
+stargazer(gender_bias)
 
 ############################# Child and CG Reports of FI: Correlation ###############################
 
@@ -144,8 +157,6 @@ ch_cg_sum_stat_func <- function(var_group_str, str_1, str_0) {
 
  var_group <- ensym(var_group_str)
  sum_stat <- full_data_w %>% 
-   dplyr::select(!!var_group,
-                 contains('fs')) %>% 
     group_by(group=!!var_group) %>% 
     summarize(across(matches('^e_.*dummy$'),
                      ~mean(., na.rm=T),
@@ -172,7 +183,6 @@ ch_cg_sum_stat_input <- tribble(
 
 # By round
 ch_cg_fi_sum_stat_overall <- full_data_w %>% 
-  dplyr::select(contains('fs')) %>% 
   summarize(across(contains('_dummy'),
                    ~mean(., na.rm=T),
                    .names = "mean.{col}"),
@@ -189,9 +199,6 @@ ch_cg_fi_sum_stat_overall <- full_data_w %>%
 
 # Endline by Gender and Age
 e_ch_cg_fi_sum_stat_female_age <- full_data_w %>% 
-  dplyr::select(contains('fs'),
-                female,
-                age) %>% 
   group_by(female, age) %>% 
   summarize(across(matches('^e_.*dummy$'),
                    ~mean(., na.rm=T),
@@ -222,8 +229,6 @@ ch_cg_fi_sum_stat <- pmap_dfr(ch_cg_sum_stat_input,
   mutate(category=sub(".[^.]*$", "",category)) %>% 
   pivot_wider(names_from=category,
               values_from=c(ch_reports,cg_reports))
-
-### OLD BELOW
 
 ############################# Midline and Endline Child and CG Reports of FI: Correlation ###############################
 

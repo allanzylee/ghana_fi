@@ -98,9 +98,44 @@ outcome_sum_stat_female_age <- data %>%
 for_ex <- outcome_sum_stat_overall %>% 
   bind_rows(pmap_dfr(input,outcome_sum_stat_func),
             outcome_sum_stat_female_age) %>% 
-  rename(e_fs=mean.e_ch_fs_dummy,
-         m_fs=mean.m_ch_fs_dummy)
-
-colnames(for_ex)<-sub("mean.",'',colnames(for_ex))
+  pivot_longer(c(-group),
+               names_to = 'category',
+               values_to='value')
 
 ############################# Create Exhibit ###############################
+plot<-for_ex %>% 
+  mutate(category=factor(category,
+                            levels=c('mean.e_lit_per',
+                                     'mean.e_num_per',
+                                     'mean.e_ef_per',
+                                     'mean.e_sel_per'))) %>% 
+  ggplot(aes(x=group,
+             y=value,
+             fill = category))+
+  geom_col(position='dodge') +
+  scale_y_continuous(expand=c(0,0),
+                     limits=c(0,1)) +
+  labs(title="Endline Child Cognitive and Socioemotional Outcomes by Group",
+       y='Percentage Accuracy',
+       x='Group') +
+  scale_fill_manual(values=c('#C00000',
+                             '#EE6363',
+                             '#0070c1',
+                             '#559bf0'),
+                    breaks=c('mean.e_lit_per',
+                             'mean.e_num_per',
+                             'mean.e_ef_per',
+                             'mean.e_sel_per')) +
+  theme(
+    axis.text = element_text(color='black'),
+    axis.ticks = element_line(color='black'),
+    axis.line = element_line(color='black'),
+    legend.position = 'bottom'
+  ) 
+
+plot
+
+
+
+
+

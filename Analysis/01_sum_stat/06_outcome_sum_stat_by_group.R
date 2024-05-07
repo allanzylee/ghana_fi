@@ -30,13 +30,24 @@ library(writexl)
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
 outcome_raw <- read_rds("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome_raw.rds")
 
+############################# Construct Data to Calculate raw outcome % ###############################
+
+data<-full_data_w %>% 
+  dplyr::select(careid,
+                childid,
+                age,
+                female) %>% 
+  left_join(outcome_raw,
+            by=c('childid',
+                 'careid'))
+
 ############################# Child Outcomes: Mean by Group/Round ###############################
 
 # Define function
 outcome_sum_stat_func <- function(var_group_str, str_1, str_0) {
   
   var_group <- ensym(var_group_str)
-  sum_stat <- full_data_w %>% 
+  sum_stat <- data %>% 
     dplyr::select(!!var_group,
                   matches('^e_.*per$')) %>% 
     group_by(group=!!var_group) %>% 
@@ -58,7 +69,7 @@ input <- tribble(
 )
 
 # Overall
-ch_fi_sum_stat_overall <- full_data_w %>% 
+outcome_sum_stat_overall <- data %>% 
   dplyr::select(matches('^e_.*per$')) %>% 
   summarize(across(matches('^e_.*per$'),
                    ~mean(., na.rm=T),
@@ -67,12 +78,12 @@ ch_fi_sum_stat_overall <- full_data_w %>%
   mutate(group='Overall')
 
 # By Gender and Age
-ch_fi_sum_stat_female_age <- full_data_w %>% 
-  dplyr::select(contains('fs'),
+outcome_sum_stat_female_age <- data %>% 
+  dplyr::select(matches('^e_.*per$'),
                 female,
                 age) %>% 
   group_by(female, age) %>% 
-  summarize(across(matches('ch_fs_dummy$'),
+  summarize(across(matches('^e_.*per$'),
                    ~mean(., na.rm=T),
                    .names = "mean.{col}")
   ) %>%
@@ -84,11 +95,12 @@ ch_fi_sum_stat_female_age <- full_data_w %>%
   dplyr::select(-age,-female)
 
 # Combine results
-ch_fi_sum_stat <- ch_fi_sum_stat_overall %>% 
+for_ex <- outcome_sum_stat_overall %>% 
   bind_rows(pmap_dfr(input,outcome_sum_stat_func),
-            ch_fi_sum_stat_female_age) %>% 
+            outcome_sum_stat_female_age) %>% 
   rename(e_fs=mean.e_ch_fs_dummy,
-         m_fs=mean.m_ch_fs_dummy) %>% 
-  dplyr::select(group,e_fs,m_fs)
+         m_fs=mean.m_ch_fs_dummy)
 
-xtable(ch_fi_sum_stat)
+colnames(for_ex)<-sub("mean.",'',colnames(for_ex))
+
+############################# Create Exhibit ###############################

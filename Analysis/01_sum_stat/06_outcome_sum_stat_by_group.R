@@ -108,16 +108,40 @@ plot<-for_ex %>%
                             levels=c('mean.e_lit_per',
                                      'mean.e_num_per',
                                      'mean.e_ef_per',
-                                     'mean.e_sel_per'))) %>% 
+                                     'mean.e_sel_per')),
+         group=factor(group,
+                         levels=c('Overall',
+                                  'Male',
+                                  'Female',
+                                  'Child is 5-9',
+                                  'Child is 10-17',
+                                  'Male (5-9)',
+                                  'Male (10-17)',
+                                  'Female (5-9)',
+                                  'Female (10-17)'))) %>% 
   ggplot(aes(x=group,
              y=value,
              fill = category))+
   geom_col(position='dodge') +
+  geom_text(aes(label=glue('{round(value,3)*100}%')),
+            position=position_dodge(0.9),
+            vjust=-0.5)+
   scale_y_continuous(expand=c(0,0),
-                     limits=c(0,1)) +
-  labs(title="Endline Child Cognitive and Socioemotional Outcomes by Group",
-       y='Percentage Accuracy',
-       x='Group') +
+                     limits=c(0,1),
+                     labels = scales::percent) +
+  labs(
+    # title="Endline Child Cognitive and Socioemotional Outcomes by Group",
+       y='',
+       x='') +
+  scale_x_discrete(breaks=c('Overall',
+                            'Male',
+                            'Female',
+                            'Child is 5-9',
+                            'Child is 10-17',
+                            'Male (5-9)',
+                            'Male (10-17)',
+                            'Female (5-9)',
+                            'Female (10-17)'))+
   scale_fill_manual(values=c('#C00000',
                              '#EE6363',
                              '#0070c1',
@@ -125,15 +149,27 @@ plot<-for_ex %>%
                     breaks=c('mean.e_lit_per',
                              'mean.e_num_per',
                              'mean.e_ef_per',
-                             'mean.e_sel_per')) +
+                             'mean.e_sel_per'),
+                    labels=c('Literacy',
+                             'Numeracy',
+                             'Executive Function',
+                             'Socioemotional Learning')) +
+  theme_classic()+
   theme(
     axis.text = element_text(color='black'),
     axis.ticks = element_line(color='black'),
     axis.line = element_line(color='black'),
-    legend.position = 'bottom'
-  ) 
+    legend.position = 'bottom',
+    legend.title=element_blank()
+  )
 
 plot
+
+# Export as PDF
+ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/06_outcome_sum_stat_by_group.pdf",
+       width=35,
+       height=25,
+       units='cm')
 
 
 

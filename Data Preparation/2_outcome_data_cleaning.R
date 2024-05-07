@@ -27,144 +27,144 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
   mutate(across(contains('id'),~as.double(.))) %>% 
   filter(io2==1)
 
-###################################### Create function to calculate percentage accuracy ######
-accuracy_func<-function(df){
-  
-  total_col_name=glue("{df}_total")
-  per_col_name=glue("{df}_per")
-  
-  # Determine which age variable to us dependent on midline vs endline
-  age_var=case_when(grepl('m_',df)~'cr6',
-                    T~'childage')
-  
-  if(grepl('sel')==T){
-    out<-get(df) %>% 
-      # Change all columns to numeric
-      mutate(across(everything(),~as.numeric(.))) %>% 
-      # Change CR SEL questions to be 1/0 binary
-      mutate(across(contains('cr'),~case_when(.==2~0,
-                                              .==1~1,
-                                              T~NA_real_))) %>% 
-      # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-      mutate(total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
-             total_q = ifelse(!!sym(age_var)<10,11,14),
-             answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
-             answered_q_perc=answered_q/total_q,
-             per=case_when(answered_q==0~NA_real_,
-                           T~m_sel_total/answered_q)) %>%
-      dplyr::select(careid,childid,child_age,total,answered_q_perc,per) %>% 
-      rename(total_col_name=total,
-             per_col_name=per)
-  }else if(grepl('ef'==T)){
-    
-    
-  } else{
-    
-  }
-  
-}
-
-##########################################################################################
-###################################### Outcome data cleaning #############################
-##########################################################################################
-
+# ###################################### Create function to calculate percentage accuracy ######
+# accuracy_func<-function(df){
+#   
+#   total_col_name=glue("{df}_total")
+#   per_col_name=glue("{df}_per")
+#   
+#   # Determine which age variable to us dependent on midline vs endline
+#   age_var=case_when(grepl('m_',df)~'cr6',
+#                     T~'childage')
+#   
+#   if(grepl('sel')==T){
+#     out<-get(df) %>% 
+#       # Change all columns to numeric
+#       mutate(across(everything(),~as.numeric(.))) %>% 
+#       # Change CR SEL questions to be 1/0 binary
+#       mutate(across(contains('cr'),~case_when(.==2~0,
+#                                               .==1~1,
+#                                               T~NA_real_))) %>% 
+#       # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
+#       mutate(total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
+#              total_q = ifelse(!!sym(age_var)<10,11,14),
+#              answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
+#              answered_q_perc=answered_q/total_q,
+#              per=case_when(answered_q==0~NA_real_,
+#                            T~m_sel_total/answered_q)) %>%
+#       dplyr::select(careid,childid,child_age,total,answered_q_perc,per) %>% 
+#       rename(total_col_name=total,
+#              per_col_name=per)
+#   }else if(grepl('ef'==T)){
+#     
+#     
+#   } else{
+#     
+#   }
+#   
+# }
+# 
+# ##########################################################################################
+# ###################################### Outcome data cleaning #############################
+# ##########################################################################################
+# 
 # Set threshold to filter out low response kids
 threshold<-0
-
-############################################### Midline: SEL ######################################
-
-m_sel <- m_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                cr1:re11,
-                paa2) %>%
-  dplyr::select(-re5,-re8)
-
-############################################### Midline Literacy ######################################
-
-m_lit <- m_child %>% 
-  # dplyr::select relevant literacy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                starts_with("nr"),
-                starts_with("sp"),
-                starts_with("or"),
-                starts_with("oc"),
-                matches("pa[0-9]")) %>%
-  dplyr::select(-oc5) 
-
-############################################### Midline: Numeracy ######################################
-
-m_num <- m_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                matches("co[0-9]"),
-                starts_with("nd"),
-                starts_with("mn"),
-                starts_with("nu"),
-                starts_with("wp"),
-                starts_with("ad"),
-                matches("su[0-9]"),
-                starts_with("mu"),
-                matches("di[0-9]"))
-
-############################################### Midline: EF ######################################
-
-m_ef <- m_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=cr6,
-                starts_with("wm"),
-                starts_with("sm"))
-
-############################################### Endline: SEL ######################################
-
-e_sel <- e_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(careid,
-                childid,
-                child_age=childage,
-                cr1:re11) %>%
-  # Dedplyr::select friends question
-  dplyr::select(-re5,-re8)
-
-############################################### Endline Literacy ######################################
-
-e_lit <- e_child %>% 
-  # dplyr::select relevant literacy questions
-  dplyr::select(starts_with("nr"),
-                starts_with("sp"),
-                starts_with("or"),
-                starts_with("oc"),
-                matches("pa[0-9]")) 
-
-############################################### Endline: Numeracy ######################################
-# Note that within the literacy category, there are 53 questions.
-
-e_num <- e_child %>% 
-  # dplyr::select relevant numeracy questions
-  dplyr::select(matches("co[0-9]"),
-                starts_with("nd"),
-                starts_with("mn"),
-                starts_with("nu"),
-                starts_with("wp"),
-                starts_with("ad"),
-                matches("su[0-9]"),
-                starts_with("mu"),
-                matches("di[0-9]"))
-
-############################################### Endline: EF ######################################
-# Note that within the executive function category, there are 15 questions for 5-9 year olds and 17 questions for 10-17 year olds.
-
-e_ef <- e_child %>% 
-  dplyr::select(starts_with("wm"),
-                starts_with("sm"))
+# 
+# ############################################### Midline: SEL ######################################
+# 
+# m_sel <- m_child %>% 
+#   # dplyr::select relevant numeracy questions
+#   dplyr::select(careid,
+#                 childid,
+#                 child_age=cr6,
+#                 cr1:re11,
+#                 paa2) %>%
+#   dplyr::select(-re5,-re8)
+# 
+# ############################################### Midline Literacy ######################################
+# 
+# m_lit <- m_child %>% 
+#   # dplyr::select relevant literacy questions
+#   dplyr::select(careid,
+#                 childid,
+#                 child_age=cr6,
+#                 starts_with("nr"),
+#                 starts_with("sp"),
+#                 starts_with("or"),
+#                 starts_with("oc"),
+#                 matches("pa[0-9]")) %>%
+#   dplyr::select(-oc5) 
+# 
+# ############################################### Midline: Numeracy ######################################
+# 
+# m_num <- m_child %>% 
+#   # dplyr::select relevant numeracy questions
+#   dplyr::select(careid,
+#                 childid,
+#                 child_age=cr6,
+#                 matches("co[0-9]"),
+#                 starts_with("nd"),
+#                 starts_with("mn"),
+#                 starts_with("nu"),
+#                 starts_with("wp"),
+#                 starts_with("ad"),
+#                 matches("su[0-9]"),
+#                 starts_with("mu"),
+#                 matches("di[0-9]"))
+# 
+# ############################################### Midline: EF ######################################
+# 
+# m_ef <- m_child %>% 
+#   # dplyr::select relevant numeracy questions
+#   dplyr::select(careid,
+#                 childid,
+#                 child_age=cr6,
+#                 starts_with("wm"),
+#                 starts_with("sm"))
+# 
+# ############################################### Endline: SEL ######################################
+# 
+# e_sel <- e_child %>% 
+#   # dplyr::select relevant numeracy questions
+#   dplyr::select(careid,
+#                 childid,
+#                 child_age=childage,
+#                 cr1:re11) %>%
+#   # Dedplyr::select friends question
+#   dplyr::select(-re5,-re8)
+# 
+# ############################################### Endline Literacy ######################################
+# 
+# e_lit <- e_child %>% 
+#   # dplyr::select relevant literacy questions
+#   dplyr::select(starts_with("nr"),
+#                 starts_with("sp"),
+#                 starts_with("or"),
+#                 starts_with("oc"),
+#                 matches("pa[0-9]")) 
+# 
+# ############################################### Endline: Numeracy ######################################
+# # Note that within the literacy category, there are 53 questions.
+# 
+# e_num <- e_child %>% 
+#   # dplyr::select relevant numeracy questions
+#   dplyr::select(matches("co[0-9]"),
+#                 starts_with("nd"),
+#                 starts_with("mn"),
+#                 starts_with("nu"),
+#                 starts_with("wp"),
+#                 starts_with("ad"),
+#                 matches("su[0-9]"),
+#                 starts_with("mu"),
+#                 matches("di[0-9]"))
+# 
+# ############################################### Endline: EF ######################################
+# # Note that within the executive function category, there are 15 questions for 5-9 year olds and 17 questions for 10-17 year olds.
+# 
+# e_ef <- e_child %>% 
+#   dplyr::select(starts_with("wm"),
+#                 starts_with("sm"))
 
 #####################################################################################################
 #####################################################################################################
@@ -448,7 +448,7 @@ outcome <- m_lit %>%
 ################################## Exporting Relevant Data ###############################
 ##########################################################################################
 
-saveRDS(out, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds")
+saveRDS(outcome, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome_raw.rds")
 
 
 

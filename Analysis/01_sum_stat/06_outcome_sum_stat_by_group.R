@@ -28,6 +28,7 @@ library(writexl)
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
+outcome_raw <- read_rds("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome_raw.rds")
 
 ############################# Child Outcomes: Mean by Group/Round ###############################
 

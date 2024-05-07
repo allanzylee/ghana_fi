@@ -2,7 +2,7 @@
 
 # Author: Allan Lee
 # Date: May 6th, 2024
-# Purpose: Calculate relevant summary statistics
+# Purpose: Calculate outcome summary static by group
 
 ##########################################################################################
 ############################################### Set up ###################################
@@ -32,14 +32,14 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 ############################# Child Outcomes: Mean by Group/Round ###############################
 
 # Define function
-ch_sum_stat_func <- function(var_group_str, str_1, str_0) {
+outcome_sum_stat_func <- function(var_group_str, str_1, str_0) {
   
   var_group <- ensym(var_group_str)
   sum_stat <- full_data_w %>% 
     dplyr::select(!!var_group,
-                  contains('fs')) %>% 
+                  matches('^e_.*per$')) %>% 
     group_by(group=!!var_group) %>% 
-    summarize(across(matches('ch_fs_dummy$'),
+    summarize(across(matches('per'),
                      ~mean(., na.rm=T),
                      .names = "mean.{col}")
     ) %>%
@@ -49,7 +49,7 @@ ch_sum_stat_func <- function(var_group_str, str_1, str_0) {
 }
 
 # Define Input
-ch_sum_stat_input <- tribble(
+input <- tribble(
   ~var_group_str, ~str_1, ~str_0,
   'female',      "Female", "Male",
   'age', 'Child is 10-17', 'Child is 5-9',
@@ -58,8 +58,8 @@ ch_sum_stat_input <- tribble(
 
 # Overall
 ch_fi_sum_stat_overall <- full_data_w %>% 
-  dplyr::select(contains('fs')) %>% 
-  summarize(across(matches('ch_fs_dummy$'),
+  dplyr::select(matches('^e_.*per$')) %>% 
+  summarize(across(matches('^e_.*per$'),
                    ~mean(., na.rm=T),
                    .names = "mean.{col}")
   ) %>% 
@@ -84,7 +84,7 @@ ch_fi_sum_stat_female_age <- full_data_w %>%
 
 # Combine results
 ch_fi_sum_stat <- ch_fi_sum_stat_overall %>% 
-  bind_rows(pmap_dfr(ch_sum_stat_input,ch_sum_stat_func),
+  bind_rows(pmap_dfr(input,outcome_sum_stat_func),
             ch_fi_sum_stat_female_age) %>% 
   rename(e_fs=mean.e_ch_fs_dummy,
          m_fs=mean.m_ch_fs_dummy) %>% 

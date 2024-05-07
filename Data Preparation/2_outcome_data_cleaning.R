@@ -129,7 +129,7 @@ e_sel <- e_child %>%
   # dplyr::select relevant numeracy questions
   dplyr::select(careid,
                 childid,
-                child_age=cr6,
+                child_age=childage,
                 cr1:re11) %>%
   # Dedplyr::select friends question
   dplyr::select(-re5,-re8)
@@ -423,26 +423,26 @@ outcome <- m_lit %>%
   dplyr::select(childid,careid,
                 contains('_per')) %>% 
   dplyr::select(!contains('answer'))
-
-# Test for instances when child age has a large disparity
-child_exclude <- m_child %>% 
-  left_join(e_child,by=c('childid','careid')) %>% 
-  mutate(age_diff=as.double(childage)-as.double(cr6)) %>% 
-  filter(!(age_diff==1|age_diff==0)) %>% 
-  dplyr::select(childid) %>% 
-  pull()
-
-# Create data for export
-out<-outcome 
-# %>% 
-# filter(!(childid %in% child_exclude))
-  
-test<-as.data.frame(table(e_ef$answered_q_perc)) %>% clean_names() %>% 
-  ggplot()+
-  geom_col(aes(x=factor(var1),y=freq))+
-  scale_x_discrete(breaks=seq(0,1,0.1),
-                   labels=seq(0,1,0.1))
-plot(test)
+# 
+# # Test for instances when child age has a large disparity
+# child_exclude <- m_child %>% 
+#   left_join(e_child,by=c('childid','careid')) %>% 
+#   mutate(age_diff=as.double(childage)-as.double(cr6)) %>% 
+#   filter(!(age_diff==1|age_diff==0)) %>% 
+#   dplyr::select(childid) %>% 
+#   pull()
+# 
+# # Create data for export
+# out<-outcome 
+# # %>% 
+# # filter(!(childid %in% child_exclude))
+#   
+# test<-as.data.frame(table(e_ef$answered_q_perc)) %>% clean_names() %>% 
+#   ggplot()+
+#   geom_col(aes(x=factor(var1),y=freq))+
+#   scale_x_discrete(breaks=seq(0,1,0.1),
+#                    labels=seq(0,1,0.1))
+# plot(test)
 
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################

@@ -156,7 +156,8 @@ plot<-for_ex %>%
                              'Socioemotional Learning')) +
   theme_classic()+
   theme(
-    axis.text = element_text(color='black'),
+    axis.text = element_text(color='black',
+                             size=10),
     axis.ticks = element_line(color='black'),
     axis.line = element_line(color='black'),
     legend.position = 'bottom',
@@ -166,8 +167,8 @@ plot<-for_ex %>%
 plot
 
 # Export as PDF
-ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/06_outcome_sum_stat_by_group.pdf",
-       width=35,
+ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/06_outcome_sum_stat_by_group.png",
+       width=25,
        height=25,
        units='cm')
 

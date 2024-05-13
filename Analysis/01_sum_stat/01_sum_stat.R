@@ -95,13 +95,15 @@ ch_cg_cor_func <- function(var_group_str, str_1, str_0) {
   
   if (is.na(var_group_str)) {
     cor <- full_data_w %>%
-      summarize(cor = cor(e_ch_fs_dummy, e_cg_fs_dummy, use = "everything")) %>%
+      summarize(cor = as.double(cor.test(e_ch_fs_dummy, e_cg_fs_dummy)[4]),
+                p_val = as.double(cor.test(e_ch_fs_dummy, e_cg_fs_dummy)[3])) %>%
       mutate(category = 'Overall')
   } else {
     var_group <- ensym(var_group_str)
     cor <- full_data_w %>% 
       group_by(category = !!var_group) %>% 
-      summarize(cor = cor(e_ch_fs_dummy, e_cg_fs_dummy, use = "everything")) %>% 
+      summarize(cor = as.double(cor.test(e_ch_fs_dummy, e_cg_fs_dummy)[4]),
+                p_val = as.double(cor.test(e_ch_fs_dummy, e_cg_fs_dummy)[3])) %>% 
       mutate(category = case_when(category == 1 ~ str_1,
                                   TRUE ~ str_0),
              .before = 1)
@@ -121,7 +123,8 @@ ch_cg_cor_input <- tribble(
 # Manually calculate correlation by age/female
 ch_cg_fi_cor_age_female <- full_data_w %>% 
   group_by(age, female) %>% 
-  summarize(cor=cor(e_ch_fs_dummy, e_cg_fs_dummy, use = "everything")) %>% 
+  summarize(cor = as.double(cor.test(e_ch_fs_dummy, e_cg_fs_dummy)[4]),
+            p_val = as.double(cor.test(e_ch_fs_dummy, e_cg_fs_dummy)[3])) %>% 
   mutate(category=case_when(age==1 & female==1 ~ 'Female (10-17)',
                             age==1 & female==0 ~ 'Male (10-17)',
                             age==0 & female==1 ~ 'Female (5-9)',
@@ -197,6 +200,103 @@ ch_fi_sum_stat <- ch_fi_sum_stat_overall %>%
   dplyr::select(group,e_fs,m_fs)
   
 xtable(ch_fi_sum_stat)
+
+############################# Midline and Endline Child and CG Reports of FI: Correlation ###############################
+
+# Define function
+m_e_ch_cg_corr_func <- function(var_group_str, str_1, str_0) {
+  
+  if (is.na(var_group_str)) {
+    m_e_cor <- full_data_w %>% 
+      summarize(ch_cor=cor(e_ch_fs_dummy,
+                           m_ch_fs_dummy),
+                cg_cor=cor(e_cg_fs_dummy,
+                           m_cg_fs_dummy),
+                
+      ) %>% 
+      pivot_longer(everything(), 
+                   names_to = c("category", ".value"), 
+                   names_sep="_" ) %>% 
+      mutate(group='Overall')
+  } else {
+    var_group <- ensym(var_group_str)
+    m_e_cor <- full_data_w %>% 
+      filter(!is.na(!!var_group)) %>% 
+      group_by(group=!!var_group) %>% 
+      summarize(ch_cor=cor(e_ch_fs_dummy,
+                           m_ch_fs_dummy),
+                cg_cor=cor(e_cg_fs_dummy,
+                           m_cg_fs_dummy),
+                
+      ) %>% 
+      pivot_longer(-group, 
+                   names_to = c("category", ".value"), 
+                   names_sep="_" ) %>% 
+      mutate(group=case_when(group==1 ~ str_1,
+                             T~str_0))
+    return(m_e_cor)
+  }
+  
+}
+
+# Define Input
+m_e_ch_cg_corr_input <- tribble(
+  ~var_group_str, ~str_1, ~str_0,
+  NA, '', '',
+  'female',      "Female", "Male",
+  'age', 'Child is 10-17', 'Child is 5-9'
+  # 'private_school', 'Child attends private school', 'Child does not attend private school',
+  
+) 
+
+# By Female and Age
+m_e_ch_cg_fi_cor_female_age <- full_data_w %>% 
+  group_by(age, female) %>% 
+  summarize(ch_cor=cor(e_ch_fs_dummy,
+                       m_ch_fs_dummy),
+            cg_cor=cor(e_cg_fs_dummy,
+                       m_cg_fs_dummy),
+            
+  ) %>% 
+  pivot_longer(-c(age,female), 
+               names_to = c("category", ".value"), 
+               names_sep="_" ) %>% 
+  mutate(group=case_when(age==1 & female==1 ~ 'Female (10-17)',
+                         age==1 & female==0 ~ 'Male (10-17)',
+                         age==0 & female==1 ~ 'Female (5-9)',
+                         T~'Male (5-9)')) %>% 
+  ungroup() %>% 
+  dplyr::select(-age,-female)
+
+# By class
+m_e_ch_cg_fi_cor_current_class <- full_data_w %>% 
+  filter(!is.na(current_class)) %>% 
+  mutate(group=as.double(current_class)) %>% 
+  group_by(group) %>% 
+  summarize(ch_cor=cor(e_ch_fs_dummy,
+                       m_ch_fs_dummy),
+            cg_cor=cor(e_cg_fs_dummy,
+                       m_cg_fs_dummy),
+            
+  ) %>% 
+  pivot_longer(-group, 
+               names_to = c("category", ".value"), 
+               names_sep="_" ) %>% 
+  mutate(group=case_when(group <=2 ~ glue('Kindergarten {group}'),
+                         (group >2 & group <=8) ~ glue('Class {group-2}'),
+                         (group >8 & group <=11) ~ glue('JHS {group-8}'),
+                         T~glue('SHS {group-11}'),)) %>% 
+  ungroup()
+
+# Combine results
+m_e_ch_cg_fi_cor <-pmap_dfr(m_e_ch_cg_corr_input,
+                            m_e_ch_cg_corr_func) %>% 
+  bind_rows(m_e_ch_cg_fi_cor_female_age,
+            m_e_ch_cg_fi_cor_current_class) %>% 
+  pivot_wider(names_from=category,
+              values_from = cor) %>% 
+  rename(mid_end_child_reports_cor=ch,
+         mid_end_cg_reports_cor=cg)
 
 ########################################## Export ########################################################
 # Make list of summary statistic results

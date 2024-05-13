@@ -28,8 +28,6 @@ library(writexl)
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
-outcomes <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome.rds') %>% 
-  dplyr::select(childid,careid,contains('_per'))
 
 ### Calculate simple correlation between both reports
 cor(full_data_w$e_ch_fs_dummy,

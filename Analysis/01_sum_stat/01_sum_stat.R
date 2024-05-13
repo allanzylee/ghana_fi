@@ -212,20 +212,20 @@ write_xlsx(sum_stat_export, '/Users/AllanLee/Desktop/Personal Projects/ECON4900/
 
 # Define successive input
 successive_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                    model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+age+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_age+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_female+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+marital_status+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_schooling +region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+hh_size+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
+                                    model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+marital_status+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+cg_schooling +region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+hh_size+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
                                             # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc1+',
                                             # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc2+',
                                             # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc3+',
                                             # '~ e_ch_fs_dummy+e_cg_fs_dummy+pe_pc4+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+language+region_north_east+region_northern+region_upper_east+region_upper_west+region+',
-                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+language+age+region_north_east+region_northern+region_upper_east+region_upper_west+region+'))
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+',
+                                            '~ e_ch_fs_dummy+e_cg_fs_dummy+language+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'))
 
 # Regression results
 successive_ols_results<- pmap(successive_ols_input,
@@ -249,8 +249,8 @@ successive_ch_fi_sig<- pmap_dfr(successive_ols_input %>% mutate(num=seq(1,40,1))
   dplyr::select(cov,outcome,sig_flag) %>% 
   pivot_wider(names_from = outcome,
               values_from = sig_flag) %>% 
-  mutate(cov=case_when(cov=='~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+region+'~"Baseline Mode",
-                       T~gsub(".*~ e_ch_fs_dummy\\+e_cg_fs_dummy\\+(.*?)\\+region_north_east\\+region_northern\\+region_upper_east\\+region_upper_west\\+region\\+.*", "\\1", cov)),
+  mutate(cov=case_when(cov=='~ e_ch_fs_dummy+e_cg_fs_dummy+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'~"Baseline Mode",
+                       T~gsub(".*~ e_ch_fs_dummy\\+e_cg_fs_dummy\\+(.*?)\\+region_north_east\\+region_northern\\+region_upper_east\\+region_upper_west\\+treatment\\+.*", "\\1", cov)),
          across(-cov,~case_when(.==1~"X",
                                 T~"")))
 

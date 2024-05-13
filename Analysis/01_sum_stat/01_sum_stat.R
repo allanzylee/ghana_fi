@@ -208,31 +208,32 @@ m_e_ch_cg_corr_func <- function(var_group_str, str_1, str_0) {
   
   if (is.na(var_group_str)) {
     m_e_cor <- full_data_w %>% 
-      summarize(ch_cor=cor(e_ch_fs_dummy,
-                           m_ch_fs_dummy),
-                cg_cor=cor(e_cg_fs_dummy,
-                           m_cg_fs_dummy),
+      summarize(ch_cor=as.double(cor.test(e_ch_fs_dummy,
+                                          m_ch_fs_dummy)[4]),
+                ch_cor_pval=as.double(cor.test(e_ch_fs_dummy,
+                                               m_ch_fs_dummy)[3]),
+                cg_cor=as.double(cor.test(e_cg_fs_dummy,
+                                          m_cg_fs_dummy)[4]),
+                cg_cor_pval=as.double(cor.test(e_cg_fs_dummy,
+                                               m_cg_fs_dummy)[3])
                 
-      ) %>% 
-      pivot_longer(everything(), 
-                   names_to = c("category", ".value"), 
-                   names_sep="_" ) %>% 
-      mutate(group='Overall')
+      ) 
   } else {
     var_group <- ensym(var_group_str)
     m_e_cor <- full_data_w %>% 
       filter(!is.na(!!var_group)) %>% 
-      group_by(group=!!var_group) %>% 
-      summarize(ch_cor=cor(e_ch_fs_dummy,
-                           m_ch_fs_dummy),
-                cg_cor=cor(e_cg_fs_dummy,
-                           m_cg_fs_dummy),
+      group_by(!!var_group) %>% 
+      summarize(ch_cor=as.double(cor.test(e_ch_fs_dummy,
+                                m_ch_fs_dummy)[4]),
+                ch_cor_pval=as.double(cor.test(e_ch_fs_dummy,
+                                     m_ch_fs_dummy)[3]),
+                cg_cor=as.double(cor.test(e_cg_fs_dummy,
+                                m_cg_fs_dummy)[4]),
+                cg_cor_pval=as.double(cor.test(e_cg_fs_dummy,
+                                     m_cg_fs_dummy)[3])
                 
       ) %>% 
-      pivot_longer(-group, 
-                   names_to = c("category", ".value"), 
-                   names_sep="_" ) %>% 
-      mutate(group=case_when(group==1 ~ str_1,
+      mutate(group=case_when(!!var_group==1 ~ str_1,
                              T~str_0))
     return(m_e_cor)
   }
@@ -245,22 +246,22 @@ m_e_ch_cg_corr_input <- tribble(
   NA, '', '',
   'female',      "Female", "Male",
   'age', 'Child is 10-17', 'Child is 5-9'
-  # 'private_school', 'Child attends private school', 'Child does not attend private school',
   
 ) 
 
 # By Female and Age
 m_e_ch_cg_fi_cor_female_age <- full_data_w %>% 
   group_by(age, female) %>% 
-  summarize(ch_cor=cor(e_ch_fs_dummy,
-                       m_ch_fs_dummy),
-            cg_cor=cor(e_cg_fs_dummy,
-                       m_cg_fs_dummy),
+  summarize(ch_cor=as.double(cor.test(e_ch_fs_dummy,
+                                      m_ch_fs_dummy)[4]),
+            ch_cor_pval=as.double(cor.test(e_ch_fs_dummy,
+                                           m_ch_fs_dummy)[3]),
+            cg_cor=as.double(cor.test(e_cg_fs_dummy,
+                                      m_cg_fs_dummy)[4]),
+            cg_cor_pval=as.double(cor.test(e_cg_fs_dummy,
+                                           m_cg_fs_dummy)[3])
             
   ) %>% 
-  pivot_longer(-c(age,female), 
-               names_to = c("category", ".value"), 
-               names_sep="_" ) %>% 
   mutate(group=case_when(age==1 & female==1 ~ 'Female (10-17)',
                          age==1 & female==0 ~ 'Male (10-17)',
                          age==0 & female==1 ~ 'Female (5-9)',
@@ -268,40 +269,60 @@ m_e_ch_cg_fi_cor_female_age <- full_data_w %>%
   ungroup() %>% 
   dplyr::select(-age,-female)
 
-# By class
-m_e_ch_cg_fi_cor_current_class <- full_data_w %>% 
-  filter(!is.na(current_class)) %>% 
-  mutate(group=as.double(current_class)) %>% 
-  group_by(group) %>% 
-  summarize(ch_cor=cor(e_ch_fs_dummy,
-                       m_ch_fs_dummy),
-            cg_cor=cor(e_cg_fs_dummy,
-                       m_cg_fs_dummy),
-            
-  ) %>% 
-  pivot_longer(-group, 
-               names_to = c("category", ".value"), 
-               names_sep="_" ) %>% 
-  mutate(group=case_when(group <=2 ~ glue('Kindergarten {group}'),
-                         (group >2 & group <=8) ~ glue('Class {group-2}'),
-                         (group >8 & group <=11) ~ glue('JHS {group-8}'),
-                         T~glue('SHS {group-11}'),)) %>% 
-  ungroup()
-
 # Combine results
 m_e_ch_cg_fi_cor <-pmap_dfr(m_e_ch_cg_corr_input,
                             m_e_ch_cg_corr_func) %>% 
-  bind_rows(m_e_ch_cg_fi_cor_female_age,
-            m_e_ch_cg_fi_cor_current_class) %>% 
-  pivot_wider(names_from=category,
-              values_from = cor) %>% 
-  rename(mid_end_child_reports_cor=ch,
-         mid_end_cg_reports_cor=cg)
+  bind_rows(m_e_ch_cg_fi_cor_female_age
+            #,m_e_ch_cg_fi_cor_current_class
+            ) %>% 
+  dplyr::select(-female,
+                -age)
+
+############################# Midline and Endline Child Outcomes: Correlation ###############################
+
+# Define function
+m_e_ch_outcome_cor_func <- function(var_group_str) {
+  midline<-paste0('m_',var_group_str,'_per')
+  endline<-paste0('e_',var_group_str,'_per')
+  m_var_group <- ensym(midline)
+  e_var_group <- ensym(endline)
+  
+  m_e_cor <- full_data_w %>% 
+    mutate(across(everything(),~as.numeric(.))) %>% 
+    filter(!is.na(!!m_var_group),
+           !is.na(!!e_var_group)) %>% 
+    summarize(cor=as.double(cor.test(!!m_var_group,
+                      !!e_var_group)[4] ),
+              cor_pval=as.double(cor.test(!!m_var_group,
+                                     !!e_var_group)[3]))%>% 
+    mutate(cat=var_group_str)
+  # %>% 
+  #   pivot_longer(-group, 
+  #                names_to = c("category", ".value"), 
+  #                names_sep="_" ) %>% 
+  #   mutate(group=case_when(group==1 ~ str_1,
+  #                          T~str_0))
+  return(m_e_cor)
+  
+}
+
+# Define Input
+m_e_ch_outcome_cor_input <- tribble(
+  ~var_group_str,
+  "lit",
+  "num",
+  "ef",
+  "sel"
+  
+) 
+m_e_ch_outcome_cor_output <-pmap_dfr(m_e_ch_outcome_cor_input,
+                                     m_e_ch_outcome_cor_func)
 
 ########################################## Export ########################################################
 # Make list of summary statistic results
 sum_stat_export <- list('child_cg_reports_cor' = ch_cg_fi_cor, 
-                      'child_fi_reports_sum_stat' = ch_fi_sum_stat)
+                      'child_fi_reports_sum_stat' = ch_fi_sum_stat,
+                      'm_e_fi_cor'=m_e_ch_cg_fi_cor)
 
 # Export
 write_xlsx(sum_stat_export, '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/01_sum_stat.xlsx')

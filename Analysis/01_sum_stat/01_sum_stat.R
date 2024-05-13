@@ -322,7 +322,8 @@ m_e_ch_outcome_cor_output <-pmap_dfr(m_e_ch_outcome_cor_input,
 # Make list of summary statistic results
 sum_stat_export <- list('child_cg_reports_cor' = ch_cg_fi_cor, 
                       'child_fi_reports_sum_stat' = ch_fi_sum_stat,
-                      'm_e_fi_cor'=m_e_ch_cg_fi_cor)
+                      'm_e_fi_cor'=m_e_ch_cg_fi_cor,
+                      'm_e_outcome_cor'=m_e_ch_outcome_cor_output)
 
 # Export
 write_xlsx(sum_stat_export, '/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/01_sum_stat.xlsx')

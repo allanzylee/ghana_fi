@@ -33,7 +33,7 @@ get_alpha <- function(df){
   for_alpha<-get(df) %>% 
     mutate(across(everything(),
                   ~as.double(.)))
-  out<-as.double(alpha(for_alpha)[['total']][['raw_alpha']]) %>% 
+  out<-as.double(alpha(for_alpha,check.keys=T)[['total']][['raw_alpha']]) %>% 
     as_tibble() %>% 
     mutate(test=df)
   return(out)
@@ -123,8 +123,7 @@ e_ef <- e_child %>%
                 starts_with("sm"))
 
 ############################################### Putting outcome data together ######################################
-categories<-c('m_lit','m_num','m_lit','m_sel',
-              'e_lit','e_num','e_lit','e_sel') %>% 
+categories<-c('e_lit','e_num','e_sel','e_ef') %>% 
   as_tibble() %>% 
   rename('df'=value)
 

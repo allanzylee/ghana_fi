@@ -2,7 +2,7 @@
 
 # Author: Allan Lee
 # Date: March 16th, 2024
-# Purpose: Calculate correlation between child- and caregiver-reported FI
+# Purpose: Calculate correlation between child- and caregiver-reported FI. Detect extreme patterns of FI.
 
 ##########################################################################################
 ############################################### Set up ###################################

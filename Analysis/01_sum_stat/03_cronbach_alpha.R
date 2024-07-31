@@ -104,6 +104,9 @@ e_sel <- e_child %>%
          re_perc=case_when(child_age<10~rowSums(across(matches("re[0-9]")),na.rm=T)/6,
                            T~rowSums(across(matches("re[0-9]")),na.rm=T)/9))
 
+cor(e_sel$cr_perc,
+    e_sel$re_perc)
+
 ############################################### Endline Literacy ######################################
 
 e_lit <- e_child %>% 
@@ -176,6 +179,9 @@ e_ef <- e_child %>%
             sm_perc=case_when(child_age<10~rowSums(across(starts_with("sm")),na.rm=T)/5,
                               T~rowSums(across(starts_with("sm")),na.rm=T)/7)
             )
+
+cor(e_ef$wm_perc,
+    e_ef$sm_perc)
 
 ############################################### Putting outcome data together ######################################
 categories<-c('e_lit','e_num','e_sel','e_ef') %>% 

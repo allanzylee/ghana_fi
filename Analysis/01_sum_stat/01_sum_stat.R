@@ -56,15 +56,16 @@ summary_stat<-full_data_w %>%
                 e_ch_fs_dummy,
                 e_cg_fs_dummy,
                 female,
-                age_num,
+                age_num
                 # enrolled_in_school,
                 # private_school,
-                cg_age,
-                cg_female,
-                cg_schooling,
-                marital_status,
-                # poverty,
-                hh_size) %>% 
+                # cg_age,
+                # cg_female,
+                # cg_schooling,
+                # marital_status,
+                # # poverty,
+                # hh_size
+                ) %>% 
   as.data.frame()
 
 # Export the summary statistic table
@@ -76,16 +77,19 @@ stargazer(summary_stat,
                              "Midline Caregiver-Reported FI",
                              "Endline Child-Reported FI",
                              "Endline Caregiver-Reported FI",
-                             "Child Sex",
-                             "Child Age",
+                             "Child is Female",
+                             "Child Age"
                              # "Enrolled in School", 
                              # "Attends Private School",
-                             "Caregiver Age",
-                             "Caregiver Sex",
-                             "Caregiver Has Completed Primary Schooling",
-                             "Caregiver Marital Status",
-                             # "Poverty",
-                             "Household Size")
+                             # "Caregiver Age",
+                             # "Caregiver Sex",
+                             # "Caregiver Has Completed Primary Schooling",
+                             # "Caregiver Marital Status",
+                             # # "Poverty",
+                             # "Household Size"
+                             ),
+          omit.summary.stat = c('min',
+                        'max')
           )
 
 ############################# Child and CG Reports of FI: Correlation ###############################

@@ -142,10 +142,11 @@ plot<-for_ex %>%
                             'Male (10-17)',
                             'Female (5-9)',
                             'Female (10-17)'))+
-  scale_fill_manual(values=c('#C00000',
-                             '#EE6363',
-                             '#0070c1',
-                             '#559bf0'),
+  scale_fill_manual(values=c(
+                             '#c5c6d0',
+                             '#828282',
+                             '#333333',
+                             'black'),
                     breaks=c('mean.e_lit_per',
                              'mean.e_num_per',
                              'mean.e_ef_per',

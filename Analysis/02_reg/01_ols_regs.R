@@ -156,11 +156,11 @@ stargazer(reduced_multivar_ols_region_results,
 ############################## OLS Regression w/ Covariates and GENDER INTERACTION ##############################
 ########################################################################################################################
 
-# This version removes enrollment, poverty, number of books, and private school as covariates 
+# This version only keeps child sex, age, treatment, and region as controls
 
 # Define base OLS input
 gender_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*female+e_cg_fs_dummy*female+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+                                         model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*female+e_cg_fs_dummy*female+female+age+treatment+language+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 gender_multivar_ols_results<- pmap(gender_multivar_ols_input,
@@ -188,7 +188,7 @@ stargazer(gender_multivar_ols_results,
           dep.var.caption = "Endline Dependent Variable:",
           # covariate.labels=variables,
           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Child Sex","Lagged Outcome","Child-Reported FI x Child Sex","Caregiver-Reported FI x Child Sex","Constant"),
+          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Child is Female","Lagged Outcome","Child-Reported FI x Child is Female","Caregiver-Reported FI x Child is Female","Constant"),
           omit=c('age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
                  'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
                  'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
@@ -207,11 +207,11 @@ stargazer(gender_multivar_ols_results,
 ############################## OLS Regression w/ Covariates and AGE INTERACTION ##############################
 ########################################################################################################################
 
-# This version removes enrollment, poverty, number of books, and private school as covariates 
+# This version only keeps child sex, age, treatment, and region as controls 
 
 # Define base OLS input
 age_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                      model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+treatment+language+region_northern+region_upper_east+region_upper_west+'))
+                                      model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+female+age+treatment+language+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 age_multivar_ols_results<- pmap(age_multivar_ols_input,
@@ -239,7 +239,7 @@ stargazer(age_multivar_ols_results,
           dep.var.caption = "Endline Dependent Variable:",
           # covariate.labels=variables,
           column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
-          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Child Age","Lagged Outcome","Child-Reported FI x Child Age","Caregiver-Reported FI x Child Age","Constant"),
+          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Child is 10–17","Lagged Outcome","Child-Reported FI x Child is 10–17","Caregiver-Reported FI x Child is 10–17","Constant"),
           omit=c('female','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
                  'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
                  'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
@@ -302,4 +302,47 @@ stargazer(cg_schooling_multivar_ols_results,
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
           out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/05_cg_schooling_multivar_ols.html")
+
+##########################################################################################
+############################## Multivariate OLS Regression w/ Region and PNP Treatment + Age and Gender ##############################
+##########################################################################################
+
+# Define base OLS input
+va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
+                                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+
+# Regression results
+va_ols_region_results<- pmap(va_ols_input_region,
+                                           reg_func) %>% 
+  set_names('lit','num','ef','sel')
+
+# Define base OLS Robust input
+va_ols_robust_region_input <- expand.grid(category=c('lit','num','ef','sel'),
+                                                        results_str='va_ols_region_results') %>%
+  mutate(across(everything(),~as.character(.)))
+
+# Cluster Robust Standard Error results
+va_ols_region_robust_errors <- pmap(va_ols_robust_region_input,
+                                                  cluster_robust_func) %>%
+  set_names('lit','num','ef','sel')
+
+# Export results
+stargazer(va_ols_region_results,
+          title="Multivariate OLS Regression",
+          #dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Literacy","Numeracy","Executive Function","SEL"),
+          covariate.labels=c("Child-Reported FI","Caregiver-Reported FI","Lagged Outcome","Constant"),
+          omit=c('female','age','enrolled_in_school','current_class1','current_class2','current_class3','current_class4',
+                 'current_class5','current_class6','current_class7','current_class8','current_class9','current_class10',
+                 'current_class11','current_class12','current_class13','current_class14','private_school','num_books','cg_age','cg_female',
+                 'marital_status','cg_schooling','poverty','hh_size','pe_pc1',
+                 'pe_pc2','pe_pc3','pe_pc4','treatment','languageDagbani','languageGruni',
+                 'languageSissali','languageOther','region_north_east','region_northern','region_upper_east','region_upper_west'),
+          se=lapply(va_ols_region_robust_errors, function(x) x$se),
+          p=lapply(va_ols_region_robust_errors, function(x) x$p),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/01_ols_regs/02_baseline_region_fe/06_va_ols.html")
 

@@ -313,4 +313,3 @@ stargazer(cg_schooling_multivar_ols_results,
 
 
 ```
-

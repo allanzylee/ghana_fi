@@ -2,7 +2,7 @@
 
 # Author: Allan Lee
 # Date: May 13th, 2024
-# Purpose: Calculate outcome summary static by food insecurity group
+# Purpose: Calculate outcome summary static by food insecurity group. X variable is FI status with two panels to represent child and caregiver.
 
 ##########################################################################################
 ############################################### Set up ###################################
@@ -117,10 +117,17 @@ plot<-for_ex %>%
                                'Household is FI',
                                'Household is Not FI'))
   ) %>% 
-  ggplot(aes(x=category,
+  mutate(stakeholder=case_when(str_detect(group,
+                                          "Child")==T~"Child-Reported Child Food Insecurity",
+                               T~"Caregiver-Reported Household Food Insecurity")) %>% 
+  mutate(group=case_when(str_detect(group,
+                                    "Not FI")==T~"Food Secure",
+                         T~"Food Insecure")) %>% 
+  ggplot(aes(x=group,
              y=value,
-             fill = group))+
+             fill = category)) +
   geom_col(position='dodge') +
+  facet_wrap(~stakeholder) +
   geom_text(aes(label=glue('{round(value,3)*100}%')),
             position=position_dodge(0.9),
             vjust=-0.5)+
@@ -131,26 +138,21 @@ plot<-for_ex %>%
     # title="Endline Child Cognitive and Socioemotional Outcomes by Group",
     y='',
     x='') +
-  scale_x_discrete(breaks=c('mean.e_lit_per',
-                            'mean.e_num_per',
-                            'mean.e_ef_per',
-                            'mean.e_sel_per'),
-                   labels=c('Literacy',
-                            'Numeracy',
-                            'Executive Function',
-                            'Socioemotional Learning'))+
+  scale_x_discrete(breaks=c('Food Secure',
+                            'Food Insecure'))+
   scale_fill_manual(values=c('#c5c6d0',
                              '#828282',
                              '#333333',
                              'black'),
-                    breaks=c('Child is FI',
-                             'Child is Not FI',
-                             'Household is FI',
-                             'Household is Not FI'),
-                    labels=c('Child is FI',
-                             'Child is Not FI',
-                             'Household is FI',
-                             'Household is Not FI')) +
+                    c('mean.e_lit_per',
+                      'mean.e_num_per',
+                      'mean.e_ef_per',
+                      'mean.e_sel_per'),
+                    labels=c('Literacy',
+                             'Numeracy',
+                             'Executive Function',
+                             'Socioemotional Learning')) +
+  labs(title='Mean Endline Child Outcomes by Food Security Status and Report')+
   theme_classic()+
   theme(
     axis.text = element_text(color='black',
@@ -158,27 +160,17 @@ plot<-for_ex %>%
     axis.ticks = element_line(color='black'),
     axis.line = element_line(color='black'),
     legend.position = 'bottom',
-    legend.title=element_blank()
+    legend.title=element_blank(),
+    plot.title = element_text(hjust = 0.5,
+                              color='black',
+                              size=18,
+                              face="bold")
   )
 
 plot
 
 # Export as PDF
-ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/06b_outcome_sum_stat_by_fi.png",
+ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/06c_outcome_sum_stat_by_fi.png",
        width=25,
        height=25,
        units='cm')
-
-# Calculate average and median difference between report categories
-diff <- for_ex %>% 
-  pivot_wider(values_from = value,
-              names_from=group) %>% 
-  janitor::clean_names() %>% 
-  mutate(ch_diff=abs(child_is_not_fi-child_is_fi),
-         cg_diff=abs(household_is_not_fi-household_is_fi)) %>% 
-  summarise(across(contains('diff'),
-                   ~mean(.),
-                   .names="{.col}_mean"),
-            across(contains('diff'),
-                   ~median(.),
-                   .names="{.col}_median"))

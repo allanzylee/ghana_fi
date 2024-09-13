@@ -1,4 +1,4 @@
-Abstract: Food insecurity (“FI”) is associated with poorer child academic achievement and socioemotional skills across
+`Abstract`: Food insecurity (“FI”) is associated with poorer child academic achievement and socioemotional skills across
 various contexts. However, existing evidence relies on caregiver reports of household FI, overlooking children's own lived
 experiences. Further, it often ignores low- and middle-income countries (“LMICs”), where experiences of FI can be the
 highest, and neglects heterogeneity in the relation between FI and child skills by sex and age. We address these gaps by

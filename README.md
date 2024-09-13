@@ -1,3 +1,5 @@
+`Project`: Food Insecurity and Children's Cognitive Skills: Whose Report Matters?
+
 `Abstract`: Food insecurity (“FI”) is associated with poorer child academic achievement and socioemotional skills across
 various contexts. However, existing evidence relies on caregiver reports of household FI, overlooking children's own lived
 experiences. Further, it often ignores low- and middle-income countries (“LMICs”), where experiences of FI can be the
@@ -8,3 +10,7 @@ endogeneity concerns by relying on value-added methods. Results indicate that ca
 lower value added to literacy and numeracy by approximately 0.1 standard deviations. We found no evidence of heterogeneity
 by child sex but negative and significant effects by age for caregiver-reported FI, indicating older children are more negatively
 affected by FI.
+
+`Organization`
+- `Data Preparation:` This folder includes the code that cleans and merges the relevant data for analysis
+- `Analysis:` This folder includes the analysis supporting the paper, including regressions, charts/tables, and other calculations

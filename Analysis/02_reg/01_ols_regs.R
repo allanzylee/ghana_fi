@@ -42,7 +42,6 @@ reg_func <- function(category, model){
   fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
   reg <- lm(fm,
             data=for_reg)
-  # reg_robust <- coeftest(reg, vcovCL, cluster=full_data_w$careid)
   return(reg)
 }
 

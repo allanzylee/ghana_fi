@@ -20,12 +20,10 @@ library(haven)
 
 # Load relevant data
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
-  mutate(across(contains('id'),~as.double(.))) %>% 
-  filter(io2==1)
+  mutate(across(contains('id'),~as.double(.))) 
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   rename(careid=caseid) %>% 
-  mutate(across(contains('id'),~as.double(.))) %>% 
-  filter(io2==1)
+  mutate(across(contains('id'),~as.double(.)))
 
 # ###################################### Create function to calculate percentage accuracy ######
 # accuracy_func<-function(df){
@@ -177,7 +175,9 @@ m_sel <- m_child %>%
   dplyr::select(careid,
          childid,
          child_age=cr6,
-         cr1:re11) %>%
+         cr1:re11,
+         enum_id,
+         treatment) %>%
   dplyr::select(-re5,-re8) %>% 
   # Change all columns to numeric
   mutate(across(everything(),~as.numeric(.))) %>% 
@@ -186,15 +186,15 @@ m_sel <- m_child %>%
                                           .==1~1,
                                           T~NA_real_))) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(m_sel_total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
+  mutate(m_sel_total=(rowSums(across(-c(careid,childid,child_age, enum_id, treatment)),na.rm=T)),
          total_q = ifelse(child_age<10,11,14),
          answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
          answered_q_perc=answered_q/total_q,
          m_sel_per=case_when(answered_q==0~NA_real_,
                              T~m_sel_total/answered_q)) %>%
   # Filter out participants whose question count don't match their age
-  filter(!(child_age<10 & (!is.na(re9)|!is.na(re10)|!is.na(re11)))) %>% 
-  dplyr::select(careid,childid,child_age,m_sel_total,answered_q_perc,m_sel_per) %>% 
+  # filter(!(child_age<10 & (!is.na(re9)|!is.na(re10)|!is.na(re11)))) %>% 
+  dplyr::select(careid,childid,child_age,m_sel_total,answered_q_perc,m_sel_per, m_enum_id=enum_id, m_treatment=treatment) %>% 
   filter(answered_q_perc>=threshold)
   
 
@@ -279,7 +279,7 @@ m_ef <- m_child %>%
          m_num_ef_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
          m_ef_per=m_ef_total/answered_q) %>%
   # Filter out participants whose question count don't match their age
-  filter(!(child_age<10 & (!is.na(sm6)|!is.na(sm7)))) %>% 
+  # filter(!(child_age<10 & (!is.na(sm6)|!is.na(sm7)))) %>% 
   # Keep relevant variables
   dplyr::select(careid,childid,m_ef_total,answered_q_perc,m_ef_per)%>% 
   filter(answered_q_perc>=threshold)
@@ -291,7 +291,9 @@ e_sel <- e_child %>%
   dplyr::select(careid,
          childid,
          cr1:re11,
-         child_age=childage) %>%
+         child_age=childage,
+         enum_id,
+         treatment) %>%
   # Dedplyr::select friends question
   dplyr::select(-re5,-re8) %>% 
   # Change all columns to numeric
@@ -303,15 +305,15 @@ e_sel <- e_child %>%
                                           .==1~1,
                                           T~NA_real_))) %>% 
   # Given that all numeracy variables are binary, they can be added together and calculated as a percentage.
-  mutate(e_sel_total=(rowSums(across(-c(careid,childid,child_age)),na.rm=T)),
+  mutate(e_sel_total=(rowSums(across(-c(careid,childid,child_age, enum_id, treatment)),na.rm=T)),
          total_q = ifelse(child_age<10,10,13),
          answered_q = rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
          answered_q_perc=answered_q/total_q,
          m_num_ef_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
          e_sel_per=e_sel_total/answered_q) %>%
-  filter(!(child_age<10 & (!is.na(re9)|!is.na(re10)|!is.na(re11)))) %>% 
+  # filter(!(child_age<10 & (!is.na(re9)|!is.na(re10)|!is.na(re11)))) %>% 
   # Keep relevant variables
-  dplyr::select(careid,childid,e_sel_total,answered_q_perc,e_sel_per)%>% 
+  dplyr::select(careid,childid,e_sel_total,answered_q_perc,e_sel_per, e_enum_id=enum_id, e_treatment=treatment)%>% 
   filter(answered_q_perc>=threshold)
 
 ############################################### Endline Literacy ######################################
@@ -397,7 +399,7 @@ e_ef <- e_child %>%
          answered_q_perc=answered_q/total_q,
          e_num_ef_questions=rowSums(!is.na(dplyr::select(., -c(careid,childid,child_age)))),
          e_ef_per=e_ef_total/answered_q) %>%
-  filter(!(child_age<10 & (!is.na(sm6)|!is.na(sm7)))) %>% 
+  # filter(!(child_age<10 & (!is.na(sm6)|!is.na(sm7)))) %>% 
   # Keep relevant variables
   dplyr::select(careid,childid,e_ef_total,answered_q_perc,e_ef_per)%>% 
   filter(answered_q_perc>=threshold)
@@ -413,14 +415,15 @@ e_ef <- e_child %>%
 ############################################### Putting outcome data together ######################################
   
 outcome <- m_lit %>% 
-  inner_join(m_sel,by=c("childid","careid")) %>% 
-  inner_join(m_num,by=c("childid","careid")) %>% 
-  inner_join(m_ef,by=c("childid","careid")) %>% 
-  inner_join(e_sel,by=c("childid","careid")) %>% 
-  inner_join(e_lit,by=c("childid","careid")) %>% 
-  inner_join(e_num,by=c("childid","careid")) %>% 
-  inner_join(e_ef,by=c("childid","careid")) %>% 
-  dplyr::select(childid,careid,
+  left_join(m_sel,by=c("childid","careid")) %>% 
+  left_join(m_num,by=c("childid","careid")) %>% 
+  left_join(m_ef,by=c("childid","careid")) %>% 
+  left_join(e_sel,by=c("childid","careid")) %>% 
+  left_join(e_lit,by=c("childid","careid")) %>% 
+  left_join(e_num,by=c("childid","careid")) %>% 
+  left_join(e_ef,by=c("childid","careid")) %>% 
+  dplyr::select(childid,careid, contains('enum_id'),
+                contains('treatment'),
                 contains('_per')) %>% 
   dplyr::select(!contains('answer'))
 # 

@@ -33,8 +33,8 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS functions
 reg_func <- function(category, model){
-  m_category_str<-paste0("m_",category,"_per")
   e_category_str<-paste0("e_",category,"_per")
+  m_category_str<-paste0("m_",category,"_per")
   
   for_reg<-full_data_w %>% 
     rename(lagged_outcome=m_category_str)

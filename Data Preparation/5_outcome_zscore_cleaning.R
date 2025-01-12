@@ -125,3 +125,5 @@ comp<-dataCompareR::rCompare(out %>% filter(childid!=''),
                              checker,
                              keys=c('childid'))
 
+# Export checker version of outcomes
+saveRDS(checker, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome_zscore_checker.rds")

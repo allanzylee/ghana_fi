@@ -219,12 +219,28 @@ full_data_w <- e_child %>%
   clean_names()
 
 # # Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
+reg<-glm(missing ~ age + female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west,
+         data = full_data_w)
+summary(reg)
 
-
-
-# Export
-saveRDS(full_data_w, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
-# saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
-
-# write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")
-
+# Export results
+stargazer(reg,
+          title="Missingness Regression",
+          #dep.var.caption = "Endline Dependent Variable:",
+          # covariate.labels=variables,
+          column.labels = c("Child is Removed from Data"),
+          covariate.labels=c("Child is 10–17",
+                             "Child is Female",
+                             "Caregiver Attended Primary School",
+                             "Caregiver Age",
+                             "Caregiver is Female",
+                             "Poverty",
+                             "PNP Treatment",
+                             "Region: North East",
+                             "Region: Northern",
+                             "Region: Upper East",
+                             "Region: Upper West"),
+          star.cutoffs = c(.05, .01, NA),
+          notes.append     = FALSE,
+          notes            = "*$p<0.05$; **$p<0.01$",
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/3_missing_data.html")

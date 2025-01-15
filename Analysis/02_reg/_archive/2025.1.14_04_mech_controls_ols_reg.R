@@ -32,70 +32,39 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 ######################################## Regression Functions ############################
 ##########################################################################################
 
-mech_reg_func<-function(category){
+# Define base OLS functions
+reg_func <- function(category, model){
+  m_category_str<-paste0("m_",category,"_per")
+  e_category_str<-paste0("e_",category,"_per")
   
-  # Define base OLS functions
-  reg_func <- function(category, model){
-    m_category_str<-paste0("m_",category,"_per")
-    e_category_str<-paste0("e_",category,"_per")
-    
-    for_reg<-full_data_w %>% 
-      rename(lagged_outcome=m_category_str)
-    
-    fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
-    reg <- lm(fm,
-              data=for_reg)
-    # reg_robust <- coeftest(reg, vcovCL, cluster=full_data_w$careid)
-    return(reg)
-  }
+  for_reg<-full_data_w %>% 
+    rename(lagged_outcome=m_category_str)
   
-  # Define function for standard errors
-  cluster_robust_func <- function(category, results_str){
-    
-    results<-get(results_str)
-    reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
-    
-    out <-list(reg_robust[,2],
-               reg_robust[,4])
-    
-    return(out)
-  }
+  fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
+  reg <- lm(fm,
+            data=for_reg)
+  # reg_robust <- coeftest(reg, vcovCL, cluster=full_data_w$careid)
+  return(reg)
+}
+
+# Define function for standard errors
+cluster_robust_func <- function(category, results_str){
+
+  results<-get(results_str)
+  reg_robust <- coeftest(results[[category]], vcovCL, cluster=full_data_w$careid)
+
+  out <-list(reg_robust[,2],
+             reg_robust[,4])
   
-  # Base Regression
-  base_ols_input<- expand.grid(category=c(category),
-                               model=c(glue('~ {fi} +female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
-  
-  # Regression results
-  base_ols_results<- pmap(base_ols_input,
-                          reg_func) %>% 
-    set_names(category)
-  
-  # Base + Education Regression
-  base_ols_input<- expand.grid(category=c(category),
-                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_enroll_ch+e_private_school+')))
-  
-  # Base + Health Regression
-  ols_input_health <- expand.grid(category=c('lit','num','ef','sel'),
-                                  model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_ch_health+e_ch_health_rel+')))
-  
-  # Base + Psyc Regression
-  ols_input_psyc <- expand.grid(category=c('lit','num','ef','sel'),
-                                model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
-  
-  # Base + all Regression
-  ols_input_all <- expand.grid(category=c('lit','num','ef','sel'),
-                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_enroll_ch+e_private_school+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
-  
-   # Define base OLS Robust input
-  base_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                       results_str='base_ols_results') %>%
-    mutate(across(everything(),~as.character(.)))
-  
-  # Cluster Robust Standard Errors
-  base_ols_robust_errors <- pmap(base_ols_robust_input,
-                                 cluster_robust_func) %>%
-    set_names('lit','num','ef','sel')
-  
+  return(out)
+}
+
+# Define function for creating tidy results
+tidy_func <- function(category, results_str){
+  results<-get(results_str)
+  out<-tidy(results[[category]]) %>% 
+    mutate(category=category)
+  return(out)
 }
 
 ####################################################################################################################

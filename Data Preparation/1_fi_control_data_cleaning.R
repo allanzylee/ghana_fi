@@ -328,7 +328,7 @@ fi <- e_cfies %>%
   left_join(m_cg_fies,by=c("careid","childid"))
 
 ###################################################################################################
-#################### Caregiver-Reported Parental Engagement data cleaning #########################
+#################### CG-Reported Parental Education Engagement data cleaning #########################
 ###################################################################################################
 
 # Midline
@@ -350,7 +350,7 @@ m_cg_pe <- m_cg %>%
   # Ensure that all columns are numeric
   mutate_if(is.double,as.numeric) %>% 
   mutate_if(is.character,as.numeric) %>%
-  mutate(m_hh_engagement=dplyr::select(., contains("pe")) %>% rowSums())
+  mutate(m_cg_edu_engagement=dplyr::select(., contains("pe")) %>% rowSums())
 
 # Endline
 e_cg_pe <- e_cg %>% 
@@ -369,9 +369,11 @@ e_cg_pe <- e_cg %>%
   #        "pe9"="pe9_new") %>% 
   dplyr::select(careid,childid,pe1a:pe6a,pe8=pe8_new,pe9=pe9_new,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
   # Ensure that all columns are numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
-  mutate(e_hh_engagement=dplyr::select(., contains("pe")) %>% rowSums())
+  mutate(across(everything(),~as.double(.))) %>%
+  # Turn NAs into 0s
+  mutate(across(contains('pe'),~case_when(is.na(.)~0,
+                                          T~.))) %>%
+  mutate(e_cg_edu_engagement=dplyr::select(., contains("pe")) %>% rowSums())
 # The correlation between parental engagement variables are approximately 0.5 or lower, suggesting a moderate linear relationship.
 # Multicollinearity is not a significant issue and the parental engagement variables can be kept in their current form.
 # However, I will conduct PCA and linear combinations of PE variables still.
@@ -401,12 +403,32 @@ screeplot(cg_pe_pca, type="l", main="Screeplot for Caregiver-Reported Parental E
 cg_pe_pc<-cg_pe_pca$x[,1:4]
 cg_pe<-cbind(cg_pe,cg_pe_pc) %>% 
   clean_names() %>% 
-  dplyr::select(childid,careid,e_hh_engagement,matches('pc[0-9]')) %>% 
+  dplyr::select(childid,careid,e_cg_edu_engagement,matches('pc[0-9]')) %>% 
   inner_join(m_cg_pe %>% dplyr::select(-matches('pe[0-9]')),
              by=c('childid','careid'))
 
 # Create a correlation matrix for caregiver engagement PC and original data
 # stargazer::stargazer(cor(cg_pe[,3:15],cg_pe[,16:19]))
+
+###################################################################################################
+#################### CG-Reported Parental Emotional Engagement data cleaning #########################
+###################################################################################################
+e_cg_emotional_engagement<-e_cg %>% 
+  select(childid,
+         careid,
+         es1,
+         es3,
+         es4,
+         es5,
+         es6) %>% 
+  mutate(es6=case_when(es6==4~1,
+                       es6==3~2,
+                       es6==2~3,
+                       T~4)) %>% 
+  mutate(across(contains('es'),~case_when(is.na(.)~0,
+                                          T~.)),
+         e_cg_emotional_engagement=es1+es3+es4+es5+es6) %>% 
+  select(-contains('es'))
 
 ###################################################################################################
 #################### Clean HH Size, CG_Schooling, Motivation, and Self-Esteem #########################
@@ -439,7 +461,7 @@ e_ch_motiv_esteem <- e_child %>%
   mutate(across(contains("mo"),~as.double(.)),
          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
   mutate(across(matches("se[0-9]"),~as.double(.)),
-         across(matches("se[0-9]"),~case_when(as.double(.)<0~0,T~as.double(.)))) %>% 
+         across(matches("se[0-9]"),~case_when(as.double(.)<0~0,T~as.double(.)))) %>%
   mutate(e_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
   mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
                                              . == 3 ~ 2,
@@ -448,13 +470,18 @@ e_ch_motiv_esteem <- e_child %>%
                                              TRUE ~ NA_real_))
          ) %>% 
   mutate(e_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
-  dplyr::select(childid,careid,e_ch_motiv,e_ch_esteem)
+  dplyr::select(childid,careid,e_ch_motiv
+                # Not include child esteem because of missing data (54% NAs)
+                # ,e_ch_esteem
+                )
 
 ################################### Create control data for export ######################
 controls<-e_ch_motiv_esteem %>% 
+  left_join(e_cg_emotional_engagement,by=c('childid','careid')) %>% 
   left_join(m_ch_motiv_esteem,by=c('childid','careid')) %>% 
-  mutate(across(c(childid,careid),~as.double(.))) %>% 
+  mutate(across(c(childid,careid),~as.double(.))) %>%
   left_join(cg_pe,by=c('childid','careid'))
+
   
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################

@@ -61,33 +61,35 @@ mech_reg_func<-function(category){
     return(out)
   }
   
-  # Base Regression
-  base_ols_input<- expand.grid(category=c(category),
-                               model=c(glue('~ {fi} +female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
-  
-  # Regression results
-  base_ols_results<- pmap(base_ols_input,
-                          reg_func) %>% 
-    set_names(category)
+  # Define mechanisms of investments
+  edu_invest='e_enroll_ch+e_private_school+e_cg_edu_engagement'
+  health_invest='e_ch_health'
+  # Child self esteem is not included due to 54% of respondents missing data
+  child_psyc_invest='e_ch_motiv+e_ch_edu_asp'
+  cg_psyc_invest='e_cg_emotional_engagement'
   
   # Base + Education Regression
   base_ols_input<- expand.grid(category=c(category),
-                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_enroll_ch+e_private_school+')))
+                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_invest}+')))
   
   # Base + Health Regression
   ols_input_health <- expand.grid(category=c('lit','num','ef','sel'),
-                                  model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_ch_health+e_ch_health_rel+')))
+                                  model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{health_invest}+')))
   
-  # Base + Psyc Regression
+  # Base + Child Psyc Regression
   ols_input_psyc <- expand.grid(category=c('lit','num','ef','sel'),
-                                model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
+                                model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{child_psyc_invest}+')))
+  
+  # Base + Caregiver Psyc Regression
+  ols_input_psyc <- expand.grid(category=c('lit','num','ef','sel'),
+                                model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
   
   # Base + all Regression
   ols_input_all <- expand.grid(category=c('lit','num','ef','sel'),
-                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+e_enroll_ch+e_private_school+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+e_ch_esteem+e_ch_edu_asp+e_cg_edu_asp+')))
+                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_invest}+{health_invest}+{child_psyc_invest}+{cg_psyc_invest}+')))
   
    # Define base OLS Robust input
-  base_ols_robust_input <- expand.grid(category=c('lit','num','ef','sel'),
+  base_ols_robust_input <- expand.grid(category=c(category),
                                        results_str='base_ols_results') %>%
     mutate(across(everything(),~as.character(.)))
   

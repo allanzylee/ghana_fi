@@ -34,6 +34,32 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 mech_reg_func<-function(category){
   
+  # Define terms
+  fi<-'e_ch_fs_dummy+e_cg_fs_dummy'
+  category_text<-case_when(category=='lit'~'Literacy',
+                           category=='num'~'Numeracy',
+                           category=='ef'~'EF',
+                           T~'SEL')
+  
+  # Define mechanisms of investments
+  health_input='e_ch_health'
+  edu_input='e_enroll_ch+e_private_school+e_cg_edu_engagement'
+  # Child self esteem is not included due to 54% of respondents missing data
+  child_psyc_input='e_ch_motiv+e_ch_edu_asp'
+  cg_psyc_input='e_cg_emotional_engagement'
+  
+  # Define covariate albels
+  health_lab<-c("Child Reported Poor Health",
+                "Child Reported Average Health",
+                "Child Reported Good Health",
+                "Child Reported Very Good Health")
+  edu_lab<-c("Currently Enrolled in School",
+             "Attends Private Shool",
+             "Caregiver Edu. Engagement Scale")
+  child_psyc_lab<-c('Child Motivation Scale',
+                      'Child Aspires Complete High School')
+  cg_psyc_lab<-c('Caregiver Emo. Engagement Scale')
+  
   # Define base OLS functions
   reg_func <- function(category, model){
     m_category_str<-paste0("m_",category,"_per")
@@ -61,43 +87,66 @@ mech_reg_func<-function(category){
     return(out)
   }
   
-  # Define mechanisms of investments
-  edu_invest='e_enroll_ch+e_private_school+e_cg_edu_engagement'
-  health_invest='e_ch_health'
-  # Child self esteem is not included due to 54% of respondents missing data
-  child_psyc_invest='e_ch_motiv+e_ch_edu_asp'
-  cg_psyc_invest='e_cg_emotional_engagement'
+  # Define all regression inputs
+  input<- expand.grid(category=c(category),
+                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{health_input}+'),
+                                       glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+'),
+                                       glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{child_psyc_input}+'),
+                                       glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{cg_psyc_input}+'),
+                                       glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+{health_input}+{child_psyc_input}+{cg_psyc_input}+')))
   
-  # Base + Education Regression
-  base_ols_input<- expand.grid(category=c(category),
-                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_invest}+')))
-  
-  # Base + Health Regression
-  ols_input_health <- expand.grid(category=c('lit','num','ef','sel'),
-                                  model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{health_invest}+')))
-  
-  # Base + Child Psyc Regression
-  ols_input_psyc <- expand.grid(category=c('lit','num','ef','sel'),
-                                model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{child_psyc_invest}+')))
-  
-  # Base + Caregiver Psyc Regression
-  ols_input_psyc <- expand.grid(category=c('lit','num','ef','sel'),
-                                model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
-  
-  # Base + all Regression
-  ols_input_all <- expand.grid(category=c('lit','num','ef','sel'),
-                               model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_invest}+{health_invest}+{child_psyc_invest}+{cg_psyc_invest}+')))
+  # Regression results
+  ols_results<- pmap(input,
+                          reg_func) %>% 
+    set_names('health_input',
+              'edu_input',
+              'child_psyc_input',
+              'cg_psyc_input',
+              'all_input')
   
    # Define base OLS Robust input
-  base_ols_robust_input <- expand.grid(category=c(category),
-                                       results_str='base_ols_results') %>%
+  ols_robust_input <- expand.grid(category=c('health_input',
+                                                          'edu_input',
+                                                          'child_psyc_input',
+                                                          'cg_psyc_input',
+                                                          'all_input'),
+                                       results_str='ols_results') %>%
     mutate(across(everything(),~as.character(.)))
   
   # Cluster Robust Standard Errors
-  base_ols_robust_errors <- pmap(base_ols_robust_input,
+  ols_robust_errors <- pmap(ols_robust_input,
                                  cluster_robust_func) %>%
-    set_names('lit','num','ef','sel')
+    set_names('health_input',
+              'edu_input',
+              'child_psyc_input',
+              'cg_psyc_input',
+              'all_input')
   
+  # Export formatted results
+  stargazer(ols_results,
+            title=glue("Extended Value-Added Model: {category_text}"),
+            dep.var.caption = "Endline Dependent Variable:",
+            column.labels = c("Base Model + Health Inputs",
+                              "Base Model + Educational Inputs",
+                              "Base Model + Child Psyc. Inputs",
+                              "Base Model + Caregiver Psyc. Inputs", 
+                              "Base Model + All Inputs"),
+            # covariate.labels=c("Child-Reported FI",
+            #                    "Caregiver-Reported FI",
+            #                    health_lab,
+            #                    edu_lab,
+            #                    child_psyc_lab,
+            #                    cg_psyc_lab,
+            #                    "Lagged Outcome",
+            #                    "Constant"),
+            se=lapply(ols_robust_errors, function(x) x$se),
+            p=lapply(ols_robust_errors, function(x) x$p),
+            star.cutoffs = c(.05, .01, NA),
+            notes.append     = FALSE,
+            notes            = "*$p<0.05$; **$p<0.01$",
+            omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment')
+           ,out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/01_dummy/lit.html"
+           )
 }
 
 ####################################################################################################################

@@ -21,6 +21,7 @@ library(dataCompareR)
 library(broom)
 library(xtable)
 library(glue)
+library(stringr)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -28,7 +29,14 @@ library(glue)
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
   # Filter age group to 10--17 year old since many of the investment mechanisms are NA for younger children
-  filter(age==1)
+  filter(age==1,
+         !is.na(e_ch_health),
+         !is.na(e_enroll_ch),
+         !is.na(e_private_school),
+         !is.na(e_cg_edu_engagement),
+         !is.na(e_ch_motiv),
+         !is.na(e_cg_edu_asp),
+         !is.na(e_cg_emotional_engagement))
 
 ##########################################################################################
 ######################################## Regression Functions ############################
@@ -89,6 +97,86 @@ mech_reg_func<-function(category){
     return(out)
   }
   
+  # Define function for showing F-stat DF in two lines
+  show_F_in_two_lines <- function(stargazer) {
+    # `Stringr` works better than base's regex 
+    require(stringr)
+    
+    # If you remove `capture.output()`, not only the modified LaTeX code 
+    # but also the original code would show up
+    stargazer <- stargazer |>
+      capture.output()
+    
+    # Reuse the index in which F-statistics are displayed
+    position_F <- str_which(stargazer, "F Statistic")
+    
+    # Extract only F-statistics
+    Fs <- stargazer[position_F] |>
+      str_replace_all("\\(.*?\\)", "")
+    
+    # Extract only df values and make a new line for them
+    dfs <- stargazer[position_F] |>
+      str_extract_all("\\(.*?\\)") |>
+      unlist() |>
+      (
+        \(dfs)
+        paste0(" & ", dfs, collapse = "")
+      )() |>
+      paste0(" \\\\")
+    
+    # Reuse table elements that are specified
+    # after the index of F-statistics
+    after_Fs <- stargazer[-seq_len(position_F)]
+    
+    c(
+      stargazer[seq_len(position_F - 1)],
+      Fs,
+      dfs,
+      after_Fs
+    ) |>
+      cat(sep = "\n")
+  }
+  
+  # Define function for showing Res. SE DF in two lines
+  show_res_se_in_two_lines <- function(stargazer) {
+    # `Stringr` works better than base's regex 
+    require(stringr)
+    
+    # If you remove `capture.output()`, not only the modified LaTeX code 
+    # but also the original code would show up
+    stargazer <- stargazer |>
+      capture.output()
+    
+    # Reuse the index in which F-statistics are displayed
+    position_res_se <- str_which(stargazer, "Residual Std. Error")
+    
+    # Extract only F-statistics
+    res_ses <- stargazer[position_res_se] |>
+      str_replace_all("\\(.*?\\)", "")
+    
+    # Extract only df values and make a new line for them
+    dfs <- stargazer[position_res_se] |>
+      str_extract_all("\\(.*?\\)") |>
+      unlist() |>
+      (
+        \(dfs)
+        paste0(" & ", dfs, collapse = "")
+      )() |>
+      paste0(" \\\\")
+    
+    # Reuse table elements that are specified
+    # after the index of F-statistics
+    after_res_ses <- stargazer[-seq_len(position_res_se)]
+    
+    c(
+      stargazer[seq_len(position_res_se - 1)],
+      res_ses,
+      dfs,
+      after_res_ses
+    ) |>
+      cat(sep = "\n")
+  }
+  
   # Define all regression inputs
   input<- expand.grid(category=c(category),
                                model=c(glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{health_input}+'),
@@ -128,27 +216,32 @@ mech_reg_func<-function(category){
   stargazer(ols_results,
             title=glue("Extended Value-Added Model: {category_text}"),
             dep.var.caption = "Endline Dependent Variable:",
-            column.labels = c("Health Inputs",
-                              "Educational Inputs",
-                              "Child Psyc. Inputs",
-                              "Caregiver Psyc. Inputs", 
-                              "All Inputs"),
-            # covariate.labels=c("Child-Reported FI",
-            #                    "Caregiver-Reported FI",
-            #                    health_lab,
-            #                    edu_lab,
-            #                    child_psyc_lab,
-            #                    cg_psyc_lab,
-            #                    "Lagged Outcome",
-            #                    "Constant"),
+            column.labels = c("\\shortstack{Health\\\\ Inputs}",
+                              "\\shortstack{Educational\\\\ Inputs}",
+                              "\\shortstack{Child Psyc.\\\\ Inputs}",
+                              "\\shortstack{Caregiver Psyc.\\\\ Inputs}", 
+                              "\\shortstack{All\\\\ Inputs}"),
+            covariate.labels=c("Child-Reported FI",
+                               "Caregiver-Reported FI",
+                               'Female',
+                               health_lab,
+                               edu_lab,
+                               child_psyc_lab,
+                               cg_psyc_lab,
+                               "Lagged Outcome",
+                               "Constant"),
             se=lapply(ols_robust_errors, function(x) x$se),
             p=lapply(ols_robust_errors, function(x) x$p),
             star.cutoffs = c(.05, .01, NA),
             notes.append     = FALSE,
             notes            = "*$p<0.05$; **$p<0.01$",
+            font.size = 'small',
+            column.sep.width = "-10pt",
             omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment')
            ,out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/01_dummy/{category}.html")
-           )
+           )|>
+    show_F_in_two_lines() %>% 
+    show_res_se_in_two_lines
 }
 
 # Run function

@@ -198,15 +198,12 @@ full_data_w <- e_child %>%
                           T~NA_real_)),
                 .names = "{col}_dummy"
                 )) %>% 
-  # # Standardize outcome data
-  # mutate(m_sel_per=scale(m_sel_per)[,1],
-  #        m_lit_per=scale(m_lit_per)[,1],
-  #        m_ef_per=scale(m_ef_per)[,1],
-  #        m_num_per=scale(m_num_per)[,1],
-  #        e_sel_per=scale(e_sel_per)[,1],
-  #        e_lit_per=scale(e_lit_per)[,1],
-  #        e_ef_per=scale(e_ef_per)[,1],
-  #        e_num_per=scale(e_num_per)[,1]) %>%
+  # Standardize investment mechanisms
+  mutate(across(c(e_cg_edu_engagement,
+                e_ch_motiv,
+                e_ch_edu_asp,
+                e_cg_emotional_engagement),
+         ~scale(.)[,1])) %>%
   # Filter out NAs
   filter(
     !is.na(female),

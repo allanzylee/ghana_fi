@@ -201,7 +201,7 @@ full_data_w <- e_child %>%
   # Standardize investment mechanisms
   mutate(across(c(e_cg_edu_engagement,
                 e_ch_motiv,
-                e_ch_edu_asp,
+                # e_ch_edu_asp,
                 e_cg_emotional_engagement),
          ~scale(.)[,1])) %>%
   # Filter out NAs
@@ -210,6 +210,8 @@ full_data_w <- e_child %>%
     !is.na(age),
     !is.na(e_ch_fs_dummy),
     !is.na(e_cg_fs_dummy),
+    !is.na(m_ch_fs_dummy),
+    !is.na(m_cg_fs_dummy),
     !is.na(treatment),
     !is.na(m_lit_per),
     !is.na(m_num_per),

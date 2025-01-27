@@ -18,7 +18,7 @@ setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 # library(foreign)
 library(haven)
 library(tidyverse)
-# library(stargazer)
+library(stargazer)
 # library(psych)
 # library(corrr)
 # library(tibble)
@@ -203,6 +203,8 @@ full_data_w <- e_child %>%
     !is.na(age) &
     !is.na(e_ch_fs_dummy)&
     !is.na(e_cg_fs_dummy)&
+    !is.na(m_ch_fs_dummy)&
+    !is.na(m_cg_fs_dummy)&
     !is.na(treatment)&
     !is.na(m_lit_per)&
     !is.na(m_num_per)&
@@ -218,7 +220,7 @@ full_data_w <- e_child %>%
   fastDummies::dummy_cols(select_columns='region') %>%
   clean_names()
 
-# # Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
+# Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
 reg<-glm(missing ~ age + female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west,
          data = full_data_w)
 summary(reg)
@@ -243,4 +245,4 @@ stargazer(reg,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/3_missing_data.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/3_missing_data_va_model.html")

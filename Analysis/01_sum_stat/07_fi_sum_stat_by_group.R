@@ -16,7 +16,7 @@ setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
 # Load packages
 library(tidyverse)
-library(dplyr)
+# library(dplyr)
 library(stargazer)
 library(glue)
 library(ltm)
@@ -164,7 +164,9 @@ ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/07
        height=25,
        units='cm')
 
-
+figure <- ggarrange(plot, plot,
+                    labels = c("A", "B"),
+                    ncol = 2, nrow = 1)
 
 
 

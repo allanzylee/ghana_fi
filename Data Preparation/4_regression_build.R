@@ -49,11 +49,13 @@ controls <- read_rds("build/controls.rds") %>%
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   dplyr::select(-contains("gb")) %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
+  mutate(across(contains('fs'),~as.double(.))) %>% 
   rename(careid=caseid) %>% 
   filter(io2==1)
 e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>% 
   mutate(careid=as.double(careid),
-         childid=as.double(childid))
+         childid=as.double(childid)) %>% 
+  mutate(across(contains('fs'),~as.double(.)))
 child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>% 
   dplyr::select(-community, -region)
 baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
@@ -70,6 +72,10 @@ outcome_checker<- read_rds("build/outcome_zscore_checker.rds") %>%
 ################################## Putting all data together #############################
 ##########################################################################################
 
+# Update FS columns
+fs_cols_child<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8","fs9","fs10")
+fs_cols_cg<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8")
+
 # Put all data together
 full_data_w <- e_child %>% 
   dplyr::select(careid,
@@ -83,8 +89,14 @@ full_data_w <- e_child %>%
          region,
          e_ch_health=cw1,
          e_ch_health_rel=cw2,
-         e_ch_edu_asp=ja3
+         e_ch_edu_asp=ja3,
+         contains('fs')
          ) %>% 
+  mutate_at(fs_cols_child,funs(child=case_when(. == 1 ~ 2,
+                                                    . == 2 ~ 1,
+                                                    . == 3 ~ 0,
+                                                    TRUE ~ NA_real_))) %>%
+  dplyr::select(-matches("^fs\\d+$")) %>% 
   dplyr::left_join(e_cg %>% dplyr::select(careid, 
                                     childid, 
                                     e_enroll_cg=cr7,
@@ -95,9 +107,12 @@ full_data_w <- e_child %>%
                                     # num_books=pe7,
                                     treatment,
                                     contains('gb'),
-                                    e_cg_edu_asp=ea1
+                                    e_cg_edu_asp=ea1,
+                                    contains('fs')
                                     ),
                     by=c("childid",'careid')) %>% 
+  rename_with(~ paste0(., "_cg"), .cols = matches("^fs\\d+$")) %>% 
+  dplyr::select(-matches("^fs\\d+$")) %>% 
   dplyr::inner_join(outcome %>% dplyr::select(childid, 
                                       careid, 
                                       contains('per')),
@@ -210,8 +225,6 @@ full_data_w <- e_child %>%
     !is.na(age),
     !is.na(e_ch_fs_dummy),
     !is.na(e_cg_fs_dummy),
-    !is.na(m_ch_fs_dummy),
-    !is.na(m_cg_fs_dummy),
     !is.na(treatment),
     !is.na(m_lit_per),
     !is.na(m_num_per),

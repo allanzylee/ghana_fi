@@ -51,12 +51,13 @@ reg_func <- function(category, model){
 
 # High level summary of all relevant variables
 summary_stat<-full_data_w %>% 
-  dplyr::select(m_ch_fs_dummy,
-                m_cg_fs_dummy,
+  dplyr::select(
                 e_ch_fs_dummy,
                 e_cg_fs_dummy,
                 female,
-                age_num
+                age_num,
+                treatment,
+                contains('region')
                 # enrolled_in_school,
                 # private_school,
                 # cg_age,
@@ -73,12 +74,16 @@ stargazer(summary_stat,
           header=FALSE, 
           type='latex',
           title = "Child Demographics Summary Statistics",
-          covariate.labels=c("Midline Child-Reported FI",
-                             "Midline Caregiver-Reported FI",
-                             "Endline Child-Reported FI",
+          covariate.labels=c("Endline Child-Reported FI",
                              "Endline Caregiver-Reported FI",
                              "Child is Female",
-                             "Child Age"
+                             "Child Age",
+                             "PNP Treatment",
+                             "Region: North East",
+                             "Region: Northern",
+                             "Region: Savannah",
+                             "Region: Upper East",
+                             "Region: Upper West"
                              # "Enrolled in School", 
                              # "Attends Private School",
                              # "Caregiver Age",
@@ -89,7 +94,8 @@ stargazer(summary_stat,
                              # "Household Size"
                              ),
           omit.summary.stat = c('min',
-                        'max')
+                        'max',
+                        'n')
           )
 
 ############################# Child and CG Reports of FI: Correlation ###############################

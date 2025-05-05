@@ -31,12 +31,15 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
   # Filter age group to 10--17 year old since many of the investment mechanisms are NA for younger children
   filter(age==1,
          !is.na(e_ch_health),
-         !is.na(e_enroll_ch),
          !is.na(e_private_school),
          !is.na(e_cg_edu_engagement),
          !is.na(e_ch_motiv),
-         !is.na(e_cg_edu_asp),
-         !is.na(e_cg_emotional_engagement))
+         !is.na(e_ch_edu_asp),
+         !is.na(e_cg_emotional_engagement),
+         !is.na(e_attend),
+         !is.na(cg_mh_scale)) %>% 
+  mutate(e_attend=case_when(as.double(e_attend)>3~1,
+                            T~0))
 
 ##########################################################################################
 ######################################## Regression Functions ############################
@@ -53,22 +56,23 @@ mech_reg_func<-function(category){
   
   # Define mechanisms of investments
   health_input='e_ch_health'
-  edu_input='e_enroll_ch+e_private_school+e_cg_edu_engagement'
+  edu_input='e_attend+e_private_school+e_cg_edu_engagement'
   # Child self esteem is not included due to 54% of respondents missing data
   child_psyc_input='e_ch_motiv+e_ch_edu_asp'
-  cg_psyc_input='e_cg_emotional_engagement'
+  cg_psyc_input='e_cg_emotional_engagement+cg_mh_scale'
   
   # Define covariate albels
-  health_lab<-c("Child Reported Poor Health",
-                "Child Reported Average Health",
-                "Child Reported Good Health",
-                "Child Reported Very Good Health")
-  edu_lab<-c("Currently Enrolled in School",
-             "Attends Private Shool",
-             "Caregiver Edu. Engagement Scale")
-  child_psyc_lab<-c('Child Motivation Scale',
-                      'Child Aspires Complete High School')
-  cg_psyc_lab<-c('Caregiver Emo. Engagement Scale')
+  health_lab<-c("Poor Health",
+                "Average Health",
+                "Good Health",
+                "Very Good Health")
+  edu_lab<-c("Attended School",
+             "Private Shool",
+             "Caregiver Edu. Engagement")
+  child_psyc_lab<-c('Child Motivation',
+                      'Child Edu. Aspiration')
+  cg_psyc_lab<-c('Caregiver Emo. Engagement',
+                 "Caregiver Mental Health")
   
   # Define base OLS functions
   reg_func <- function(category, model){
@@ -179,7 +183,8 @@ mech_reg_func<-function(category){
   
   # Define all regression inputs
   input<- expand.grid(category=c(category),
-                               model=c(glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{health_input}+'),
+                               model=c(glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                                       glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{health_input}+'),
                                        glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+'),
                                        glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{child_psyc_input}+'),
                                        glue('~ {fi}+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{cg_psyc_input}+'),
@@ -188,14 +193,16 @@ mech_reg_func<-function(category){
   # Regression results
   ols_results<- pmap(input,
                           reg_func) %>% 
-    set_names('health_input',
+    set_names('base',
+              'health_input',
               'edu_input',
               'child_psyc_input',
               'cg_psyc_input',
               'all_input')
   
    # Define base OLS Robust input
-  ols_robust_input <- expand.grid(category=c('health_input',
+  ols_robust_input <- expand.grid(category=c('base',
+                                             'health_input',
                                                           'edu_input',
                                                           'child_psyc_input',
                                                           'cg_psyc_input',
@@ -206,7 +213,8 @@ mech_reg_func<-function(category){
   # Cluster Robust Standard Errors
   ols_robust_errors <- pmap(ols_robust_input,
                                  cluster_robust_func) %>%
-    set_names('health_input',
+    set_names('base',
+              'health_input',
               'edu_input',
               'child_psyc_input',
               'cg_psyc_input',
@@ -216,7 +224,8 @@ mech_reg_func<-function(category){
   stargazer(ols_results,
             title=glue("Extended Value-Added Model: {category_text}"),
             dep.var.caption = "Endline Dependent Variable:",
-            column.labels = c("\\shortstack{Health\\\\ Inputs}",
+            column.labels = c("\\shortstack{Base\\\\ Model}",
+                              "\\shortstack{Health\\\\ Inputs}",
                               "\\shortstack{Educational\\\\ Inputs}",
                               "\\shortstack{Child Psyc.\\\\ Inputs}",
                               "\\shortstack{Caregiver Psyc.\\\\ Inputs}", 
@@ -234,8 +243,8 @@ mech_reg_func<-function(category){
             p=lapply(ols_robust_errors, function(x) x$p),
             star.cutoffs = c(.05, .01, NA),
             notes.append     = FALSE,
-            notes            = "*$p<0.05$; **$p<0.01$",
-            font.size = 'small',
+            # notes            = "*$p<0.05$; **$p<0.01$",
+            font.size = 'footnotesize',
             column.sep.width = "-10pt",
             omit=c('region_north_east','region_northern','region_upper_east','region_upper_west','treatment')
            ,out=glue("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_reg/04_mech_controls/01_dummy/{category}.html")
@@ -245,8 +254,10 @@ mech_reg_func<-function(category){
 }
 
 # Run function
-map(c('lit','num','ef','sel'),
-    mech_reg_func)
+mech_reg_func('lit')
+mech_reg_func('num')
+mech_reg_func('ef')
+mech_reg_func('sel')
 
 # ####################################################################################################################
 # ########################## Define terms to use and label ###############################
@@ -297,10 +308,10 @@ map(c('lit','num','ef','sel'),
 # 
 # # Base labels
 # cov_labels <-c(fi_labels,
-#                "Region: North East",
-#                "Region: Northern",
-#                "Region: Upper East",
-#                "Region: Upper West",
+               # "Region: North East",
+               # "Region: Northern",
+               # "Region: Upper East",
+               # "Region: Upper West",
 #                "PNP Treatment",
 #                "Lagged Outcome",
 #                "Constant")

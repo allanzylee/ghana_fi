@@ -475,14 +475,27 @@ e_ch_motiv_esteem <- e_child %>%
                 # ,e_ch_esteem
                 )
 
+###################################################################################################
+#################### Calculate Parental Mental Health #########################
+###################################################################################################
+cg_mh<-e_cg %>% 
+  select(childid,
+         careid,
+         contains('mh')) %>% 
+  mutate(cg_mh_scale=rowSums(dplyr::select(.,contains('mh')),na.rm=T),
+         childid=as.double(childid),
+         careid=as.double(careid))
+
 ################################### Create control data for export ######################
 controls<-e_ch_motiv_esteem %>% 
   left_join(e_cg_emotional_engagement,by=c('childid','careid')) %>% 
   left_join(m_ch_motiv_esteem,by=c('childid','careid')) %>% 
   mutate(across(c(childid,careid),~as.double(.))) %>%
-  left_join(cg_pe,by=c('childid','careid'))
+  left_join(cg_pe,by=c('childid','careid')) %>% 
+  left_join(cg_mh,
+            by=c('childid',
+                 'careid'))
 
-  
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################
 ##########################################################################################

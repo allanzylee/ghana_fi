@@ -33,6 +33,7 @@ library(stargazer)
 # library(GGally)
 # library(broom.helpers)
 # library(jtools)
+library(mice)
 library(janitor)
 # library(fastDummies)
 
@@ -222,7 +223,8 @@ full_data_w <- e_child %>%
 
 # Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
 reg<-glm(missing ~ age + female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west,
-         data = full_data_w)
+         data = full_data_w,
+         family='binomial')
 summary(reg)
 
 # Export results

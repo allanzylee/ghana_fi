@@ -35,6 +35,9 @@ library(stargazer)
 # library(jtools)
 library(janitor)
 # library(fastDummies)
+library(mice)
+library(logistf)
+library(modelsummary)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -198,13 +201,17 @@ full_data_w <- e_child %>%
                                      T~NA_real_)),
                 .names = "{col}_dummy"
   )) %>% 
+  # Standardize investment mechanisms
+  mutate(across(c(e_cg_edu_engagement,
+                  e_ch_motiv,
+                  # e_ch_edu_asp,
+                  e_cg_emotional_engagement),
+                ~scale(.)[,1])) %>%
   filter(
     !is.na(female) &
     !is.na(age) &
     !is.na(e_ch_fs_dummy)&
     !is.na(e_cg_fs_dummy)&
-    !is.na(m_ch_fs_dummy)&
-    !is.na(m_cg_fs_dummy)&
     !is.na(treatment)&
     !is.na(m_lit_per)&
     !is.na(m_num_per)&
@@ -221,37 +228,61 @@ full_data_w <- e_child %>%
   # Filter to extended model build
   filter(age==1) %>% 
   mutate(missing=case_when(!is.na(e_ch_health)&
-                           !is.na(e_enroll_ch)&
                            !is.na(e_private_school)&
                            !is.na(e_cg_edu_engagement)&
                            !is.na(e_ch_motiv)&
-                           !is.na(e_cg_edu_asp)&
+                           !is.na(e_ch_edu_asp)&
                            !is.na(e_cg_emotional_engagement)~0,
                            T~1))
 
-# Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
-reg<-glm(missing ~ female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west+e_ch_health+e_enroll_ch+e_private_school+e_cg_edu_engagement+e_ch_motiv+e_cg_edu_asp+e_cg_emotional_engagement,
+# Regress missingness on all covariate
+reg<-logistf(missing ~ female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west+e_ch_health+e_private_school+e_cg_edu_engagement+e_ch_motiv+e_ch_edu_asp+e_cg_emotional_engagement,
          data = full_data_w)
 summary(reg)
 
 # Export results
-stargazer(reg,
+modelsummary(list('Missingness'=reg),
           title="Missingness Regression",
-          #dep.var.caption = "Endline Dependent Variable:",
-          # covariate.labels=variables,
-          column.labels = c("Child is Removed from Data"),
-          covariate.labels=c("Child is 10–17",
-                             "Child is Female",
-                             "Caregiver Attended Primary School",
-                             "Caregiver Age",
-                             "Caregiver is Female",
-                             "Poverty",
-                             "PNP Treatment",
-                             "Region: North East",
-                             "Region: Northern",
-                             "Region: Upper East",
-                             "Region: Upper West"),
-          star.cutoffs = c(.05, .01, NA),
-          notes.append     = FALSE,
-          notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/4_missing_data_extended_model.html")
+          estimate='{estimate}{stars}',
+          # statistic = "{std.error}",
+          # #dep.var.caption = "Endline Dependent Variable:",
+          # # covariate.labels=variables,
+          # column.labels = c("Child is Removed from Data"),
+          # covariate.labels=c("Child is 10–17",
+          #                    "Child is Female",
+          #                    "Caregiver Attended Primary School",
+          #                    "Caregiver Age",
+          #                    "Caregiver is Female",
+          #                    "Poverty",
+          #                    "PNP Treatment",
+          #                    "Region: North East",
+          #                    "Region: Northern",
+          #                    "Region: Upper East",
+          #                    "Region: Upper West"),
+          # star.cutoffs = c(.05, .01, NA),
+          # notes.append     = FALSE,
+          # notes            = "*$p<0.05$; **$p<0.01$",
+          coef_rename=c("female"="Female",
+                        'cg_schooling'="Caregiver Attended Primary School",
+                        'cg_age'='Caregiver age',
+                        'cg_female'='Caregiver is Female',
+                        'poverty'='Poverty',
+                        'treatment'='PNP Treatment',
+                        'region_north_east'="Region: North East",
+                        'region_northern'="Region: Northern",
+                        'region_upper_east'="Region: Upper East",
+                        'region_upper_west'="Region: Upper West",
+                        'e_ch_health2'='Child Reported Poor Health',
+                        'e_ch_health3'='Child Reported Average Health',
+                        'e_ch_health4'="Child Reported Good Health",
+                        'e_ch_health5'="Child Reported Very Good Health",
+                        "e_private_school"="Private School",
+                        'e_cg_edu_engagement'="Caregiver Edu. Engagement Scale",
+                        'e_ch_motiv'='Child Motivation Scale',
+                        'e_ch_edu_asp'='Child Aspires Complete High School',
+                        'e_cg_emotional_engagement'='Caregiver Emo. Engagement Scale'),
+          stars=T,
+          output="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/4_missing_data_extended_model.html"
+          # ,output='latex'
+          )
+

@@ -72,10 +72,10 @@ tidy_func <- function(category, results_str){
 
 # Define whether to use FIES or FIES Scale (FAO)
 
-child_indicator<-F
-dummy_indicator<-F
+child_indicator<-T
+dummy_indicator<-T
 # FIES Scale Indicator is only relevant if dummy indicator AND child indicator are false
-fies_scale_indicator<-T
+fies_scale_indicator<-F
 
 
 if(child_indicator==T){
@@ -136,15 +136,6 @@ cov_labels <-c(fi_labels,
 multi_cov_labels <-c(fi_labels,
                      "Child Female",
                      "Child is 10–17",
-                     "Caregiver Age",
-                     "Caregiver Female",
-                     "Caregiver has a Partner",
-                     "Caregiver Completed Primary School",
-                     "Household Size",
-                     "Language: Dagbani",
-                     "Language: Gruni",
-                     "Language: Other",
-                     "Language: Sissali",
                      "Region: North East",
                      "Region: Northern",
                      "Region: Upper East",
@@ -200,7 +191,7 @@ stargazer(base_ols_results_region_treatment,
 
 # Define base OLS input
 reduced_multivar_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                          model=c(glue('~ {fi}+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
+                                          model=c(glue('~ {fi}+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
 
 # Regression results
 reduced_multivar_ols_region_results<- pmap(reduced_multivar_ols_input_region,
@@ -249,7 +240,7 @@ stargazer(reduced_multivar_ols_region_results,
 
 # Define base OLS input
 gender_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                         model=c(glue('~ {fi}+{fi}*female+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
+                                         model=c(glue('~ {fi}+{fi}*female+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
 
 # Regression results
 gender_multivar_ols_results<- pmap(gender_multivar_ols_input,
@@ -298,7 +289,7 @@ stargazer(gender_multivar_ols_results,
 
 # Define base OLS input
 age_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-                                      model=c(glue('~ {fi}+{fi}*age+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
+                                      model=c(glue('~ {fi}+{fi}*age+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
 
 # Regression results
 age_multivar_ols_results<- pmap(age_multivar_ols_input,
@@ -347,7 +338,7 @@ stargazer(age_multivar_ols_results,
 # 
 # # Define base OLS input
 # cg_schooling_multivar_ols_input <- expand.grid(category=c('lit','num','ef','sel'),
-#                                       model=c(glue('~ {fi}+{fi}*cg_schooling+female+age+cg_age +cg_female +marital_status+cg_schooling +hh_size+language+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
+#                                       model=c(glue('~ {fi}+{fi}*cg_schooling+female+age+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+')))
 # 
 # # Regression results
 # cg_schooling_multivar_ols_results<- pmap(cg_schooling_multivar_ols_input,

@@ -22,6 +22,8 @@ library(glue)
 library(ltm)
 library(xtable)
 library(writexl)
+library(gridExtra)
+library(cowplot)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -114,6 +116,7 @@ plot<-for_ex %>%
                                   'Male (10-17)',
                                   'Female (5-9)',
                                   'Female (10-17)'))) %>% 
+  filter(!str_detect(group,"\\(")) %>% 
   ggplot(aes(x=group,
              y=value,
              fill = category))+
@@ -156,17 +159,77 @@ plot<-for_ex %>%
     legend.title=element_blank()
   )
 
-plot
+plot_intersect<-for_ex %>% 
+  mutate(category=factor(category,
+                         levels=c('mean.m_ch_fs_dummy',
+                                  'mean.e_ch_fs_dummy')),
+         group=factor(group,
+                      levels=c('Overall',
+                               'Male',
+                               'Female',
+                               'Child is 5-9',
+                               'Child is 10-17',
+                               'Male (5-9)',
+                               'Male (10-17)',
+                               'Female (5-9)',
+                               'Female (10-17)'))) %>% 
+  filter(str_detect(group,"\\(")) %>% 
+  ggplot(aes(x=group,
+             y=value,
+             fill = category))+
+  geom_col(position='dodge') +
+  geom_text(aes(label=glue('{round(value,3)*100}%')),
+            position=position_dodge(0.9),
+            vjust=-0.5)+
+  scale_y_continuous(expand=c(0,0),
+                     limits=c(0,.5),
+                     labels = scales::percent) +
+  labs(
+    # title="Endline Child Cognitive and Socioemotional fis by Group",
+    y='',
+    x='') +
+  scale_x_discrete(breaks=c('Overall',
+                            'Male',
+                            'Female',
+                            'Child is 5-9',
+                            'Child is 10-17',
+                            'Male (5-9)',
+                            'Male (10-17)',
+                            'Female (5-9)',
+                            'Female (10-17)'))+
+  scale_fill_manual(values=c('#c5c6d0',
+                             '#828282'
+                             # ,'#333333',
+                             # 'black'
+  ),
+  breaks=c('mean.m_ch_fs_dummy',
+           'mean.e_ch_fs_dummy'),
+  labels=c('Midline Food Insecurity',
+           'Endline Food Insecurity')) +
+  theme_classic()+
+  theme(
+    axis.text = element_text(color='black',
+                             size=10),
+    axis.ticks = element_line(color='black'),
+    axis.line = element_line(color='black'),
+    legend.position = 'bottom',
+    legend.title=element_blank()
+  )
+
+legend<-get_legend(plot)
+
+figure <- plot_grid(plot + theme(legend.position="none"),
+                    plot_intersect + theme(legend.position="none"),
+                    legend, nrow = 3,
+                    rel_heights = c(1, 1,.1))
+
+figure
 
 # Export as PDF
 ggsave("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/07_fi_sum_stat_by_group.png",
        width=25,
        height=25,
        units='cm')
-
-figure <- ggarrange(plot, plot,
-                    labels = c("A", "B"),
-                    ncol = 2, nrow = 1)
 
 
 

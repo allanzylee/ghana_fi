@@ -38,7 +38,7 @@ overlap_perc_raw<-full_data_w %>%
          age) %>% 
   mutate(across(matches('^fs\\d+_child'),
                 ~case_when(.==2~1,
-                           T~.))) %>% 
+                           T~0))) %>% 
   dplyr::select(childid,
                 careid,
                 female,
@@ -138,7 +138,7 @@ overlap_cor_input<-full_data_w %>%
                 matches("^fs\\d+")) %>% 
   mutate(across(matches('^fs\\d+_child'),
                 ~case_when(.==2~1,
-                           T~.))) %>% 
+                           T~0))) %>% 
   dplyr::select(childid,
                 careid,
                 age,
@@ -212,7 +212,7 @@ to_export<-list('cor'=as_tibble(overlap_cor),
              'perc'=as_tibble(overlap_perc))
 
 write_xlsx(to_export,
-          "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_items.xlsx")
+          "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08b_fi_overlap_items_cfies_sens.xlsx")
 
 # Create latex friendly version of table
 xtable(overlap_cor %>% 

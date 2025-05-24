@@ -247,4 +247,4 @@ stargazer(reg,
           star.cutoffs = c(.05, .01, NA),
           notes.append     = FALSE,
           notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/3_missing_data_va_model.html")
+          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/03_missing_data_va_model.html")

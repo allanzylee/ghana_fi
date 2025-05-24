@@ -125,8 +125,9 @@ plot<-for_ex %>%
             position=position_dodge(0.9),
             vjust=-0.5)+
   scale_y_continuous(expand=c(0,0),
-                     limits=c(0,1),
-                     labels = scales::percent) +
+                     limits=c(0,.75),
+                     labels = scales::percent,
+                     breaks=seq(0,.75,.25)) +
   labs(
     # title="Endline Child Cognitive and Socioemotional Outcomes by Group",
     y='',

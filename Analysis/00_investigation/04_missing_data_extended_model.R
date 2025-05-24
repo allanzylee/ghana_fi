@@ -282,7 +282,7 @@ modelsummary(list('Missingness'=reg),
                         'e_ch_edu_asp'='Child Aspires Complete High School',
                         'e_cg_emotional_engagement'='Caregiver Emo. Engagement Scale'),
           stars=T,
-          output="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/4_missing_data_extended_model.html"
+          output="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/04_missing_data_extended_model.html"
           # ,output='latex'
           )
 

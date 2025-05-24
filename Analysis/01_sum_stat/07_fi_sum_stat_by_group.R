@@ -129,7 +129,7 @@ plot<-for_ex %>%
                      labels = scales::percent) +
   labs(
     # title="Endline Child Cognitive and Socioemotional fis by Group",
-       y='',
+       y="Severe Food Insecurity",
        x='') +
   scale_x_discrete(breaks=c('Overall',
                             'Male',
@@ -147,8 +147,8 @@ plot<-for_ex %>%
                              ),
                     breaks=c('mean.m_ch_fs_dummy',
                              'mean.e_ch_fs_dummy'),
-                    labels=c('Midline Food Insecurity',
-                             'Endline Food Insecurity')) +
+                    labels=c('Midline',
+                             'Endline')) +
   theme_classic()+
   theme(
     axis.text = element_text(color='black',
@@ -186,7 +186,7 @@ plot_intersect<-for_ex %>%
                      labels = scales::percent) +
   labs(
     # title="Endline Child Cognitive and Socioemotional fis by Group",
-    y='',
+    y="Severe Food Insecurity",
     x='') +
   scale_x_discrete(breaks=c('Overall',
                             'Male',
@@ -204,8 +204,8 @@ plot_intersect<-for_ex %>%
   ),
   breaks=c('mean.m_ch_fs_dummy',
            'mean.e_ch_fs_dummy'),
-  labels=c('Midline Food Insecurity',
-           'Endline Food Insecurity')) +
+  labels=c('Midline',
+           'Endline')) +
   theme_classic()+
   theme(
     axis.text = element_text(color='black',

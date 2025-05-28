@@ -3,7 +3,6 @@ setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
 
 # Load packages
 library(fixest)
-library(dplyr)
 library(stargazer)
 library(AER)
 library(dataCompareR)
@@ -17,6 +16,9 @@ library(ltm)
 library(glue)
 library(kableExtra)
 library(readr)
+library(tidyverse)
+library(dplyr)
+library(officer)
 
 # Define functions
 reg_func <- function(category, model){

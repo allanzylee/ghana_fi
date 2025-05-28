@@ -21,7 +21,7 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
 
 ##########################################################################################
-############################## Multivariate OLS Regression w/ Region and PNP Treatment + Age and Gender ##############################
+############################## Multivariate OLS Regression w/ Region and household randomized treatment + Age and Gender ##############################
 ##########################################################################################
 
 # Define base OLS input
@@ -50,7 +50,7 @@ modelsummary(va_ols_region_results,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and PNP treatment.",
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/01_va_ols.html",
              escape = FALSE)
 
@@ -65,7 +65,7 @@ modelsummary(va_ols_region_results,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and PNP treatment.",
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
              out='latex',
              escape = FALSE)
 

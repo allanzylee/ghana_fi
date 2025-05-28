@@ -71,7 +71,7 @@ perc_overall<-overlap_perc_raw%>%
                      'hungry'),
                    ~mean(.,
                          na.rm=T))) %>% 
-  mutate(type='overall')
+  mutate(type='Overall')
 
 perc_gender<-overlap_perc_raw%>% 
   group_by(category,
@@ -221,3 +221,35 @@ xtable(overlap_cor %>%
                 'Cut'=cut,
                 'Skip'=skip,
                 'Hungry'=hungry))
+
+xtable(overlap_perc %>% 
+         dplyr::select('Group'=type,
+                       'Worry'=worry,
+                       'Cut'=cut,
+                       'Skip'=skip,
+                       'Hungry'=hungry,
+                       'Reported by'=category) %>% 
+  mutate(`Reported by`=case_when(`Reported by`=='cg'~"Caregiver",
+                                 T~'Child')))
+
+# Calculate percentage difference mean
+perc_diff_mean<-overlap_perc %>% 
+  group_by(type) %>% 
+  mutate(across(c(worry,
+                  cut,
+                  skip,
+                  hungry),~.[category=='cg']-.[category=='child'])) %>% 
+  ungroup() %>% 
+  distinct(worry,
+           cut,
+           skip,
+           hungry) %>% 
+  summarise(across(c(worry,
+                     cut,
+                     skip,
+                     hungry),~mean(.,na.rm=T))) %>% 
+  rowwise() %>% 
+  summarise(
+            mean = mean(c_across(worry:hungry)),
+            median = median(c_across(worry:hungry))) 
+

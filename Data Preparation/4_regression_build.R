@@ -11,30 +11,8 @@
 # Clear the environment
 rm(list=ls())
 
-# Set working directory
-setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
-
-# Load packages
-# library(foreign)
-library(haven)
-library(tidyverse)
-# library(stargazer)
-# library(psych)
-# library(corrr)
-# library(tibble)
-# library(writexl)
-# library(timechange)
-# library(rnoaa)
-# library(base)
-# library(arsenal)
-# library(labelled)
-# library(zoo)
-# library(AER)
-# library(GGally)
-# library(broom.helpers)
-# library(jtools)
-library(janitor)
-# library(fastDummies)
+# Load header
+source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -259,7 +237,7 @@ full_data_w <- e_child %>%
 #   filter(m_outcome_type==e_outcome_type)
 
 # Export
-saveRDS(full_data_w, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
+saveRDS(full_data_w %>% select(-contains('checker')), "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
 # saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
 
 # write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")

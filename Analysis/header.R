@@ -19,6 +19,9 @@ library(readr)
 library(tidyverse)
 library(dplyr)
 library(officer)
+library(janitor)
+library(fastDummies)
+library(haven)
 
 # Define functions
 reg_func <- function(category, model){

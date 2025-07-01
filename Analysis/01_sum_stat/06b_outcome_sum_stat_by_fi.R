@@ -8,27 +8,17 @@
 ############################################### Set up ###################################
 ##########################################################################################
 
-# Clear the environments
+# Clear the environment
 rm(list=ls())
 
-# Set working directory
-setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
-
-# Load packages
-library(tidyverse)
-library(dplyr)
-library(stargazer)
-library(glue)
-library(ltm)
-library(xtable)
-library(writexl)
+# Load header
+source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
 
 ##########################################################################################
 ###################################### Load relevant data ################################
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
-outcome_raw <- read_rds("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/outcome_raw.rds")
 
 ############################# Construct Data to Calculate raw outcome % ###############################
 
@@ -38,10 +28,8 @@ data<-full_data_w %>%
                 age,
                 female,
                 e_ch_fs_dummy,
-                e_cg_fs_dummy) %>% 
-  left_join(outcome_raw,
-            by=c('childid',
-                 'careid'))
+                e_cg_fs_dummy,
+                matches('^e_.*per_raw$'))
 
 ############################# Child Outcomes: Mean by Group/Round ###############################
 
@@ -51,7 +39,7 @@ outcome_sum_stat_func <- function(var_group_str, str_1, str_0) {
   var_group <- ensym(var_group_str)
   sum_stat <- data %>% 
     dplyr::select(!!var_group,
-                  matches('^e_.*per$')) %>% 
+                  matches('^e_.*per_raw$')) %>% 
     group_by(group=!!var_group) %>% 
     summarize(across(matches('per'),
                      ~mean(., na.rm=T),
@@ -107,10 +95,10 @@ for_ex <- pmap_dfr(input,outcome_sum_stat_func) %>%
 ############################# Create Exhibit ###############################
 plot<-for_ex %>% 
   mutate(category=factor(category,
-                         levels=c('mean.e_lit_per',
-                                  'mean.e_num_per',
-                                  'mean.e_ef_per',
-                                  'mean.e_sel_per')),
+                         levels=c('mean.e_lit_per_raw',
+                                  'mean.e_num_per_raw',
+                                  'mean.e_ef_per_raw',
+                                  'mean.e_sel_per_raw')),
          group=factor(group,
                       levels=c('Child is FI',
                                'Child is Not FI',
@@ -130,12 +118,12 @@ plot<-for_ex %>%
                      breaks=seq(0,.75,.25)) +
   labs(
     # title="Endline Child Cognitive and Socioemotional Outcomes by Group",
-    y='',
+    y='Mean Percentage Accuracy',
     x='') +
-  scale_x_discrete(breaks=c('mean.e_lit_per',
-                            'mean.e_num_per',
-                            'mean.e_ef_per',
-                            'mean.e_sel_per'),
+  scale_x_discrete(breaks=c('mean.e_lit_per_raw',
+                            'mean.e_num_per_raw',
+                            'mean.e_ef_per_raw',
+                            'mean.e_sel_per_raw'),
                    labels=c('Literacy',
                             'Numeracy',
                             'Executive Function',

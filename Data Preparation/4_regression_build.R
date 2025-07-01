@@ -45,6 +45,9 @@ m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>%
   mutate(across(contains('id'),~as.double(.)))
 outcome_checker<- read_rds("build/outcome_zscore_checker.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
+outcome_raw<- read_rds("build/outcome_raw.rds") %>% 
+  mutate(across(contains('id'),~as.double(.)))
+
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -218,6 +221,12 @@ full_data_w <- e_child %>%
   clean_names() %>% 
   left_join(outcome_checker,
             by=c('childid'),
+            suffix = c("",
+                       '_checker')) %>% 
+  left_join(outcome_raw %>% 
+              select(childid,careid,contains('raw')),
+            by=c('childid',
+                 'careid'),
             suffix = c("",
                        '_checker'))
 

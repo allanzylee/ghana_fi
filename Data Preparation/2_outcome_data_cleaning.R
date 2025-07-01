@@ -425,7 +425,8 @@ outcome <- m_lit %>%
   dplyr::select(childid,careid, contains('enum_id'),
                 contains('treatment'),
                 contains('_per')) %>% 
-  dplyr::select(!contains('answer'))
+  dplyr::select(!contains('answer')) %>% 
+  rename_with(~paste0(., "_raw"), grep("_per$", names(.)))
 # 
 # # Test for instances when child age has a large disparity
 # child_exclude <- m_child %>% 

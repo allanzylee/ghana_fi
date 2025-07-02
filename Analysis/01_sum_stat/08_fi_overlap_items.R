@@ -82,8 +82,8 @@ perc_gender<-overlap_perc_raw%>%
                      'hungry'),
                    ~mean(.,
                          na.rm=T))) %>% 
-  mutate(type=case_when(female==1 ~ 'Female',
-                         T~'Male')) %>% 
+  mutate(type=case_when(female==1 ~ 'Child is Female',
+                         T~'Child is Male')) %>% 
   ungroup() %>% 
   dplyr::select(-female) %>% 
   arrange(type)
@@ -97,8 +97,8 @@ perc_age<-overlap_perc_raw%>%
                      'hungry'),
                    ~mean(.,
                          na.rm=T))) %>% 
-  mutate(type=case_when(age==1 ~ '10-17',
-                        T~'5-9')) %>% 
+  mutate(type=case_when(age==1 ~ 'Child is 10-17',
+                        T~'Child is 5-9')) %>% 
   ungroup() %>% 
   dplyr::select(-age)%>% 
   arrange(type)
@@ -113,10 +113,10 @@ perc_gender_age<-overlap_perc_raw%>%
                      'hungry'),
                    ~mean(.,
                          na.rm=T))) %>% 
-  mutate(type=case_when(age==1 & female==1 ~ 'Female (10-17)',
-                        age==1 & female==0 ~ 'Male (10-17)',
-                        age==0 & female==1 ~ 'Female (5-9)',
-                        T~'Male (5-9)')) %>% 
+  mutate(type=case_when(age==1 & female==1 ~ 'Child is Female (10-17)',
+                        age==1 & female==0 ~ 'Child is Male (10-17)',
+                        age==0 & female==1 ~ 'Child is Female (5-9)',
+                        T~'Child is Male (5-9)')) %>% 
   ungroup() %>% 
   dplyr::select(-age,
                 -female) %>% 
@@ -127,10 +127,10 @@ overlap_perc=bind_rows(perc_overall,
                        perc_age,
                        perc_gender_age)
 
-# create function for overlap cor ------------------------------------------------------
+# Create unction for overlap cor ------------------------------------------------------
 
-# Calculate overlap correlation
-overlap_cor_input<-full_data_w %>% 
+# Create data cor correlation 
+overlap_cor_df<-full_data_w %>% 
   dplyr::select(childid,
                 careid,
                 age,
@@ -157,6 +157,19 @@ overlap_cor_input<-full_data_w %>%
                 'hungry_cg'=fs7_cg
   )
 
+cor_func<-function(by_var=NULL){
+  
+  out<-overlap_cor_df %>% 
+    group_by(across({{by_var}})) %>% 
+    summarise(worry=list(cor.test(worry_child, worry_cg)),
+              cut=list(cor.test(cut_child, cut_cg)),
+              skip=list(cor.test(skip_child, skip_cg)),
+              hungry=list(cor.test(hungry_child, hungry_cg)))
+  
+  out$worry[[1]]  
+}
+
+
 overall <- overlap_cor_input %>% 
   summarise(worry=cor(worry_child,worry_cg),
             cut=cor(cut_child,cut_cg),
@@ -170,8 +183,8 @@ gender<- overlap_cor_input %>%
             cut=cor(cut_child,cut_cg),
             skip=cor(skip_child,skip_cg),
             hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category=case_when(female==1 ~ 'Female',
-                            T~'Male')) %>% 
+  mutate(category=case_when(female==1 ~ 'Child is Female',
+                            T~'Child is Male')) %>% 
   ungroup() %>% 
   dplyr::select(-female)
 
@@ -181,8 +194,8 @@ age<- overlap_cor_input %>%
             cut=cor(cut_child,cut_cg),
             skip=cor(skip_child,skip_cg),
             hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category=case_when(age==1 ~ '10-17',
-                            T~'5-9')) %>% 
+  mutate(category=case_when(age==1 ~ 'Child is 10-17',
+                            T~'Child is 5-9')) %>% 
   ungroup() %>% 
   dplyr::select(-age)
 
@@ -194,10 +207,10 @@ gender_age <- overlap_cor_input %>%
             cut=cor(cut_child,cut_cg),
             skip=cor(skip_child,skip_cg),
             hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category=case_when(age==1 & female==1 ~ 'Female (10-17)',
-                            age==1 & female==0 ~ 'Male (10-17)',
-                            age==0 & female==1 ~ 'Female (5-9)',
-                            T~'Male (5-9)')) %>% 
+  mutate(category=case_when(age==1 & female==1 ~ 'Child is Female (10-17)',
+                            age==1 & female==0 ~ 'Child is Male (10-17)',
+                            age==0 & female==1 ~ 'Child is Female (5-9)',
+                            T~'Child is Male (5-9)')) %>% 
   ungroup() %>% 
   dplyr::select(-age,
          -female)
@@ -215,14 +228,17 @@ write_xlsx(to_export,
           "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_items.xlsx")
 
 # Create latex friendly version of table
-xtable(overlap_cor %>% 
+latex_cor<-xtable(overlap_cor %>% 
          dplyr::select('Category'=category,
                 'Worry'=worry,
                 'Cut'=cut,
                 'Skip'=skip,
                 'Hungry'=hungry))
 
-xtable(overlap_perc %>% 
+print(latex_cor,
+      include.rownames=FALSE)
+
+latex_perc=xtable(overlap_perc %>% 
          dplyr::select('Group'=type,
                        'Worry'=worry,
                        'Cut'=cut,
@@ -231,6 +247,9 @@ xtable(overlap_perc %>%
                        'Reported by'=category) %>% 
   mutate(`Reported by`=case_when(`Reported by`=='cg'~"Caregiver",
                                  T~'Child')))
+
+print(latex_perc,
+      include.rownames=FALSE)
 
 # Calculate percentage difference mean
 perc_diff_mean<-overlap_perc %>% 
@@ -252,4 +271,3 @@ perc_diff_mean<-overlap_perc %>%
   summarise(
             mean = mean(c_across(worry:hungry)),
             median = median(c_across(worry:hungry))) 
-

@@ -22,6 +22,7 @@ library(officer)
 library(janitor)
 library(fastDummies)
 library(haven)
+library(ggpubr)
 
 # Define functions
 reg_func <- function(category, model){

@@ -2,7 +2,7 @@
 
 # Author: Allan Lee
 # Date: January 12, 2025
-# Purpose: Investigate whether the rows filtered out are systematically related to any covariates
+# Purpose: Investigate whether the rows filtered out are systematically related to any covariates (extended model)
 
 ##########################################################################################
 ############################################### Set up ###################################
@@ -11,34 +11,9 @@
 # Clear the environment
 rm(list=ls())
 
-# Set working directory
-setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
-
-# Load packages
-# library(foreign)
-library(haven)
-library(tidyverse)
-library(stargazer)
-# library(psych)
-# library(corrr)
-# library(tibble)
-# library(writexl)
-# library(timechange)
-# library(rnoaa)
-# library(base)
-# library(arsenal)
-# library(labelled)
-# library(zoo)
-# library(AER)
-# library(GGally)
-# library(broom.helpers)
-# library(jtools)
-library(janitor)
-# library(fastDummies)
-library(mice)
+# Load header
+source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
 library(logistf)
-library(modelsummary)
-
 ##########################################################################################
 ###################################### Load relevant data ################################
 ##########################################################################################
@@ -201,88 +176,94 @@ full_data_w <- e_child %>%
                                      T~NA_real_)),
                 .names = "{col}_dummy"
   )) %>% 
-  # Standardize investment mechanisms
-  mutate(across(c(e_cg_edu_engagement,
-                  e_ch_motiv,
-                  # e_ch_edu_asp,
-                  e_cg_emotional_engagement),
-                ~scale(.)[,1])) %>%
-  filter(
+  mutate(missing=case_when(
     !is.na(female) &
-    !is.na(age) &
-    !is.na(e_ch_fs_dummy)&
-    !is.na(e_cg_fs_dummy)&
-    !is.na(treatment)&
-    !is.na(m_lit_per)&
-    !is.na(m_num_per)&
-    !is.na(m_sel_per)&
-    !is.na(m_ef_per)&
-    !is.na(e_lit_per)&
-    !is.na(e_num_per)&
-    !is.na(e_sel_per)&
-    !is.na(e_ef_per)
-  ) %>%
+      !is.na(age) &
+      !is.na(e_ch_fs_dummy)&
+      !is.na(e_cg_fs_dummy)&
+      !is.na(treatment)&
+      !is.na(m_lit_per)&
+      !is.na(m_num_per)&
+      !is.na(m_sel_per)&
+      !is.na(m_ef_per)&
+      !is.na(e_lit_per)&
+      !is.na(e_num_per)&
+      !is.na(e_sel_per)&
+      !is.na(e_ef_per) ~ 0,
+    T~1
+  )) %>%
   # left_join(num_kids,by=c('careid')) %>%
   fastDummies::dummy_cols(select_columns='region') %>%
   clean_names() %>% 
-  # Filter to extended model build
-  filter(age==1) %>% 
-  mutate(missing=case_when(!is.na(e_ch_health)&
-                           !is.na(e_private_school)&
-                           !is.na(e_cg_edu_engagement)&
-                           !is.na(e_ch_motiv)&
-                           !is.na(e_ch_edu_asp)&
-                           !is.na(e_cg_emotional_engagement)~0,
-                           T~1))
+  mutate(e_attend=case_when(as.double(e_attend)>3~1,
+                            T~0))
+
+# # Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
+# reg<-glm(missing ~ e_ch_fs_dummy+e_cg_fs_dummy + age + female + treatment+region_north_east+region_northern+region_upper_east+region_upper_west + cg_schooling + cg_age + cg_female + poverty +e_ch_health+e_private_school+e_cg_edu_engagement+e_ch_motiv+e_ch_edu_asp+e_cg_emotional_engagement,
+#          data = full_data_w,
+#          family='binomial')
+# summary(reg)
+# 
+# # Export results
+# modelsummary(reg,
+#              title='Missingness Results',
+#              fmt=f,
+#              cluster='careid',
+#              # coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
+#              coef_rename=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
+#                            'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+#                            'lagged_outcome'="Lagged Outcome"),
+#              gof_omit = 'AIC|BIC|Std.Errors',
+#              gof_map=gm,
+#              stars = c('*' = .05, 
+#                        '**' = .01,
+#                        '***' = .001),
+#              notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+#              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/04_missing_data_extended_model.html",
+#              escape = FALSE)
+
 
 # Regress missingness on all covariate
-reg<-logistf(missing ~ female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west+e_ch_health+e_private_school+e_cg_edu_engagement+e_ch_motiv+e_ch_edu_asp+e_cg_emotional_engagement,
+reg<-logistf(missing ~ e_ch_fs_dummy+e_cg_fs_dummy+female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west+e_ch_health+e_attend+e_private_school+e_cg_edu_engagement+e_ch_motiv+e_ch_edu_asp+e_cg_emotional_engagement+cg_mh_scale,
          data = full_data_w)
 summary(reg)
 
 # Export results
-modelsummary(list('Missingness'=reg),
-          title="Missingness Regression",
-          estimate='{estimate}{stars}',
-          # statistic = "{std.error}",
-          # #dep.var.caption = "Endline Dependent Variable:",
-          # # covariate.labels=variables,
-          # column.labels = c("Child is Removed from Data"),
-          # covariate.labels=c("Child is 10–17",
-          #                    "Child is Female",
-          #                    "Caregiver Attended Primary School",
-          #                    "Caregiver Age",
-          #                    "Caregiver is Female",
-          #                    "Poverty",
-          #                    "PNP Treatment",
-          #                    "Region: North East",
-          #                    "Region: Northern",
-          #                    "Region: Upper East",
-          #                    "Region: Upper West"),
-          # star.cutoffs = c(.05, .01, NA),
-          # notes.append     = FALSE,
-          # notes            = "*$p<0.05$; **$p<0.01$",
-          coef_rename=c("female"="Female",
-                        'cg_schooling'="Caregiver Attended Primary School",
-                        'cg_age'='Caregiver age',
-                        'cg_female'='Caregiver is Female',
-                        'poverty'='Poverty',
-                        'treatment'='PNP Treatment',
-                        'region_north_east'="Region: North East",
-                        'region_northern'="Region: Northern",
-                        'region_upper_east'="Region: Upper East",
-                        'region_upper_west'="Region: Upper West",
-                        'e_ch_health2'='Child Reported Poor Health',
-                        'e_ch_health3'='Child Reported Average Health',
-                        'e_ch_health4'="Child Reported Good Health",
-                        'e_ch_health5'="Child Reported Very Good Health",
-                        "e_private_school"="Private School",
-                        'e_cg_edu_engagement'="Caregiver Edu. Engagement Scale",
-                        'e_ch_motiv'='Child Motivation Scale',
-                        'e_ch_edu_asp'='Child Aspires Complete High School',
-                        'e_cg_emotional_engagement'='Caregiver Emo. Engagement Scale'),
-          stars=T,
-          output="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/04_missing_data_extended_model.html"
-          # ,output='latex'
-          )
-
+modelsummary(reg,
+             title='Missingness Results',
+             fmt=f,
+             cluster='careid',
+             # coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
+             coef_rename=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
+                           'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+                           'lagged_outcome'="Lagged Outcome",
+                           "female"="Child is Female",
+                           'age'='Child is 10-17',
+                           'cg_schooling'="Caregiver Attended Primary School",
+                           'cg_age'='Caregiver age',
+                           'cg_female'='Caregiver is Female',
+                           'poverty'='Poverty',
+                           'treatment'='PNP Treatment',
+                           'region_north_east'="Region: North East",
+                           'region_northern'="Region: Northern",
+                           'region_upper_east'="Region: Upper East",
+                           'region_upper_west'="Region: Upper West",
+                           'e_ch_health2'='Child Reported Poor Health',
+                           'e_ch_health3'='Child Reported Average Health',
+                           'e_ch_health4'="Child Reported Good Health",
+                           'e_ch_health5'="Child Reported Very Good Health",
+                           'e_attend'="Attended School",
+                           "e_private_school"="Private School",
+                           'e_cg_edu_engagement'="Caregiver Edu. Engagement Scale",
+                           'e_ch_motiv'='Child Motivation Scale',
+                           'e_ch_edu_asp'='Child Aspires Complete High School',
+                           'e_cg_emotional_engagement'='Caregiver Emo. Engagement Scale',
+                           'cg_mh_scale'='Caregiver Mental Health'),
+             gof_omit = 'AIC|BIC|Std.Errors',
+             gof_map=gm,
+             stars = c('*' = .05, 
+                       '**' = .01,
+                       '***' = .001),
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/04_missing_data_extended_model.html",
+             escape = FALSE)

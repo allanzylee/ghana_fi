@@ -2,7 +2,7 @@
 
 # Author: Allan Lee
 # Date: January 12, 2025
-# Purpose: Investigate whether the rows filtered out are systematically related to any covariates
+# Purpose: Investigate whether the rows filtered out are systematically related to any covariates (base model)
 
 ##########################################################################################
 ############################################### Set up ###################################
@@ -11,32 +11,9 @@
 # Clear the environment
 rm(list=ls())
 
-# Set working directory
-setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
-
-# Load packages
-# library(foreign)
-library(haven)
-library(tidyverse)
-library(stargazer)
-# library(psych)
-# library(corrr)
-# library(tibble)
-# library(writexl)
-# library(timechange)
-# library(rnoaa)
-# library(base)
-# library(arsenal)
-# library(labelled)
-# library(zoo)
-# library(AER)
-# library(GGally)
-# library(broom.helpers)
-# library(jtools)
-library(mice)
-library(janitor)
-# library(fastDummies)
-
+# Load header
+source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
+library(logistf)
 ##########################################################################################
 ###################################### Load relevant data ################################
 ##########################################################################################
@@ -204,8 +181,6 @@ full_data_w <- e_child %>%
     !is.na(age) &
     !is.na(e_ch_fs_dummy)&
     !is.na(e_cg_fs_dummy)&
-    !is.na(m_ch_fs_dummy)&
-    !is.na(m_cg_fs_dummy)&
     !is.na(treatment)&
     !is.na(m_lit_per)&
     !is.na(m_num_per)&
@@ -219,32 +194,49 @@ full_data_w <- e_child %>%
   )) %>%
   # left_join(num_kids,by=c('careid')) %>%
   fastDummies::dummy_cols(select_columns='region') %>%
-  clean_names()
+  clean_names() %>% 
+  mutate(cg_age=datawizard::standardize(cg_age),
+         poverty=datawizard::standardize(poverty))
 
-# Regress missingness on child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
-reg<-glm(missing ~ age + female + cg_schooling + cg_age + cg_female + poverty + treatment+region_north_east+region_northern+region_upper_east+region_upper_west,
-         data = full_data_w,
-         family='binomial')
+# Regress missingness on food insecurity, child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
+reg<-logistf(missing ~ e_ch_fs_dummy+e_cg_fs_dummy + age + female + treatment+region_north_east+region_northern+region_upper_east+region_upper_west + cg_schooling + cg_age + cg_female + poverty,
+         data = full_data_w)
 summary(reg)
 
 # Export results
-stargazer(reg,
-          title="Missingness Regression",
-          #dep.var.caption = "Endline Dependent Variable:",
-          # covariate.labels=variables,
-          column.labels = c("Child is Removed from Data"),
-          covariate.labels=c("Child is 10–17",
-                             "Child is Female",
-                             "Caregiver Attended Primary School",
-                             "Caregiver Age",
-                             "Caregiver is Female",
-                             "Poverty",
-                             "PNP Treatment",
-                             "Region: North East",
-                             "Region: Northern",
-                             "Region: Upper East",
-                             "Region: Upper West"),
-          star.cutoffs = c(.05, .01, NA),
-          notes.append     = FALSE,
-          notes            = "*$p<0.05$; **$p<0.01$",
-          out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/03_missing_data_va_model.html")
+modelsummary(reg,
+             title='Missingness Results',
+             fmt=f,
+             cluster='careid',
+             # coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
+             coef_rename=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
+                           'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+                           'lagged_outcome'="Lagged Outcome",
+                           "female"="Child is Female",
+                           'age'='Child is 10-17',
+                           'cg_schooling'="Caregiver Attended Primary School",
+                           'cg_age'='Caregiver age',
+                           'cg_female'='Caregiver is Female',
+                           'poverty'='Poverty',
+                           'treatment'='PNP Treatment',
+                           'region_north_east'="Region: North East",
+                           'region_northern'="Region: Northern",
+                           'region_upper_east'="Region: Upper East",
+                           'region_upper_west'="Region: Upper West",
+                           'e_ch_health2'='Child Reported Poor Health',
+                           'e_ch_health3'='Child Reported Average Health',
+                           'e_ch_health4'="Child Reported Good Health",
+                           'e_ch_health5'="Child Reported Very Good Health",
+                           "e_private_school"="Private School",
+                           'e_cg_edu_engagement'="Caregiver Edu. Engagement Scale",
+                           'e_ch_motiv'='Child Motivation Scale',
+                           'e_ch_edu_asp'='Child Aspires Complete High School',
+                           'e_cg_emotional_engagement'='Caregiver Emo. Engagement Scale'),
+             gof_omit = 'AIC|BIC|Std.Errors',
+             gof_map=gm,
+             stars = c('*' = .05, 
+                       '**' = .01,
+                       '***' = .001),
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/03_missing_data_va_model.html",
+             escape = FALSE)

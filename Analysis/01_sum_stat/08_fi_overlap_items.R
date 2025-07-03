@@ -159,66 +159,63 @@ overlap_cor_df<-full_data_w %>%
 
 cor_func<-function(by_var=NULL){
   
-  out<-overlap_cor_df %>% 
+  cor<-overlap_cor_df %>% 
     group_by(across({{by_var}})) %>% 
     summarise(worry=list(cor.test(worry_child, worry_cg)),
               cut=list(cor.test(cut_child, cut_cg)),
               skip=list(cor.test(skip_child, skip_cg)),
               hungry=list(cor.test(hungry_child, hungry_cg)))
   
-  out$worry[[1]]  
+  if(length(by_var)<=1){
+    
+    if(is.null(by_var)){
+      
+      out<-tribble(~worry, ~worry_pval, ~cut, ~cut_pval, ~skip, ~skip_pval, ~hungry, ~hungry_pval,
+                   cor$worry[[1]][['estimate']], cor$worry[[1]][['p.value']], cor$cut[[1]][['estimate']], cor$cut[[1]][['p.value']],cor$skip[[1]][['estimate']], cor$skip[[1]][['p.value']], cor$hungry[[1]][['estimate']], cor$hungry[[1]][['p.value']]) %>% 
+        mutate(category='Overall')
+      
+    } else if(by_var=='female') {
+      
+      out<-tribble(~female, ~worry, ~worry_pval, ~cut, ~cut_pval, ~skip, ~skip_pval, ~hungry, ~hungry_pval,
+                   cor$female[1],cor$worry[[1]][['estimate']], cor$worry[[1]][['p.value']], cor$cut[[1]][['estimate']], cor$cut[[1]][['p.value']],cor$skip[[1]][['estimate']], cor$skip[[1]][['p.value']], cor$hungry[[1]][['estimate']], cor$hungry[[1]][['p.value']],
+                   cor$female[2],cor$worry[[2]][['estimate']], cor$worry[[2]][['p.value']], cor$cut[[2]][['estimate']], cor$cut[[2]][['p.value']],cor$skip[[2]][['estimate']], cor$skip[[2]][['p.value']], cor$hungry[[2]][['estimate']], cor$hungry[[2]][['p.value']]) %>% 
+        mutate(category=case_when(female==1 ~ 'Child is Female',
+                                  T~'Child is Male')) %>% 
+        select(-female)
+      
+    } else{
+      
+      out<-tribble(~age, ~worry, ~worry_pval, ~cut, ~cut_pval, ~skip, ~skip_pval, ~hungry, ~hungry_pval,
+                   cor$age[1],cor$worry[[1]][['estimate']], cor$worry[[1]][['p.value']], cor$cut[[1]][['estimate']], cor$cut[[1]][['p.value']],cor$skip[[1]][['estimate']], cor$skip[[1]][['p.value']], cor$hungry[[1]][['estimate']], cor$hungry[[1]][['p.value']],
+                   cor$age[2],cor$worry[[2]][['estimate']], cor$worry[[2]][['p.value']], cor$cut[[2]][['estimate']], cor$cut[[2]][['p.value']],cor$skip[[2]][['estimate']], cor$skip[[2]][['p.value']], cor$hungry[[2]][['estimate']], cor$hungry[[2]][['p.value']]) %>% 
+        mutate(category=case_when(age==1 ~ 'Child is 10-17',
+                                  T~'Child is 5-9')) %>% 
+        select(-age)
+      
+    }
+    
+  } else {
+    
+    out<-tribble(~age,~female, ~worry, ~worry_pval, ~cut, ~cut_pval, ~skip, ~skip_pval, ~hungry, ~hungry_pval,
+                 cor$age[1],cor$female[1],cor$worry[[1]][['estimate']], cor$worry[[1]][['p.value']], cor$cut[[1]][['estimate']], cor$cut[[1]][['p.value']],cor$skip[[1]][['estimate']], cor$skip[[1]][['p.value']], cor$hungry[[1]][['estimate']], cor$hungry[[1]][['p.value']],
+                 cor$age[2],cor$female[2],cor$worry[[2]][['estimate']], cor$worry[[2]][['p.value']], cor$cut[[2]][['estimate']], cor$cut[[2]][['p.value']],cor$skip[[2]][['estimate']], cor$skip[[2]][['p.value']], cor$hungry[[2]][['estimate']], cor$hungry[[2]][['p.value']],
+                 cor$age[3],cor$female[3],cor$worry[[3]][['estimate']], cor$worry[[3]][['p.value']], cor$cut[[3]][['estimate']], cor$cut[[3]][['p.value']],cor$skip[[3]][['estimate']], cor$skip[[3]][['p.value']], cor$hungry[[3]][['estimate']], cor$hungry[[3]][['p.value']],
+                 cor$age[4],cor$female[4],cor$worry[[4]][['estimate']], cor$worry[[4]][['p.value']], cor$cut[[4]][['estimate']], cor$cut[[4]][['p.value']],cor$skip[[4]][['estimate']], cor$skip[[4]][['p.value']], cor$hungry[[4]][['estimate']], cor$hungry[[4]][['p.value']])%>% 
+      mutate(category=case_when(age==1 & female==1 ~ 'Child is Female (10-17)',
+                                age==1 & female==0 ~ 'Child is Male (10-17)',
+                                age==0 & female==1 ~ 'Child is Female (5-9)',
+                                T~'Child is Male (5-9)')) %>% 
+      dplyr::select(-age,
+                    -female)
+  }
 }
 
-
-overall <- overlap_cor_input %>% 
-  summarise(worry=cor(worry_child,worry_cg),
-            cut=cor(cut_child,cut_cg),
-            skip=cor(skip_child,skip_cg),
-            hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category='Overall')
-
-gender<- overlap_cor_input %>% 
-  group_by(female) %>% 
-  summarise(worry=cor(worry_child,worry_cg),
-            cut=cor(cut_child,cut_cg),
-            skip=cor(skip_child,skip_cg),
-            hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category=case_when(female==1 ~ 'Child is Female',
-                            T~'Child is Male')) %>% 
-  ungroup() %>% 
-  dplyr::select(-female)
-
-age<- overlap_cor_input %>% 
-  group_by(age) %>% 
-  summarise(worry=cor(worry_child,worry_cg),
-            cut=cor(cut_child,cut_cg),
-            skip=cor(skip_child,skip_cg),
-            hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category=case_when(age==1 ~ 'Child is 10-17',
-                            T~'Child is 5-9')) %>% 
-  ungroup() %>% 
-  dplyr::select(-age)
-
-
-gender_age <- overlap_cor_input %>% 
-  group_by(age,
-           female) %>% 
-  summarise(worry=cor(worry_child,worry_cg),
-            cut=cor(cut_child,cut_cg),
-            skip=cor(skip_child,skip_cg),
-            hungry=cor(hungry_child,hungry_cg)) %>% 
-  mutate(category=case_when(age==1 & female==1 ~ 'Child is Female (10-17)',
-                            age==1 & female==0 ~ 'Child is Male (10-17)',
-                            age==0 & female==1 ~ 'Child is Female (5-9)',
-                            T~'Child is Male (5-9)')) %>% 
-  ungroup() %>% 
-  dplyr::select(-age,
-         -female)
-
-overlap_cor<-bind_rows(overall,
-                       gender,
-                       age,
-                       gender_age)
+overlap_cor=map_dfr(list(c(NULL),
+                 c('age'),
+                 c('female'),
+                 c('age','female')
+                 ),
+            cor_func)
 
 # Export
 to_export<-list('cor'=as_tibble(overlap_cor),

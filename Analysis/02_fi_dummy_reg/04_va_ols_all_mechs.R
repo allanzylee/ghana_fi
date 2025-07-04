@@ -44,16 +44,14 @@ child_psyc_input='e_ch_motiv+e_ch_edu_asp'
 cg_psyc_input='e_cg_emotional_engagement+cg_mh_scale'
 
 # Define base OLS input
-va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
+va_ols_input_region <- expand.grid(category=c('lit','num'),
                                    model=glue('~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+{health_input}+{child_psyc_input}+{cg_psyc_input}+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
                              reg_func) %>% 
   set_names('Literacy',
-            'Numeracy',
-            'EF',
-            'SES')
+            'Numeracy')
 
 # Export results
 modelsummary(va_ols_region_results,

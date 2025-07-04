@@ -203,6 +203,8 @@ reg<-logistf(missing ~ e_ch_fs_dummy+e_cg_fs_dummy + age + female + treatment+re
          data = full_data_w)
 summary(reg)
 
+reg=list('Child is Exclued from Sample'=reg)
+
 # Export results
 modelsummary(reg,
              title='Missingness Results',

@@ -78,7 +78,6 @@ format_stat <- function(x) {
   return(x)
 }
 
-
 gm <- list(
   list("raw" = "nobs", "clean" = "N", "fmt" = format_nobs),
   list("raw" = "adj.r.squared", "clean" = "Adj. R2", "fmt" = format_stat),

@@ -11,8 +11,26 @@
 # Clear the environment
 rm(list=ls())
 
-# Load header
-source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
+# Set working directory
+setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
+
+# Load packages
+# library(foreign)
+library(haven)
+# library(tidyverse)
+library(dplyr)
+# library(stargazer)
+# library(psych)
+# library(corrr)
+# library(tibble)
+# library(writexl)
+# library(timechange)
+# library(rnoaa)
+# library(base)
+# library(arsenal)
+# library(labelled)
+# library(zoo)
+library(janitor)
 
 ##########################################################################################
 ###################################### FS data cleaning ##################################
@@ -93,6 +111,147 @@ e_cg_fs <- e_cg %>%
   mutate(na=rowSums(is.na(.))) %>% 
   filter(na<=cg_na_threshold)
 
+# I will replace the NAs with an average of all other FS values.
+# m_ch_fs[fs_cols_child] <- apply(m_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(m_ch_fs[fs_cols_child], na.rm = TRUE), x))
+# m_cg_fs[fs_cols_cg] <- apply(m_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(m_cg_fs[fs_cols_cg], na.rm = TRUE), x))
+# e_ch_fs[fs_cols_child] <- apply(e_ch_fs[fs_cols_child], 2, function(x) ifelse(is.na(x), rowMeans(e_ch_fs[fs_cols_child], na.rm = TRUE), x))
+# e_cg_fs[fs_cols_cg] <- apply(e_cg_fs[fs_cols_cg], 2, function(x) ifelse(is.na(x), rowMeans(e_cg_fs[fs_cols_cg], na.rm = TRUE), x))
+
+# Join the data by midline and endline
+# m_fs <- m_ch_fs %>% 
+#   left_join(m_cg_fs,by=c("careid")) %>%
+#   distinct(.keep_all = TRUE) %>% 
+#   rename(fs9_child=fs9,
+#          fs10_child=fs10)
+# e_fs <- e_ch_fs %>% 
+#   left_join(e_cg_fs,by=c("careid")) %>% 
+#   distinct(.keep_all = TRUE) %>% 
+#   rename(fs9_child=fs9,
+#          fs10_child=fs10)
+
+# Rename FS variables to note child and parent
+# names(m_fs) = gsub(pattern = ".x", replacement = "_child", x = names(m_fs))
+# names(m_fs) = gsub(pattern = ".y", replacement = "_cg", x = names(m_fs))
+# names(e_fs) = gsub(pattern = ".x", replacement = "_child", x = names(e_fs))
+# names(e_fs) = gsub(pattern = ".y", replacement = "_cg", x = names(e_fs))
+
+# ##########################################################################################
+# ############################################## PCA #######################################
+# ##########################################################################################
+# 
+# ############################################## Child: Midline #######################################
+# 
+# # Conduct PCA for food insecurity and evaluate the Screeplot to determine significant features.
+# m_ch_fs_pca<-prcomp(~fs1+fs2+fs3+fs4+fs5+fs6+fs7+fs8+fs9+fs10,
+#                   data=m_ch_fs,
+#                   scale=T)
+# summary(m_ch_fs_pca)
+# screeplot(m_ch_fs_pca, type="l", main="Screeplot for Food Insecurity Factors: Child Midline")
+# 
+# # Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
+# # In this case, only the first principal component is significant.
+# 
+# # Now, extract the principal components and combine with the rest of the FS data.
+# m_ch_fs_pc<-m_ch_fs_pca$x[,1]
+# m_ch_fs_pc<-cbind(m_ch_fs,m_ch_fs_pc) 
+# 
+# ############################################## Child: Endline #######################################
+# 
+# # Conduct PCA for food insecurity and evaluate the Screeplot to determine significant features.
+# e_ch_fs_pca<-prcomp(~fs1+fs2+fs3+fs4+fs5+fs6+fs7+fs8+fs9+fs10,
+#                     data=e_ch_fs,
+#                     scale=T)
+# summary(e_ch_fs_pca)
+# screeplot(e_ch_fs_pca, type="l", main="Screeplot for Food Insecurity Factors: Child Endline")
+# 
+# # Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
+# # In this case, only the first principal component is significant.
+# 
+# # Now, extract the principal components and combine with the rest of the FS data.
+# e_ch_fs_pc<-e_ch_fs_pca$x[,1]
+# e_ch_fs_pc<-cbind(e_ch_fs,e_ch_fs_pc) 
+# 
+# ############################################## Caregiver: Midline #######################################
+# 
+# m_cg_fs_pca<-prcomp(~fs1+fs2+fs3+fs4+fs5+fs6+fs7+fs8,
+#                     data=m_cg_fs,
+#                     scale=T)
+# summary(m_cg_fs_pca)
+# screeplot(m_cg_fs_pca, type="l", main="Screeplot for Food Insecurity Factors: Caregiver Midline")
+# 
+# # Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
+# # In this case, only the first principal component is significant.
+# 
+# # Now, extract the principal components and combine with the rest of the FS data.
+# m_cg_fs_pc<-m_cg_fs_pca$x[,1]
+# m_cg_fs_pc<-cbind(m_cg_fs,m_cg_fs_pc) 
+# 
+# ############################################## Caregiver: Endline #######################################
+# 
+# e_cg_fs_pca<-prcomp(~fs1+fs2+fs3+fs4+fs5+fs6+fs7+fs8,
+#                     data=e_cg_fs,
+#                     scale=T)
+# summary(e_cg_fs_pca)
+# screeplot(e_cg_fs_pca, type="l", main="Screeplot for Food Insecurity Factors: Caregiver Endline")
+# 
+# # Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
+# # In this case, only the first principal component is significant.
+# 
+# # Now, extract the principal components and combine with the rest of the FS data.
+# e_cg_fs_pc<-e_cg_fs_pca$x[,1]
+# e_cg_fs_pc<-cbind(e_cg_fs,e_cg_fs_pc) 
+# 
+# ############################################## All: Midline #######################################
+# 
+# m_fs_pca<-prcomp(~fs1_child+fs2_child+fs3_child+fs4_child+fs5_child+fs6_child+fs7_child+fs8_child+fs9_child+fs10_child+
+#                  fs1_cg+fs2_cg+fs3_cg+fs4_cg+fs5_cg+fs6_cg+fs7_cg+fs8_cg,
+#                     data=m_fs,
+#                     scale=T)
+# summary(m_fs_pca)
+# screeplot(m_fs_pca, type="l", main="Screeplot for Food Insecurity Factors: Midline")
+# 
+# # Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
+# # In this case, the first principal components are significant.
+# 
+# # Now, extract the principal components and combine with the rest of the FS data.
+# m_fs_pc<-m_fs_pca$x[,1:3]
+# m_fs_pc<-cbind(m_fs %>% na.omit(),m_fs_pc) 
+# 
+# # Calculate correlation
+# m_fs_cor<-cor(m_fs_pc[,3:20],m_fs_pc[,21:23])
+# stargazer(m_fs_cor,
+#           header=FALSE, 
+#           type='latex',
+#           title = "Table 2.6: Midline Food Insecurity PCA Correlation Matrix",
+#           column.labels=c("FS1: Child","FS2: Child","FS3: Child", "FS4: Child","FS5: Child","FS6: Child","FS7: Child","FS8: Child","FS9: Child","FS10: Child",
+#                              "FS1: Caregiver","FS2: Caregiver","FS3: Caregiver","FS4: Caregiver","FS5: Caregiver","FS6: Caregiver","FS7: Caregiver","FS8: Caregiver"))
+# 
+# ############################################## All: Endline #######################################
+# 
+# e_fs_pca<-prcomp(~fs1_child+fs2_child+fs3_child+fs4_child+fs5_child+fs6_child+fs7_child+fs8_child+fs9_child+fs10_child+
+#                    fs1_cg+fs2_cg+fs3_cg+fs4_cg+fs5_cg+fs6_cg+fs7_cg+fs8_cg,
+#                  data=e_fs,
+#                  scale=T)
+# summary(e_fs_pca)
+# screeplot(e_fs_pca, type="l", main="Screeplot for Food Insecurity Factors: Endline")
+# 
+# # Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
+# # In this case, the first principal components are significant.
+# 
+# # Now, extract the principal components and combine with the rest of the FS data.
+# e_fs_pc<-e_fs_pca$x[,1:3]
+# e_fs_pc<-cbind(e_fs %>% na.omit(),e_fs_pc) 
+# 
+# # Calculate correlation
+# e_fs_cor<-cor(e_fs_pc[,3:20],e_fs_pc[,21:23])
+# stargazer(e_fs_cor,
+#           header=FALSE, 
+#           type='latex',
+#           title = "Table 2.7: Endline Food Insecurity PCA Correlation Matrix",
+#           column.labels=c("FS1: Child","FS2: Child","FS3: Child", "FS4: Child","FS5: Child","FS6: Child","FS7: Child","FS8: Child","FS9: Child","FS10: Child",
+#                           "FS1: Caregiver","FS2: Caregiver","FS3: Caregiver","FS4: Caregiver","FS5: Caregiver","FS6: Caregiver","FS7: Caregiver","FS8: Caregiver"))
+
+
 ############################################################################################################
 ###################################### Dummy Variable ######################################################
 ############################################################################################################
@@ -131,35 +290,35 @@ e_cfies<-e_ch_fs %>%
 
 # Midline
 m_cg_fies<-m_cg_fs %>% 
-  mutate(m_cg_fs_dummy=case_when(rowSums(dplyr::select(.,fs_cols_cg))>=4~1,
+  mutate(m_cg_fs_dummy=case_when(fs5==1|fs6==1|fs7==1|fs8==1~1,
                                  T~0),
          m_fies_sum=rowSums(dplyr::select(.,fs_cols_cg)),
-         m_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg))>= 0 & rowSums(dplyr::select(.,fs_cols_cg)) <=3 ~ 0,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=4 & rowSums(dplyr::select(.,fs_cols_cg)) <=6 ~ 1,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=7 & rowSums(dplyr::select(.,fs_cols_cg)) <=8 ~ 2,
+         m_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg)) == 0 ~ 0,
+                                          (fs1==1|fs2==1|fs3==1|fs4==1) & (fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 1,
+                                          (fs5==1|fs6==1|fs7==1) & (fs8!=1) ~ 2,
+                                          fs8==1 ~ 3,
                                           T~NA_real_
          )),
          across(matches("fs[0-9]"),~as.double(.))
          
          ) %>%
-  dplyr::select(-matches("fs[0-9]"),
-                -na)
+  dplyr::select(-matches("fs[0-9]"))
 
 # Endline
 e_cg_fies<-e_cg_fs %>% 
-  mutate(e_cg_fs_dummy=case_when(rowSums(dplyr::select(.,fs_cols_cg))>=4~1,
+  mutate(e_cg_fs_dummy=case_when(fs5==1|fs6==1|fs7==1|fs8==1~1,
                                  T~0),
          e_fies_sum=rowSums(dplyr::select(.,fs_cols_cg)),
-         e_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg))>= 0 & rowSums(dplyr::select(.,fs_cols_cg)) <=3 ~ 0,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=4 & rowSums(dplyr::select(.,fs_cols_cg)) <=6 ~ 1,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=7 & rowSums(dplyr::select(.,fs_cols_cg)) <=8 ~ 2,
+         e_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg)) == 0 ~ 0,
+                                          (fs1==1|fs2==1|fs3==1|fs4==1) & (fs5!=1& fs6!=1& fs7!=1& fs8!=1) ~ 1,
+                                          (fs5==1|fs6==1|fs7==1) & (fs8!=1) ~ 2,
+                                          fs8==1 ~ 3,
                                           T~NA_real_
          )),
          across(matches("fs[0-9]"),~as.double(.))
          
   ) %>% 
-  dplyr::select(-matches("fs[0-9]"),
-                -na)
+  dplyr::select(-matches("fs[0-9]"))
 
 ###################################### Putting all treatment data together #############################
 

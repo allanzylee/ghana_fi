@@ -18,7 +18,11 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 ###################################### Load relevant data ################################
 ##########################################################################################
 
-full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
+full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
+  fastDummies::dummy_columns(c('e_ch_fies',
+                               'e_fies_scale')) %>% 
+  select(-e_ch_fies,
+         -e_fies_scale)
 
 #########################################################################################
 ######################################## Overall Summary Statistics ##############################
@@ -28,11 +32,13 @@ summary_stat<-full_data_w %>%
   dplyr::select(
                 e_ch_fs_dummy,
                 e_cg_fs_dummy,
+                contains('e_ch_fies'),
+                contains('e_fies_scale'),
                 female,
                 age,
                 age_num,
                 contains('region_'),
-                contains('per')
+                matches('^e_.*per$')
                 )
 
 ######################################## Overall Summary Statistics ##############################
@@ -80,7 +86,9 @@ input<-names(summary_stat) %>%
   rename(var=value) %>% 
   mutate(female='female',
          age='age'
-         )
+         ) %>% 
+  filter(!str_detect(var,'e_cg_fs_dummy')) %>% 
+  filter(!str_detect(var,'e_fies_scale'))
 
 # Run function
 female_summary_stat<-pmap_dfr(input %>% select(-age) %>% rename(group=female) %>% filter(var!='female'),
@@ -106,8 +114,15 @@ out<-overall %>%
          '5-9 Years'=younger,
          '10-17 Years'=older,
          'P-Value: Child Age Group'=pval_age) %>% 
-  mutate(var=case_when(var=='e_ch_fs_dummy'~'Endline Child-Reported Severe FI (%)',
-                       var=='e_cg_fs_dummy'~'Endline Caregiver-Reported Severe FI (%)',
+  mutate(var=case_when(var=='e_ch_fs_dummy'~'Endline Child-Reported FI (%)',
+                       var=='e_cg_fs_dummy'~'Endline Caregiver-Reported FI (%)',
+                       var=='e_ch_fies_0'~'Child: No FI (CFIES=0)',
+                       var=='e_ch_fies_1'~'Child: Few Exp. (CFIES=0-6)',
+                       var=='e_ch_fies_2'~'Child: Several Exp. (CFIES=7-10)',
+                       var=='e_ch_fies_3'~'Child: Many Exp. (CFIES=11-20)',
+                       var=='e_fies_scale_0'~'Caregiver: Food Secure (FIES=0-3)',
+                       var=='e_fies_scale_1'~'Caregiver: Moderately Food Insecure (FIES=4-6)',
+                       var=='e_fies_scale_2'~'Caregiver: Severely Food Insecure (FIES=7-8)',
                        var=='female'~'Child is Female (%)',
                        var=='age_num'~'Child Age (Years)',
                        var=='region_north_east'~"Region: North East",

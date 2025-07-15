@@ -34,7 +34,7 @@ ch_results<- pmap(ch,
   set_names('Literacy',
             'Numeracy',
             'EF',
-            'SES')
+            'SEL')
 
 # Define base OLS input
 cg <- expand.grid(category=c('lit','num','ef','sel'),
@@ -47,7 +47,7 @@ cg_results<- pmap(cg,
             'Literacy',
             'Numeracy',
             'EF',
-            'SES')
+            'SEL')
 
 # Combine
 to_export<-list('Child-Reports'=ch_results,

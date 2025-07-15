@@ -18,7 +18,8 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 ###################################### Load relevant data ################################
 ##########################################################################################
 
-full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
+full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
+  mutate(e_fies_scale=as.factor(e_fies_scale))
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
@@ -41,9 +42,9 @@ modelsummary(va_ols_region_results,
              coef_rename=c(e_ch_fies1="CFIES: Few Experiences",
                            e_ch_fies2="CFIES: Several Experiences",
                            e_ch_fies3="CFIES: Many Experiences",
-                           e_fies_scale1="FIES: Mild",
-                           e_fies_scale2="FIES: Moderate",
-                           e_fies_scale3="FIES: Severe",
+                           e_fies_scale0="FIES: Mild",
+                           e_fies_scale1="FIES: Moderate",
+                           e_fies_scale2="FIES: Severe",
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              gof_map=gm,
@@ -61,9 +62,9 @@ modelsummary(va_ols_region_results,
              coef_rename=c(e_ch_fies1="CFIES: Few Experiences",
                            e_ch_fies2="CFIES: Several Experiences",
                            e_ch_fies3="CFIES: Many Experiences",
-                           e_fies_scale1="FIES: Mild",
-                           e_fies_scale2="FIES: Moderate",
-                           e_fies_scale3="FIES: Severe",
+                           e_fies_scale0="FIES: Mild",
+                           e_fies_scale1="FIES: Moderate",
+                           e_fies_scale2="FIES: Severe",
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              stars = c('*' = .05, 
@@ -73,5 +74,3 @@ modelsummary(va_ols_region_results,
              out='latex',
              escape = FALSE)
 
-full_data %>% 
-  select(careid)

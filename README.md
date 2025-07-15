@@ -1,15 +1,6 @@
 `Project`: Food Insecurity and Children's Cognitive Skills: Whose Report Matters?
 
-`Abstract`: Food insecurity (“FI”) is associated with poorer child academic achievement and socioemotional skills across
-various contexts. However, existing evidence relies on caregiver reports of household FI, overlooking children's own lived
-experiences. Further, it often ignores low- and middle-income countries (“LMICs”), where experiences of FI can be the
-highest, and neglects heterogeneity in the relation between FI and child skills by sex and age. We address these gaps by
-investigating the relations between caregiver-reported household-level and child-reported child-level FI and child cognitive
-and socioemotional skills for a sample of 2,587 rural parents and 3,985 children in five northern Ghanaian regions. We tackle
-endogeneity concerns by relying on value-added methods. Results indicate that caregiver-reported household FI predicts
-lower value added to literacy and numeracy by approximately 0.1 standard deviations. We found no evidence of heterogeneity
-by child sex but negative and significant effects by age for caregiver-reported FI, indicating older children are more negatively
-affected by FI.
+`Abstract`: Existing evidence on the relation between food security and child development outcomes relies on caregiver reports of household food insecurity, which may overlook or inaccurately capture children's lived experiences of food insecurity. Through robust value-added models, we investigate how child and caregiver reports of food insecurity predict child academic, cognitive and socioemotional skills in a sample of 3,990 children from five regions in northern Ghana. Caregiver-reported household food insecurity predicted lower literacy and numeracy by approximately $0.08$--$0.09$ SDs, but not executive function or socioemotional skills. Child food insecurity did not predict any child outcomes. We found greater negative associations of caregiver-reported food insecurity with numeracy for boys, and greater negative associations with literacy for older children (aged 10-17) compared to younger children (5-9 years). Finally, we explored the role of health, educational investments, child aspirations, and caregiver psychological inputs in mediating the relation between food insecurity and literacy and numeracy. We found that the coefficient of caregiver-reported food insecurity becomes larger for literacy but reduces and loses statistical significance for numeracy.
 
 `Organization`
 - `Data Preparation:` This folder includes the code that cleans and merges the relevant data for analysis

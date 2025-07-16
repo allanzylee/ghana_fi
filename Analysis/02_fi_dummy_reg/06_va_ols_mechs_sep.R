@@ -177,7 +177,7 @@ the_models<-map(c('lit',
   set_names(c('Literacy',
               'Numeracy',
               'EF',
-              'SES'))
+              'SEL'))
 
 # Create empty doc
 all_tables_doc <- read_docx()
@@ -232,8 +232,8 @@ latex_func<-function(name){
                fmt=f,
                cluster='careid',
                coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
-               coef_map=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
-                             'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+               coef_map=c('e_ch_fs_dummy'="Endline Child-Reported FI",
+                             'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
                              'female'='Child is Female',
                              'e_ch_health2'="Poor Health",
                              'e_ch_health3'="Average Health",
@@ -252,7 +252,7 @@ latex_func<-function(name){
                stars = c('*' = .05, 
                          '**' = .01,
                          '***' = .001),
-               notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, region, and household randomized treatment. The child-reported health covariates are measured relative to children who reported very poor health. Attended School is a binary variable indicating whether the child attended school most of the 
+               notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Covariates in the regression that are not shown include child sex, region, and household randomized treatment. The child-reported health covariates are measured relative to children who reported very poor health. Attended School is a binary variable indicating whether the child attended school most of the 
  time. Private school is a binary variable indicating whether the child attended private school. Caregiver Edu. Engagement is the sum of caregivers' degree of agreement with statements related to whether they engage with their children's education. Child Motivation is the sum of a child's degree of agreement with statements related to whether they are motivated. Child Edu. Aspiration is a binary variable of whether a child aspires to complete high school. Caregiver Emo. Engagement is the sum of caregivers' degree of agreement with statements related to whether they engage with their children's emotional well-being. Caregiver Mental Health is the sum of caregivers' degree of experience with poor mental health.",
                out='latex',
                # latex_options = c("booktabs", "scale_down"),
@@ -261,5 +261,3 @@ latex_func<-function(name){
 
 latex_func('Literacy')
 latex_func('Numeracy')
-latex_func('EF')
-latex_func('SES')

@@ -117,7 +117,7 @@ out<-overall %>%
   mutate(var=case_when(var=='e_ch_fs_dummy'~'Endline Child-Reported FI (%)',
                        var=='e_cg_fs_dummy'~'Endline Caregiver-Reported FI (%)',
                        var=='e_ch_fies_0'~'Child: No FI (CFIES=0)',
-                       var=='e_ch_fies_1'~'Child: Few Exp. (CFIES=0-6)',
+                       var=='e_ch_fies_1'~'Child: Few Exp. (CFIES=1-6)',
                        var=='e_ch_fies_2'~'Child: Several Exp. (CFIES=7-10)',
                        var=='e_ch_fies_3'~'Child: Many Exp. (CFIES=11-20)',
                        var=='e_fies_scale_0'~'Caregiver: Food Secure (FIES=0-3)',

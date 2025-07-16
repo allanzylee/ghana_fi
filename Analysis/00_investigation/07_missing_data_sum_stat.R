@@ -223,7 +223,7 @@ t_test_func<-function(var,
   test <- t.test(formula = eval(exp),
                  data=full_data_w)
     
-    out<-tribble(~var,~excluded,~not_excluded,~pval_excluded,
+    out<-tribble(~var,~not_excluded,~excluded,~pval_excluded,
                  var,test$estimate[1],test$estimate[2],test$p.value)
   
   return(out)
@@ -247,9 +247,9 @@ out<-missing_summary_stat %>%
          !str_detect(var,'^m_.*.per$')) %>% 
   rename('Excluded'=excluded,
     'Not Excluded'=not_excluded,
-    'P-Value: Excluded'=pval_excluded) %>% 
-  mutate(var=case_when(var=='e_ch_fs_dummy'~'Endline Child-Reported Severe FI (%)',
-                       var=='e_cg_fs_dummy'~'Endline Caregiver-Reported Severe FI (%)',
+    'P-Value: Exclusion'=pval_excluded) %>% 
+  mutate(var=case_when(var=='e_ch_fs_dummy'~'Endline Child-Reported FI (%)',
+                       var=='e_cg_fs_dummy'~'Endline Caregiver-Reported FI (%)',
                        var=='female'~'Child is Female (%)',
                        var=='age_num'~'Child Age (Years)',
                        var=='region_north_east'~"Region: North East",
@@ -272,4 +272,17 @@ out<-missing_summary_stat %>%
 # Export
 write_xlsx(out,
            "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/07_missing_data_sum_stat.xlsx")
+
+# Create Latex Table
+latex=xtable(out, 
+             type = "latex")
+
+names(latex)=c("\\multicolumn{1}{p{2.5in}}{Statistic}",
+               "\\multicolumn{1}{p{0.25in}}{\\centering Not Excluded}",
+               "\\multicolumn{1}{p{0.25in}}{\\centering Excluded}",
+               "\\multicolumn{1}{p{0.5in}}{\\centering P-Value: Exclusion}"
+)
+
+print(latex, sanitize.colnames.function=function(x){x},
+      include.rownames=FALSE)
 

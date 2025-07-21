@@ -21,7 +21,7 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
   fastDummies::dummy_columns(c('e_ch_fies',
                                'e_fies_scale')) %>% 
-  select(-e_ch_fies,
+  dplyr::select(-e_ch_fies,
          -e_fies_scale)
 
 #########################################################################################
@@ -51,7 +51,7 @@ overall<-summary_stat %>%
   pivot_longer(cols = everything()) %>% 
   mutate(statistic = str_match(name, pattern = ".+_(.+)")[,2],
          var = str_match(name, pattern = "(.+)_.+")[,2]) %>% 
-  select(-name) %>% 
+  dplyr::select(-name) %>% 
   pivot_wider(names_from = statistic, values_from = value)
 
 ######################################## T-Test: Create function for group based summary statistics ##############################
@@ -91,10 +91,10 @@ input<-names(summary_stat) %>%
   filter(!str_detect(var,'e_fies_scale'))
 
 # Run function
-female_summary_stat<-pmap_dfr(input %>% select(-age) %>% rename(group=female) %>% filter(var!='female'),
+female_summary_stat<-pmap_dfr(input %>% dplyr::select(-age) %>% rename(group=female) %>% filter(var!='female'),
                              t_test_func)
 
-age_summary_stat<-pmap_dfr(input %>% select(-female) %>% rename(group=age) %>% filter(var!='age_num',var!='age'),
+age_summary_stat<-pmap_dfr(input %>% dplyr::select(-female) %>% rename(group=age) %>% filter(var!='age_num',var!='age'),
                               t_test_func)
 
 # Combine

@@ -37,7 +37,7 @@ t_test_func<-function(var,
                       fi){
   
   df<-summary_stat %>% 
-    select(contains(var),
+    dplyr::select(contains(var),
            contains(fi))
   
   var_name=paste0('e_',var,'_per')

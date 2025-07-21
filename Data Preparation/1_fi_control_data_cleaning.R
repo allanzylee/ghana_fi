@@ -255,7 +255,7 @@ cg_pe<-cbind(cg_pe,cg_pe_pc) %>%
 #################### CG-Reported Parental Emotional Engagement data cleaning #########################
 ###################################################################################################
 e_cg_emotional_engagement<-e_cg %>% 
-  select(childid,
+  dplyr::select(childid,
          careid,
          es1,
          es3,
@@ -269,7 +269,7 @@ e_cg_emotional_engagement<-e_cg %>%
   mutate(across(contains('es'),~case_when(is.na(.)~0,
                                           T~.)),
          e_cg_emotional_engagement=es1+es3+es4+es5+es6) %>% 
-  select(-contains('es'))
+  dplyr::select(-contains('es'))
 
 ###################################################################################################
 #################### Clean HH Size, CG_Schooling, Motivation, and Self-Esteem #########################
@@ -320,7 +320,7 @@ e_ch_motiv_esteem <- e_child %>%
 #################### Calculate Parental Mental Health #########################
 ###################################################################################################
 cg_mh<-e_cg %>% 
-  select(childid,
+  dplyr::select(childid,
          careid,
          contains('mh')) %>% 
   mutate(cg_mh_scale=rowSums(dplyr::select(.,contains('mh')),na.rm=T),

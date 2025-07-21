@@ -30,7 +30,7 @@ library(writexl)
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
 
 ### Calculate simple correlation between both reports
-cor(full_data_w$e_ch_fs_dummy,
+cor.test(full_data_w$e_ch_fs_dummy,
     full_data_w$e_cg_fs_dummy)
 
 ### Create a table and see the pattern of extreme FI

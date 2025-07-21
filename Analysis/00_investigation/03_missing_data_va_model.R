@@ -199,7 +199,7 @@ full_data_w <- e_child %>%
          poverty=datawizard::standardize(poverty))
 
 # Regress missingness on food insecurity, child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
-reg<-logistf(missing ~ e_ch_fs_dummy+e_cg_fs_dummy + age + female + treatment+region_north_east+region_northern+region_upper_east+region_upper_west + cg_schooling + cg_age + cg_female + poverty,
+reg<-glm(missing ~ e_ch_fs_dummy+e_cg_fs_dummy + age + female + treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
          data = full_data_w)
 summary(reg)
 
@@ -239,7 +239,7 @@ modelsummary(reg,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Poverty is measured through the 2016 poverty probability index (PPI). The index is measured through ten questions that assess the region of a household, household size, and access to utilities as well as other household goods (\cite{salas_ghana_2016}). Then, each household is assigned a score from 0 to 100, with higher scores indicating increased poverty.",
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/03_missing_data_va_model.html",
              escape = FALSE)
 
@@ -276,7 +276,8 @@ modelsummary(reg,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Poverty is measured through the 2016 poverty probability index (PPI). The index is measured through ten questions that assess the region of a household, household size, and access to utilities as well as other household goods (\cite{salas_ghana_2016}). Then, each household is assigned a score from 0 to 100, with higher scores indicating increased poverty.",
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively.",
              out='latex',
              latex_options = c("booktabs", "scale_down"),
              escape = FALSE)
+

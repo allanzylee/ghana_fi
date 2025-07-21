@@ -181,7 +181,7 @@ cor_func<-function(by_var=NULL){
                    cor$female[2],cor$worry[[2]][['estimate']], cor$worry[[2]][['p.value']], cor$cut[[2]][['estimate']], cor$cut[[2]][['p.value']],cor$skip[[2]][['estimate']], cor$skip[[2]][['p.value']], cor$hungry[[2]][['estimate']], cor$hungry[[2]][['p.value']]) %>% 
         mutate(category=case_when(female==1 ~ 'Child is Female',
                                   T~'Child is Male')) %>% 
-        select(-female)
+        dplyr::select(-female)
       
     } else{
       
@@ -190,7 +190,7 @@ cor_func<-function(by_var=NULL){
                    cor$age[2],cor$worry[[2]][['estimate']], cor$worry[[2]][['p.value']], cor$cut[[2]][['estimate']], cor$cut[[2]][['p.value']],cor$skip[[2]][['estimate']], cor$skip[[2]][['p.value']], cor$hungry[[2]][['estimate']], cor$hungry[[2]][['p.value']]) %>% 
         mutate(category=case_when(age==1 ~ 'Child is 10-17',
                                   T~'Child is 5-9')) %>% 
-        select(-age)
+        dplyr::select(-age)
       
     }
     

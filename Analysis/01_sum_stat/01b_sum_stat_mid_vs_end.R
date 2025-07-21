@@ -36,7 +36,7 @@ summary_stat<-full_data_w %>%
 t_test_func<-function(var){
   
   df<-summary_stat %>% 
-    select(contains(var)) %>% 
+    dplyr::select(contains(var)) %>% 
     pivot_longer(everything(),
                  names_to='group',
                  values_to='var') %>% 

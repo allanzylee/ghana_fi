@@ -39,10 +39,10 @@ e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>%
 ################################## Calculate difference in interview times ###############################
 # Child
 child_interview<-m_child %>% 
-  select(childid,
+  dplyr::select(childid,
          enddate) %>% 
   left_join(e_child %>% 
-              select(childid,
+              dplyr::select(childid,
                      enddate),
             by=c('childid'),
             suffix=c('_m',
@@ -52,10 +52,10 @@ child_interview<-m_child %>%
 
 # Caregiver
 cg_interview<-m_cg %>% 
-  select(childid,
+  dplyr::select(childid,
          enddate) %>% 
   left_join(e_cg %>% 
-              select(childid,
+              dplyr::select(childid,
                      enddate),
             by=c('childid'),
             suffix=c('_m',
@@ -84,6 +84,7 @@ out<-tribble(~mean_child,~mean_cg,~min_child,~min_cg,~max_child,~max_cg,
              mean_child_interview_diff,mean_cg_interview_diff,min_child_interview_diff,min_cg_interview_diff,max_child_interview_diff,max_cg_interview_diff)
 
 write_xlsx(out, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/05_interview_length_diff.xlsx")
+
 
 
 

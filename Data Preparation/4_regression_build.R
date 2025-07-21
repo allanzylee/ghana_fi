@@ -62,11 +62,11 @@ full_data_w <- e_child %>%
   dplyr::select(careid,
          childid,
          age=childage,
-         current_class=ed3,
+         # current_class=ed3,
          e_school_type=ed2,
-         e_enroll_ch=ed1,
+         # e_enroll_ch=ed1,
          # e_ch_attend=ed7b,
-         language=io1,
+         # language=io1,
          region,
          e_ch_health=cw1,
          e_ch_health_rel=cw2,
@@ -78,26 +78,36 @@ full_data_w <- e_child %>%
                                                     . == 3 ~ 0,
                                                     TRUE ~ NA_real_))) %>%
   dplyr::select(-matches("^fs\\d+$")) %>% 
+  left_join(outcome_checker,
+            by=c('childid'),
+            suffix = c("",
+                       '_checker')) %>% 
+  left_join(outcome_raw %>% 
+              dplyr::select(childid,careid,contains('raw')),
+            by=c('childid',
+                 'careid'),
+            suffix = c("",
+                       '_checker')) %>% 
   dplyr::left_join(e_cg %>% dplyr::select(careid, 
                                     childid, 
                                     e_enroll_cg=cr7,
                                     e_attend=cr8,
                                     female=cr3,
                                     #cg_edu=cb3,
-                                    marital_status=cb5,
+                                    # marital_status=cb5,
                                     # num_books=pe7,
                                     treatment,
-                                    contains('gb'),
+                                    # contains('gb'),
                                     e_cg_edu_asp=ea1,
                                     contains('fs')
                                     ),
                     by=c("childid",'careid')) %>% 
   rename_with(~ paste0(., "_cg"), .cols = matches("^fs\\d+$")) %>% 
   dplyr::select(-matches("^fs\\d+$")) %>% 
-  dplyr::inner_join(outcome %>% dplyr::select(childid, 
-                                      careid, 
-                                      contains('per')),
-                   by=c("childid","careid")) %>% 
+  # dplyr::inner_join(outcome %>% dplyr::select(childid, 
+  #                                     careid, 
+  #                                     contains('per')),
+  #                  by=c("childid","careid")) %>% 
   dplyr::left_join(controls %>% rename(
                                     pe_pc1=pc1,
                                     pe_pc2=pc2,
@@ -154,24 +164,24 @@ full_data_w <- e_child %>%
          m_private_school=case_when(m_school_type==2~1,
                                    is.na(m_school_type)~0,
                                    T~0),
-         e_public_school=case_when(e_school_type==1~1,
-                                   T~0),
+         # e_public_school=case_when(e_school_type==1~1,
+                                   # T~0),
          e_private_school=case_when(e_school_type==2~1,
                                     is.na(e_school_type)~0,
                                    T~0),
          across(contains('school_type'),~if_else(.==1,0,1)),
-         marital_status=case_when(marital_status==3~1,
-                                  marital_status==4~1,
-                                  T~0),
+         # marital_status=case_when(marital_status==3~1,
+         #                          marital_status==4~1,
+         #                          T~0),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
          treatment=case_when(treatment>0 ~ 1,
                              T~0),
-         current_class=as.double(current_class),
-         language=case_when(language %in% c('Dagaari','Dagaari, Wali','English','TWI')~"Other",
-                            T~language),
-         current_class=as.factor(case_when(current_class<0~NA_real_,
-                                 T~current_class)),
+         # current_class=as.double(current_class),
+         # language=case_when(language %in% c('Dagaari','Dagaari, Wali','English','TWI')~"Other",
+         #                    T~language),
+         # current_class=as.factor(case_when(current_class<0~NA_real_,
+         #                         T~current_class)),
          region=case_when(region==""~"Northern",
                           T~region),
          across(contains('health'),~as.factor(case_when(as.double(.)<0~NA_real_,
@@ -217,18 +227,8 @@ full_data_w <- e_child %>%
     !is.na(e_ef_per)
          ) %>%
   # left_join(num_kids,by=c('careid')) %>%
-  fastDummies::dummy_cols(select_columns='region') %>%
-  clean_names() %>% 
-  left_join(outcome_checker,
-            by=c('childid'),
-            suffix = c("",
-                       '_checker')) %>% 
-  left_join(outcome_raw %>% 
-              select(childid,careid,contains('raw')),
-            by=c('childid',
-                 'careid'),
-            suffix = c("",
-                       '_checker'))
+  fastDummies::dummy_cols(select_columns='region') %>% 
+  clean_names()
 
 # # Create long version of the data
 # 
@@ -246,7 +246,7 @@ full_data_w <- e_child %>%
 #   filter(m_outcome_type==e_outcome_type)
 
 # Export
-saveRDS(full_data_w %>% select(-contains('checker')), "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
+saveRDS(full_data_w %>% dplyr::select(-contains('checker')), "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
 # saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
 
 # write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")

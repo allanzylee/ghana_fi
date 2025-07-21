@@ -76,7 +76,7 @@ full_data_w <- e_child %>%
                                           e_cg_edu_asp=ea1
   ),
   by=c("childid",'careid')) %>% 
-  dplyr::inner_join(outcome %>% dplyr::select(childid, 
+  dplyr::inner_join(outcome_checker %>% dplyr::select(childid, 
                                               careid, 
                                               contains('per')),
                     by=c("childid","careid")) %>% 
@@ -206,11 +206,7 @@ summary_stat<-full_data_w %>%
     age,
     age_num,
     contains('region_'),
-    contains('per'),
-    poverty,
-    cg_schooling,
-    cg_age,
-    cg_female
+    contains('per')
   )
 
 ######################################## T-Test: Create function for group based summary statistics ##############################
@@ -243,6 +239,8 @@ missing_summary_stat<-pmap_dfr(input,
 
 # Combine
 out<-missing_summary_stat %>% 
+  mutate(across(c('excluded','not_excluded'),~case_when(.==0~NA,
+                                                T~.))) %>% 
   filter(var!='age',
          !str_detect(var,'^m_.*.per$')) %>% 
   rename('Excluded'=excluded,

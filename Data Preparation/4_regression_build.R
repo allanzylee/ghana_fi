@@ -155,24 +155,8 @@ full_data_w <- e_child %>%
   fastDummies::dummy_cols(select_columns='region') %>% 
   clean_names()
 
-# # Create long version of the data
-# 
-# full_data_l <- full_data_w %>% 
-#   # Pivot the data such that education columns only represent midline and endline education outcomes
-#   pivot_longer(cols=c('m_sel_per','m_lit_per','m_ef_per',"m_num_per"),
-#                names_to="m_outcome_type",
-#                values_to="m_edu") %>% 
-#   pivot_longer(cols=c('e_sel_per','e_lit_per','e_ef_per',"e_num_per"),
-#                names_to="e_outcome_type",
-#                values_to="e_edu") %>% 
-#   # Mutate the data such that education type columns are the same names. Then filter for rows with same education type
-#   mutate(m_outcome_type = substr(m_outcome_type, 3, nchar(m_outcome_type)),
-#          e_outcome_type = substr(e_outcome_type, 3, nchar(e_outcome_type))) %>% 
-#   filter(m_outcome_type==e_outcome_type)
-
 # Export
 saveRDS(full_data_w %>% dplyr::select(-contains('checker')), "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds")
-# saveRDS(full_data_l, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_l.rds")
 
-# write_csv(full_data_w,"/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.csv")
+
 

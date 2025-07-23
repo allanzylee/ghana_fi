@@ -17,25 +17,58 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 ##########################################################################################
 ###################################### Load relevant data ################################
 ##########################################################################################
+
+# Here, filter out any respondents who had NAs in their FI reports
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
   dplyr::select(-contains("gb")) %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
-  mutate(across(contains('fs'),~as.double(.))) %>% 
+  mutate(across(contains('fs'),~as.double(case_when(.<0~NA,
+                                                    T~.)))) %>% 
   rename(careid=caseid) %>% 
   filter(io2==1) %>% 
-  mutate(childage=as.double(childage))
+  mutate(childage=as.double(childage)) %>% 
+  mutate(across(matches('fs[0-9]'),~case_when(is.na(.)~1,
+                                              T~0),
+                .names='{col}_na')) %>% 
+  mutate(na=fs1_na+fs2_na+fs3_na+fs4_na+fs5_na+fs6_na+fs7_na+fs8_na+fs9_na+fs10_na) %>% 
+  filter(na==0) %>% 
+  select(-na,
+         -matches('fs[0-9]_na'))
 
 e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>% 
   mutate(careid=as.double(careid),
          childid=as.double(childid)) %>% 
-  mutate(across(contains('fs'),~as.double(.)))
+  mutate(across(contains('fs'),~as.double(.))) %>% 
+  mutate(across(matches('fs[0-9]'),~case_when(is.na(.)~1,
+                                              T~0),
+                .names='{col}_na')) %>% 
+  mutate(na=fs1_na+fs2_na+fs3_na+fs4_na+fs5_na+fs6_na+fs7_na+fs8_na) %>% 
+  filter(na==0) %>% 
+  select(-na,
+         -matches('fs[0-9]_na'))
 
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
-  filter(io2==1)
+  mutate(across(contains('fs'),~as.double(case_when(.<0~NA,
+                                                    T~.)))) %>% 
+  filter(io2==1) %>% 
+  mutate(across(matches('fs[0-9]'),~case_when(is.na(.)~1,
+                                              T~0),
+                .names='{col}_na')) %>% 
+  mutate(na=fs1_na+fs2_na+fs3_na+fs4_na+fs5_na+fs6_na+fs7_na+fs8_na+fs9_na+fs10_na) %>% 
+  filter(na==0) %>% 
+  select(-na,
+         -matches('fs[0-9]_na'))
 
 m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
-  mutate(across(contains('id'),~as.double(.)))
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  mutate(across(matches('fs[0-9]'),~case_when(is.na(.)~1,
+                                              T~0),
+                .names='{col}_na')) %>% 
+  mutate(na=fs1_na+fs2_na+fs3_na+fs4_na+fs5_na+fs6_na+fs7_na+fs8_na) %>% 
+  filter(na==0) %>% 
+  select(-na,
+         -matches('fs[0-9]_na'))
 
 ###################################### Clean FS data ################################
 

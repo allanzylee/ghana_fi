@@ -26,7 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 ch <- expand.grid(category=c('lit','num','ef','sel'),
-                                   model=c('~ e_ch_fs_dummy+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                   model=c('~ e_cfies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 ch_results<- pmap(ch,
@@ -38,7 +38,7 @@ ch_results<- pmap(ch,
 
 # Define base OLS input
 cg <- expand.grid(category=c('lit','num','ef','sel'),
-                  model=c('~ e_cg_fs_dummy+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                  model=c('~ e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 cg_results<- pmap(cg,
@@ -59,9 +59,9 @@ modelsummary(to_export,
              title='Value-Added Model',
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
-             coef_map=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
-                           'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_map=c('e_cfies_indicator'="Child-Reported Food Insecurity",
+                           'e_fies_indicator'="Caregiver-Reported Food Insecurity",
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              stars = c('*' = .05,
@@ -75,9 +75,9 @@ modelsummary(to_export,
              shape='rbind',
              title='\\label{reg:multi}Value-Added Model',
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
-             coef_map=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
-                           'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_map=c('e_cfies_indicator'="Child-Reported Food Insecurity",
+                           'e_fies_indicator'="Caregiver-Reported Food Insecurity",
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              stars = c('*' = .05, 

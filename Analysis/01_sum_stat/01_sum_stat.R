@@ -19,9 +19,9 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
-  fastDummies::dummy_columns(c('e_ch_fies',
+  fastDummies::dummy_columns(c('e_cfies_scale',
                                'e_fies_scale')) %>% 
-  dplyr::select(-e_ch_fies,
+  dplyr::select(-e_cfies_scale,
          -e_fies_scale)
 
 #########################################################################################
@@ -30,9 +30,9 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 summary_stat<-full_data_w %>% 
   dplyr::select(
-                e_ch_fs_dummy,
-                e_cg_fs_dummy,
-                contains('e_ch_fies'),
+                e_cfies_indicator,
+                e_fies_indicator,
+                contains('e_cfies_scale'),
                 contains('e_fies_scale'),
                 female,
                 age,
@@ -114,12 +114,12 @@ out<-overall %>%
          '5-9 Years'=younger,
          '10-17 Years'=older,
          'P-Value: Child Age Group'=pval_age) %>% 
-  mutate(var=case_when(var=='e_ch_fs_dummy'~'Endline Child-Reported FI (%)',
-                       var=='e_cg_fs_dummy'~'Endline Caregiver-Reported FI (%)',
-                       var=='e_ch_fies_0'~'Child: No FI (CFIES=0)',
-                       var=='e_ch_fies_1'~'Child: Few Exp. (CFIES=1-6)',
-                       var=='e_ch_fies_2'~'Child: Several Exp. (CFIES=7-10)',
-                       var=='e_ch_fies_3'~'Child: Many Exp. (CFIES=11-20)',
+  mutate(var=case_when(var=='e_cfies_indicator'~'Endline Child-Reported FI (%)',
+                       var=='e_fies_indicator'~'Endline Caregiver-Reported FI (%)',
+                       var=='e_cfies_scale_0'~'Child: No FI (CFIES=0)',
+                       var=='e_cfies_scale_1'~'Child: Few Exp. (CFIES=1-6)',
+                       var=='e_cfies_scale_2'~'Child: Several Exp. (CFIES=7-10)',
+                       var=='e_cfies_scale_3'~'Child: Many Exp. (CFIES=11-20)',
                        var=='e_fies_scale_0'~'Caregiver: Food Secure (FIES=0-3)',
                        var=='e_fies_scale_1'~'Caregiver: Moderately Food Insecure (FIES=4-6)',
                        var=='e_fies_scale_2'~'Caregiver: Severely Food Insecure (FIES=7-8)',

@@ -26,8 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 summary_stat<-full_data_w %>% 
   dplyr::select(
-                contains('ch_fs_dummy'),
-                contains('cg_fs_dummy'),
+                contains('indicator'),
                 contains('per')
                 )
 
@@ -54,8 +53,8 @@ t_test_func<-function(var){
 }
 
 # Create function input
-input<-c('ch',
-         'cg',
+input<-c('cfies',
+         '_fies',
          'lit',
          'num',
          'ef',
@@ -71,8 +70,8 @@ out<-end_vs_mid_sum_stat %>%
          'Midline Mean'=midline,
          'Endline Mean'=endline,
          'P-Value'=pval) %>% 
-  mutate(var=case_when(var=='ch'~'Child-Reported Severe FI',
-                       var=='cg'~'Caregiver-Reported Severe FI',
+  mutate(var=case_when(var=='cfies'~'Child-Reported FI',
+                       var=='_fies'~'Caregiver-Reported FI',
                        var=='lit'~'Literacy Z-Score',
                        var=='num'~'Numeracy Z-Score',
                        var=='ef'~'EF Z-Score',
@@ -85,16 +84,6 @@ out<-end_vs_mid_sum_stat %>%
 latex=xtable(out, 
              type = "latex")
 
-# names(latex)=c("\\multicolumn{1}{p{2.5in}}{Statistic}",
-#                "\\multicolumn{1}{p{0.25in}}{\\centering Mean}",
-#                "\\multicolumn{1}{p{0.25in}}{\\centering St. Dev}",
-#                "\\multicolumn{1}{p{0.25in}}{\\centering Male}",
-#                "\\multicolumn{1}{p{0.25in}}{\\centering Female}",
-#                "\\multicolumn{1}{p{0.5in}}{\\centering P-Value: Child Sex}",
-#                "\\multicolumn{1}{p{0.25in}}{\\centering 5-9 Years}",
-#                "\\multicolumn{1}{p{0.25in}}{\\centering 10-17 Years}",
-#                "\\multicolumn{1}{p{0.5in}}{\\centering P-Value: Child Age Group}"
-#                )
 
 print(latex, sanitize.colnames.function=function(x){x},
       include.rownames=FALSE)

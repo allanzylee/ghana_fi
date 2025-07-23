@@ -30,18 +30,18 @@ library(writexl)
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds')
 
 ### Calculate simple correlation between both reports
-cor.test(full_data_w$e_ch_fs_dummy,
-    full_data_w$e_cg_fs_dummy)
+cor.test(full_data_w$e_cfies_indicator,
+    full_data_w$e_fies_indicator)
 
 ### Create a table and see the pattern of extreme FI
 hh_fi_table <-full_data_w %>% 
-  summarise(both_fi=sum(case_when(e_ch_fs_dummy==1 & e_cg_fs_dummy==1~1,
+  summarise(both_fi=sum(case_when(e_cfies_indicator==1 & e_fies_indicator==1~1,
                            T~0)),
-         ch_only_fi=sum(case_when(e_ch_fs_dummy==1 & e_cg_fs_dummy==0~1,
+         ch_only_fi=sum(case_when(e_cfies_indicator==1 & e_fies_indicator==0~1,
                             T~0)),
-         cg_only_fi=sum(case_when(e_ch_fs_dummy==0 & e_cg_fs_dummy==1~1,
+         cg_only_fi=sum(case_when(e_cfies_indicator==0 & e_fies_indicator==1~1,
                             T~0)),
-         no_fi=sum(case_when(e_ch_fs_dummy==0 & e_cg_fs_dummy==0~1,
+         no_fi=sum(case_when(e_cfies_indicator==0 & e_fies_indicator==0~1,
                               T~0)),
          )
 

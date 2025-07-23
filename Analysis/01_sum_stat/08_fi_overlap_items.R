@@ -236,7 +236,7 @@ print(latex_cor,
       include.rownames=FALSE)
 
 latex_perc=xtable(overlap_perc %>% 
-         dplyr::select('Group'=type,
+         dplyr::select('Category'=type,
                        'Worry'=worry,
                        'Cut'=cut,
                        'Skip'=skip,

@@ -26,7 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+e_ch_fs_dummy*age+e_cg_fs_dummy*age+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+e_cfies_indicator*age+e_fies_indicator*age+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -41,9 +41,9 @@ modelsummary(va_ols_region_results,
              title='Value-Added Model: Heterogeneity by Child Age Group',
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*age)",
-             coef_rename=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                           'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*age)",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'age'='Child is 10–17',
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
@@ -58,9 +58,9 @@ modelsummary(va_ols_region_results,
 modelsummary(va_ols_region_results,
              title='\\label{reg:age}Value-Added Model: Heterogeneity by Child Age Group',
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*age)",
-             coef_rename=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                           'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*age)",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'age'='Child is 10–17',
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',

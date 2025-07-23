@@ -43,45 +43,6 @@ get_alpha <- function(df){
 ###################################### Outcome Data: Cronbach's Alpha #############################
 ##########################################################################################
 
-############################################### Midline: SEL ######################################
-# 
-# m_sel <- m_child %>% 
-#   # dplyr::select relevant numeracy questions
-#   dplyr::select(cr1:re11) %>%
-#   dplyr::select(-re5,-re8)
-# 
-# ############################################### Midline Literacy ######################################
-# 
-# m_lit <- m_child %>% 
-#   # dplyr::select relevant literacy questions
-#   dplyr::select(starts_with("nr"),
-#                 starts_with("sp"),
-#                 starts_with("or"),
-#                 starts_with("oc"),
-#                 matches("pa[0-9]")) %>%
-#   dplyr::select(-oc5) 
-# 
-# ############################################### Midline: Numeracy ######################################
-# 
-# m_num <- m_child %>% 
-#   # dplyr::select relevant numeracy questions
-#   dplyr::select(matches("co[0-9]"),
-#                 starts_with("nd"),
-#                 starts_with("mn"),
-#                 starts_with("nu"),
-#                 starts_with("wp"),
-#                 starts_with("ad"),
-#                 matches("su[0-9]"),
-#                 starts_with("mu"),
-#                 matches("di[0-9]"))
-# 
-# ############################################### Midline: EF ######################################
-# 
-# m_ef <- m_child %>% 
-#   # dplyr::select relevant numeracy questions
-#   dplyr::select(starts_with("wm"),
-#                 starts_with("sm"))
-
 ############################################### Endline: SEL ######################################
 
 e_sel <- e_child %>% 
@@ -113,6 +74,7 @@ e_lit <- e_child %>%
   # dplyr::select relevant literacy questions
   dplyr::select(careid,
                 childid,
+                ov1,
                 # starts_with("ov"),
                 starts_with("nr"),
                 starts_with("sp"),
@@ -125,14 +87,15 @@ e_lit <- e_child %>%
   # Turn negatives into NA
   mutate_all((~ifelse(. < 0, NA, .))) %>% 
   # Given that all literacy variables are binary, they can be added together and calculated as a percentage.
-  summarise(nr_perc=rowSums(across(starts_with("nr")),na.rm=T)/length(colnames(e_child %>% select(starts_with("nr")))),
+  summarise(nr_perc=rowSums(across(starts_with("ov")),na.rm=T)/15,
+            nr_perc=rowSums(across(starts_with("nr")),na.rm=T)/length(colnames(e_child %>% select(starts_with("nr")))),
             sp_perc=rowSums(across(starts_with("sp")),na.rm=T)/length(colnames(e_child %>% select(starts_with("sp")))),
             or_perc=rowSums(across(starts_with("or")),na.rm=T)/length(colnames(e_child %>% select(starts_with("or")))),
             oc_perc=rowSums(across(starts_with("oc")),na.rm=T)/length(colnames(e_child %>% select(starts_with("oc")))),
             pa_perc=rowSums(across(matches("pa[0-9]")),na.rm=T)/length(colnames(e_child %>% select(matches("pa[0-9]")))))
 
 ############################################### Endline: Numeracy ######################################
-# Note that within the literacy category, there are 53 questions.
+# Note that within the literacy category, there are 53 questions for 10-17 year olds and 47 for 5-9 year olds
 
 e_num <- e_child %>% 
   # dplyr::select relevant numeracy questions
@@ -156,7 +119,8 @@ e_num <- e_child %>%
   summarise(co_perc=rowSums(across(matches("co[0-9]")),na.rm=T)/length(colnames(e_child %>% select(matches("co[0-9]")))),
             nd_perc=rowSums(across(starts_with("nd")),na.rm=T)/length(colnames(e_child %>% select(starts_with("nd")))),
             mn_perc=rowSums(across(starts_with("mn")),na.rm=T)/length(colnames(e_child %>% select(starts_with("mn")))),
-            nu_perc=rowSums(across(starts_with("nu")),na.rm=T)/length(colnames(e_child %>% select(starts_with("nu")))),
+            nu_perc=case_when(child_age>=10~rowSums(across(starts_with("nu")),na.rm=T)/length(colnames(e_child %>% select(starts_with("nu")))),
+                              T~NA),
             wp_perc=rowSums(across(starts_with("wp")),na.rm=T)/length(colnames(e_child %>% select(starts_with("wp")))),
             ad_perc=rowSums(across(starts_with("ad")),na.rm=T)/length(colnames(e_child %>% select(starts_with("ad")))),
             su_perc=rowSums(across(matches("su[0-9]")),na.rm=T)/length(colnames(e_child %>% select(matches("su[0-9]")))),
@@ -164,7 +128,7 @@ e_num <- e_child %>%
             di_perc=rowSums(across(matches("di[0-9]")),na.rm=T)/length(colnames(e_child %>% select(matches("di[0-9]")))))
 
 ############################################### Endline: EF ######################################
-# Note that within the executive function category, there are 15 questions for 5-9 year olds and 17 questions for 10-17 year olds.
+# Note that within the executive function category, there are 11 questions for 5-9 year olds and 17 questions for 10-17 year olds.
 
 e_ef <- e_child %>% 
   dplyr::select(childid,
@@ -175,7 +139,8 @@ e_ef <- e_child %>%
   mutate(across(everything(),~as.double(.))) %>% 
   # Turn negatives into NA
   mutate_all((~ifelse(. < 0, NA, .))) %>% 
-  summarise(wm_perc=rowSums(across(starts_with('wm')),na.rm=T)/length(colnames(e_child %>% select(starts_with('wm')))),
+  summarise(wm_perc=case_when(child_age<10~rowSums(across(starts_with("wm")),na.rm=T)/6,
+                              T~rowSums(across(starts_with("wm")),na.rm=T)/10),
             sm_perc=case_when(child_age<10~rowSums(across(starts_with("sm")),na.rm=T)/5,
                               T~rowSums(across(starts_with("sm")),na.rm=T)/7)
             )

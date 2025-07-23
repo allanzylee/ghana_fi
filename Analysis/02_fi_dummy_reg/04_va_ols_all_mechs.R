@@ -45,8 +45,8 @@ cg_psyc_input='e_cg_emotional_engagement+cg_mh_scale'
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num'),
-                                   model=c(glue('~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
-                                           glue('~ e_ch_fs_dummy+e_cg_fs_dummy+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+{health_input}+{child_psyc_input}+{cg_psyc_input}+')
+                                   model=c(glue('~ e_cfies_indicator+e_fies_indicator+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
+                                           glue('~ e_cfies_indicator+e_fies_indicator+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+{health_input}+{child_psyc_input}+{cg_psyc_input}+')
                                            ))
 
 # Regression results
@@ -62,9 +62,9 @@ modelsummary(va_ols_region_results,
              title='Extended Value-Added Model: Base and All Mechanisms',
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
-             coef_rename=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                           'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'female'='Child is Female',
                            'lagged_outcome'="Lagged Outcome",
                            'e_ch_health2'="Poor Health",
@@ -90,9 +90,9 @@ modelsummary(va_ols_region_results,
 modelsummary(va_ols_region_results,
              title='\\label{extended_all_mechs}Extended Value-Added Model: Base and All Mechanisms',
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
-             coef_rename=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                           'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'female'='Child is Female',
                            'lagged_outcome'="Lagged Outcome",
                            'e_ch_health2'="Poor Health",

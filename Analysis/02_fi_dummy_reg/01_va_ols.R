@@ -26,7 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -41,9 +41,9 @@ modelsummary(va_ols_region_results,
              title='Value-Added Model',
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
-             coef_rename=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                           'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              gof_map=gm,
@@ -57,9 +57,9 @@ modelsummary(va_ols_region_results,
 modelsummary(va_ols_region_results,
              title='\\label{reg:multi}Value-Added Model',
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
-             coef_rename=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                           'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              stars = c('*' = .05, 

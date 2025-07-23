@@ -1,7 +1,7 @@
 ###################################### Introduction ############################################
 
 # Author: Allan Lee
-# Date: Feb 4th, 2023
+# Date: 2025.7.22
 # Purpose: Create child reported and caregiver reported food insecurity variables
 
 ##########################################################################################
@@ -15,189 +15,98 @@ rm(list=ls())
 source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
 
 ##########################################################################################
-###################################### FS data cleaning ##################################
+###################################### Load relevant data ################################
 ##########################################################################################
-### Change the ordinal form of the FS data and replace NAs with row means
-
-fs_cols_child<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8","fs9","fs10")
-fs_cols_cg<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8")
-
-# Load relevant data
-m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
-  mutate_at(fs_cols_child,as.numeric) %>% 
-  mutate_at(fs_cols_child,funs(new=case_when(. == 1 ~ 2,
-                                             . == 2 ~ 1,
-                                             . == 3 ~ 0,
-                                             TRUE ~ NA_real_))) %>% 
-  dplyr::select(-all_of(fs_cols_child))
-m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta")
 e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>% 
+  dplyr::select(-contains("gb")) %>% 
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  mutate(across(contains('fs'),~as.double(.))) %>% 
   rename(careid=caseid) %>% 
-  mutate_at(fs_cols_child,as.numeric) %>% 
-  mutate_at(fs_cols_child,funs(new=case_when(. == 1 ~ 2,
-                                             . == 2 ~ 1,
-                                             . == 3 ~ 0,
-                                             TRUE ~ NA_real_))) %>% 
-  dplyr::select(-all_of(fs_cols_child))
+  filter(io2==1) %>% 
+  mutate(childage=as.double(childage))
+
 e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>% 
-  mutate_at(fs_cols_cg,as.numeric)
+  mutate(careid=as.double(careid),
+         childid=as.double(childid)) %>% 
+  mutate(across(contains('fs'),~as.double(.)))
 
-baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
-  mutate(careid=as.double(careid))
+m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  filter(io2==1)
 
-# # Denote the relevant fs variables
-# fs_cols_child<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8","fs9","fs10")
-# fs_cols_cg<-c("fs1","fs2","fs3","fs4","fs5","fs6","fs7","fs8")
-# 
-# # Change the categorical response of FS for each set of data such that higher numbers means more food insecurity
-# 
-# m_child <- m_child %>% 
-#   mutate_at(fs_cols_child,as.numeric) %>% 
-#   mutate_at(fs_cols_child,funs(new=case_when(. == 1 ~ 2,
-#                                        . == 2 ~ 1,
-#                                        . == 3 ~ 0,
-#                                        TRUE ~ NA_real_))) %>% 
-#   dplyr::select(-all_of(fs_cols_child))
-# 
-# m_cg <- m_cg %>% 
-#   mutate_at(fs_cols_cg,as.numeric)
+m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
+  mutate(across(contains('id'),~as.double(.)))
 
-# Change column names back to the original
-names(m_child) = gsub(pattern = "_new", replacement = "", x = names(m_child))
-names(e_child) = gsub(pattern = "_new", replacement = "", x = names(e_child))
+###################################### Clean FS data ################################
 
-# # dplyr::select relevant variables in the food security data and convert them to numeric. Filter out NAs based on threshold
-
-child_na_threshold <- 0
-cg_na_threshold<-0
-
-m_ch_fs <- m_child %>%
-  dplyr::select(careid,childid,starts_with("fs")) %>% 
-  mutate(na=rowSums(is.na(.))) %>% 
-  filter(na<=child_na_threshold)
-m_cg_fs <- m_cg %>%
-  dplyr::select(childid,careid,starts_with("fs")) %>%
-  distinct(.keep_all = T) %>% 
-  mutate(na=rowSums(is.na(.)))%>% 
-  filter(na<=cg_na_threshold)
-e_ch_fs <- e_child %>%
-  dplyr::select(careid,childid,starts_with("fs")) %>%
-  dplyr::select(-fs_id)%>% 
-  mutate(na=rowSums(is.na(.))) %>% 
-  filter(na<=child_na_threshold)
-
-e_cg_fs <- e_cg %>%
-  dplyr::select(childid,careid,starts_with("fs")) %>%
-  distinct(.keep_all = T) %>%
-  dplyr::select(-fsid)%>% 
-  mutate(na=rowSums(is.na(.))) %>% 
-  filter(na<=cg_na_threshold)
-
-############################################################################################################
-###################################### Dummy Variable ######################################################
-############################################################################################################
-
-###################################### Child ######################################################
-
-### The FIES reduces the dimensionality of the FS questions by creating a dummy variable that =1 if the sum of FS questions >7 (Frongillo Page 2139)
-# 
-# Midline
-m_cfies<-m_ch_fs %>% 
-  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child),na.rm=T)) %>% 
-  mutate(m_ch_fs_dummy=if_else(fs_sum>=7,1,0),
-         m_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
-                                       fs_sum>=1 & fs_sum<=6~1,
-                                       fs_sum>=7 & fs_sum<=10~2,
-                                       T~3))
+e_child_fs<-e_child %>% 
+  select(childid,
+         matches('fs[0-9]')
   ) %>% 
-  dplyr::select(careid,childid,m_ch_fs_dummy,m_ch_fies)
+  mutate(across(contains('fs'),~as.double(case_when(.==1~2,
+                                                    .==2~1,
+                                                    .==3~0,
+                                                    T~NA_real_)))) %>% 
+  mutate(e_cfies_sum=rowSums(select(.,contains('fs')),na.rm=T)) %>% 
+  mutate(e_cfies_indicator=case_when(e_cfies_sum>=7~1,
+                                     T~0),
+         e_cfies_scale=as.factor(case_when(e_cfies_sum==0~0,
+                                           e_cfies_sum>=1 & e_cfies_sum<=6~1,
+                                           e_cfies_sum>=7 & e_cfies_sum<=10~2,
+                                           T~3))) %>% 
+  select(-matches('fs[0-9]'))
 
-# Endline
-e_cfies<-e_ch_fs %>% 
-  mutate(fs_sum=rowSums(dplyr::select(.,fs_cols_child),na.rm=T)) %>% 
-  mutate(e_ch_fs_dummy=if_else(fs_sum>=7,1,0),
-         e_ch_fies=as.factor(case_when(fs_sum==0 ~ 0,
-                                       fs_sum>=1 & fs_sum<=6~1,
-                                       fs_sum>=7 & fs_sum<=10~2,
-                                       T~3))
-         ) %>% 
-  dplyr::select(careid,childid,e_ch_fs_dummy,e_ch_fies)
+e_cg_fs<-e_cg %>% 
+  select(childid,
+         matches('fs[0-9]')) %>% 
+  mutate(e_fies_sum=rowSums(select(.,contains('fs')),na.rm=T)) %>% 
+  mutate(e_fies_indicator=case_when(e_fies_sum>=4~1,
+                                    T~0),
+         e_fies_scale=as.factor(case_when(e_fies_sum<=3~0,
+                                          e_fies_sum>=4 & e_fies_sum<=6~1,
+                                          T~2))) %>% 
+  select(-matches('fs[0-9]'))
 
-###################################### Caregiver ######################################################
-
-### The FIES is coded in a few ways
-# 1. Dummy variable if any of Q5-Q8 is 1
-# 2. A sum of the scores
-
-# Midline
-m_cg_fies<-m_cg_fs %>% 
-  mutate(m_cg_fs_dummy=case_when(rowSums(dplyr::select(.,fs_cols_cg))>=4~1,
-                                 T~0),
-         m_fies_sum=rowSums(dplyr::select(.,fs_cols_cg)),
-         m_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg))>= 0 & rowSums(dplyr::select(.,fs_cols_cg)) <=3 ~ 0,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=4 & rowSums(dplyr::select(.,fs_cols_cg)) <=6 ~ 1,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=7 & rowSums(dplyr::select(.,fs_cols_cg)) <=8 ~ 2,
-                                          T~NA_real_
-         )),
-         across(matches("fs[0-9]"),~as.double(.))
-         
-         ) %>%
-  dplyr::select(-matches("fs[0-9]"),
-                -na)
-
-# Endline
-e_cg_fies<-e_cg_fs %>% 
-  mutate(e_cg_fs_dummy=case_when(rowSums(dplyr::select(.,fs_cols_cg))>=4~1,
-                                 T~0),
-         e_fies_sum=rowSums(dplyr::select(.,fs_cols_cg)),
-         e_fies_scale=as.factor(case_when(rowSums(dplyr::select(.,fs_cols_cg))>= 0 & rowSums(dplyr::select(.,fs_cols_cg)) <=3 ~ 0,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=4 & rowSums(dplyr::select(.,fs_cols_cg)) <=6 ~ 1,
-                                          rowSums(dplyr::select(.,fs_cols_cg)) >=7 & rowSums(dplyr::select(.,fs_cols_cg)) <=8 ~ 2,
-                                          T~NA_real_
-         )),
-         across(matches("fs[0-9]"),~as.double(.))
-         
+m_child_fs<-m_child %>% 
+  select(childid,
+         matches('fs[0-9]'),
   ) %>% 
-  dplyr::select(-matches("fs[0-9]"),
-                -na)
+  mutate(across(contains('fs'),~as.double(case_when(.==1~2,
+                                                    .==2~1,
+                                                    .==3~0,
+                                                    T~NA_real_)))) %>% 
+  mutate(m_cfies_sum=rowSums(select(.,contains('fs')),na.rm=T)) %>% 
+  mutate(m_cfies_indicator=case_when(m_cfies_sum>=7~1,
+                                     T~0),
+         m_cfies_scale=as.factor(case_when(m_cfies_sum==0~0,
+                                           m_cfies_sum>=1 & m_cfies_sum<=6~1,
+                                           m_cfies_sum>=7 & m_cfies_sum<=10~2,
+                                           T~3))) %>% 
+  select(-matches('fs[0-9]'))
 
-###################################### Putting all treatment data together #############################
+m_cg_fs<-m_cg %>% 
+  select(childid,
+         matches('fs[0-9]')) %>% 
+  mutate(m_fies_sum=rowSums(select(.,contains('fs')),na.rm=T)) %>% 
+  mutate(m_fies_indicator=case_when(m_fies_sum>=4~1,
+                                    T~0),
+         m_fies_scale=as.factor(case_when(m_fies_sum<=3~0,
+                                          m_fies_sum>=4 & m_fies_sum<=6~1,
+                                          T~2))) %>% 
+  select(-matches('fs[0-9]'))
 
-fi <- e_cfies %>% 
-  inner_join(e_cg_fies,by=c("careid","childid")) %>% 
-  left_join(m_cfies,by=c("careid","childid")) %>% 
-  left_join(m_cg_fies,by=c("careid","childid"))
+fi <- e_cg_fs %>% 
+  left_join(e_child_fs,by=c("childid"))%>% 
+  left_join(m_cg_fs,by=c("childid"))%>% 
+  left_join(m_child_fs,by=c("childid"))
 
 ###################################################################################################
 #################### CG-Reported Parental Education Engagement data cleaning #########################
 ###################################################################################################
 
-# Midline
-m_cg_pe <- m_cg %>% 
-  dplyr::select(careid,childid,starts_with("pe")) %>% 
-  # select the variables regarding which caregiver engaged the child and also PE7
-  dplyr::select(matches("^[^_]+$"),-pe7,-ends_with("b"),pe10b) %>% 
-  # Change the ordinal form of PE8 and PE9
-  mutate_at(vars(pe8,pe9),funs(new=case_when(. == 4 ~ 3,
-                                             . == 3 ~ 2,
-                                             . == 2 ~ 1,
-                                             . == 1 ~ 0,
-                                             TRUE ~ NA_real_))) %>% 
-  # Drop the old pe8 and pe9; replace with the new ones and then reorder
-  # dplyr::select(-pe8,-pe9) %>% 
-  # rename("pe8"="pe8_new",
-  #        "pe9"="pe9_new") %>% 
-  dplyr::select(careid,childid,pe1a:pe6a,pe8=pe8_new,pe9=pe9_new,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
-  # Ensure that all columns are numeric
-  mutate_if(is.double,as.numeric) %>% 
-  mutate_if(is.character,as.numeric) %>%
-  mutate(m_cg_edu_engagement=dplyr::select(., contains("pe")) %>% rowSums())
-
 # Endline
 e_cg_pe <- e_cg %>% 
-  dplyr::select(careid,childid,starts_with("pe")) %>% 
-  # select the variables regarding which caregiver engaged the child and also PE7
-  dplyr::select(matches("^[^_]+$"),-pe7,-ends_with("b"),pe10b) %>% 
+  dplyr::select(careid,childid,matches('pe[0-9]a'),pe8,pe9,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
   # Change the ordinal form of PE8 and PE9
   mutate_at(vars(pe8,pe9),funs(new=case_when(. == 4 ~ 3,
                                        . == 3 ~ 2,
@@ -214,42 +123,10 @@ e_cg_pe <- e_cg %>%
   # Turn NAs into 0s
   mutate(across(contains('pe'),~case_when(is.na(.)~0,
                                           T~.))) %>%
-  mutate(e_cg_edu_engagement=dplyr::select(., contains("pe")) %>% rowSums())
-# The correlation between parental engagement variables are approximately 0.5 or lower, suggesting a moderate linear relationship.
-# Multicollinearity is not a significant issue and the parental engagement variables can be kept in their current form.
-# However, I will conduct PCA and linear combinations of PE variables still.
-
-###################################### PCA #############################
-
-# Replace the NAs for children from their siblings and then omit the NAs that don't have any data
-cg_pe <- e_cg_pe %>%
-  # Group by family
-  group_by(careid) %>%
-  # Replace NAs with data from their siblings
-  mutate_at(vars(pe1a:pe10e), funs(ifelse(is.na(.)==T, first(.)[!is.na(.)], .))) %>% 
-  ungroup() %>% 
-  na.omit()
-
-# Conduct PCA for PE and evaluate the Screeplot to determine significant features.
-cg_pe_pca<-prcomp(~pe1a+pe2a+pe3a+pe4a+pe5a+pe6a+pe8+pe9+pe10a+pe10b+pe10c+pe10d+pe10e,
-                  data=cg_pe,
-                  scale=T)
-summary(cg_pe_pca)
-screeplot(cg_pe_pca, type="l", main="Screeplot for Caregiver-Reported Parental Engagement Factors")
-
-# Based on "The Elbow Rule" of PCA, the number of principal components that should be dplyr::selected should be the PCs before a steep drop off.
-# In this case, the first FOUR principal components are significant.
-
-# Now, extract the principal components and combine with the rest of the FS data.
-cg_pe_pc<-cg_pe_pca$x[,1:4]
-cg_pe<-cbind(cg_pe,cg_pe_pc) %>% 
-  clean_names() %>% 
-  dplyr::select(childid,careid,e_cg_edu_engagement,matches('pc[0-9]')) %>% 
-  inner_join(m_cg_pe %>% dplyr::select(-matches('pe[0-9]')),
-             by=c('childid','careid'))
-
-# Create a correlation matrix for caregiver engagement PC and original data
-# stargazer::stargazer(cor(cg_pe[,3:15],cg_pe[,16:19]))
+  mutate(e_cg_edu_engagement=dplyr::select(., contains("pe")) %>% rowSums()) %>% 
+  select(childid,
+         careid,
+         e_cg_edu_engagement)
 
 ###################################################################################################
 #################### CG-Reported Parental Emotional Engagement data cleaning #########################
@@ -258,6 +135,7 @@ e_cg_emotional_engagement<-e_cg %>%
   dplyr::select(childid,
          careid,
          es1,
+         es2,
          es3,
          es4,
          es5,
@@ -268,34 +146,28 @@ e_cg_emotional_engagement<-e_cg %>%
                        T~4)) %>% 
   mutate(across(contains('es'),~case_when(is.na(.)~0,
                                           T~.)),
-         e_cg_emotional_engagement=es1+es3+es4+es5+es6) %>% 
+         e_cg_emotional_engagement=es1+es2+es3+es4+es5+es6) %>% 
   dplyr::select(-contains('es'))
 
 ###################################################################################################
 #################### Clean HH Size, CG_Schooling, Motivation, and Self-Esteem #########################
 ###################################################################################################
-
-# Household Size and Caregiver Schooling
-baseline_char <- baseline_enrollment_reg %>% 
-  dplyr::select(careid,
-         hh_size=ps1,
-         cg_schooling=hr10)
-
-# Midline Child Motivation and Esteem
-m_ch_motiv_esteem <- m_child %>% 
-  mutate(across(contains("mo"),~as.double(.)),
-         across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-  mutate(across(matches("se[0-9]"),~as.double(.)),
-         across(matches("se[0-9]"),~case_when(.<0~0,T~.))) %>% 
-  mutate(m_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
-  mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
-                                              . == 3 ~ 2,
-                                              . == 2 ~ 3,
-                                              . == 1 ~ 4,
-                                              TRUE ~ NA_real_))
-  ) %>% 
-  mutate(m_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
-  dplyr::select(childid,careid,m_ch_motiv,m_ch_esteem)
+# 
+# # Midline Child Motivation and Esteem
+# m_ch_motiv_esteem <- m_child %>% 
+#   mutate(across(contains("mo"),~as.double(.)),
+#          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
+#   mutate(across(matches("se[0-9]"),~as.double(.)),
+#          across(matches("se[0-9]"),~case_when(.<0~0,T~.))) %>% 
+#   mutate(m_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
+#   mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+#                                               . == 3 ~ 2,
+#                                               . == 2 ~ 3,
+#                                               . == 1 ~ 4,
+#                                               TRUE ~ NA_real_))
+#   ) %>% 
+#   mutate(m_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
+#   dplyr::select(childid,careid,m_ch_motiv,m_ch_esteem)
 
 # Endline Child Motivation and Esteem
 e_ch_motiv_esteem <- e_child %>% 
@@ -304,7 +176,7 @@ e_ch_motiv_esteem <- e_child %>%
   mutate(across(matches("se[0-9]"),~as.double(.)),
          across(matches("se[0-9]"),~case_when(as.double(.)<0~0,T~as.double(.)))) %>%
   mutate(e_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
-  mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+  mutate(across(c(se2,se5,se6,se8,se9),~case_when(. == 4 ~ 1,
                                              . == 3 ~ 2,
                                              . == 2 ~ 3,
                                              . == 1 ~ 4,
@@ -325,14 +197,14 @@ cg_mh<-e_cg %>%
          contains('mh')) %>% 
   mutate(cg_mh_scale=rowSums(dplyr::select(.,contains('mh')),na.rm=T),
          childid=as.double(childid),
-         careid=as.double(careid))
+         careid=as.double(careid)) %>% 
+  select(-matches('mh[0-9]'))
 
 ################################### Create control data for export ######################
 controls<-e_ch_motiv_esteem %>% 
+  left_join(e_cg_pe,by=c('childid','careid')) %>% 
   left_join(e_cg_emotional_engagement,by=c('childid','careid')) %>% 
-  left_join(m_ch_motiv_esteem,by=c('childid','careid')) %>% 
   mutate(across(c(childid,careid),~as.double(.))) %>%
-  left_join(cg_pe,by=c('childid','careid')) %>% 
   left_join(cg_mh,
             by=c('childid',
                  'careid'))
@@ -342,6 +214,5 @@ controls<-e_ch_motiv_esteem %>%
 ##########################################################################################
 
 saveRDS(fi, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/fi.rds")
-#saveRDS(cg_pe, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/cg_pe.rds")
 saveRDS(controls, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/controls.rds")
 

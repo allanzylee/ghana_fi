@@ -39,7 +39,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 mech_reg_func<-function(category){
   
   # Define terms
-  fi<-'e_ch_fs_dummy+e_cg_fs_dummy'
+  fi<-'e_cfies_indicator+e_fies_indicator'
   category_text<-case_when(category=='lit'~'Literacy',
                            category=='num'~'Numeracy',
                            category=='ef'~'EF',
@@ -190,9 +190,9 @@ names(the_models) |>
                  title=glue('Value-Added Model: {name}'),
                  fmt=f,
                  cluster='careid',
-                 coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
-                 coef_rename=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
-                               'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
+                 coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
+                 coef_rename=c('e_cfies_indicator'="Child-Reported Food Insecurity",
+                               'e_fies_indicator'="Caregiver-Reported Food Insecurity",
                                'female'='Child is Female',
                                'lagged_outcome'="Lagged Outcome",
                                'e_ch_health2'="Poor Health",
@@ -231,9 +231,9 @@ latex_func<-function(name){
                # title=glue('{preamble}Value-Added Model: {name}'),
                fmt=f,
                cluster='careid',
-               coef_omit = "^(?!.*tercept|.*dummy|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
-               coef_map=c('e_ch_fs_dummy'="Endline Child-Reported FI",
-                             'e_cg_fs_dummy'="Endline Caregiver-Reported FI",
+               coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*health|.*attend|.*school|.*engagement|.*motiv|.*asp|.*scale)",
+               coef_map=c('e_cfies_indicator'="Endline Child-Reported FI",
+                             'e_fies_indicator'="Endline Caregiver-Reported FI",
                              'female'='Child is Female',
                              'e_ch_health2'="Poor Health",
                              'e_ch_health3'="Average Health",

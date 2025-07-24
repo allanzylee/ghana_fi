@@ -27,6 +27,7 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
   rename(careid=caseid) %>% 
   mutate(across(contains('id'),~as.double(.)))
 
+
 ###################################### Create function to calculate Cronbach's Alpha #############################
 get_alpha <- function(df){
   

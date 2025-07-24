@@ -26,7 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 model=c('~ e_cfies_indicator+e_fies_indicator+e_cfies_indicator*female+e_fies_indicator*female+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+e_cfies_indicator*e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -38,42 +38,36 @@ va_ols_region_results<- pmap(va_ols_input_region,
 
 # Export results
 modelsummary(va_ols_region_results,
-             title='Value-Added Model: Heterogeneity by Child Sex',
+             title='Value-Added Model: Interaction between Child- and Caregiver-Reporeted Food Insecurity Indicators',
              fmt=f,
              cluster='careid',
              coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*female)",
-             coef_map=c('e_cfies_indicator'="Child-Reported FI",
-                           'e_fies_indicator'="Caregiver-Reported FI",
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
                            'female'='Child is Female',
-                           'lagged_outcome'="Lagged Outcome",
-                           'e_cfies_indicator:female'='Child-Reported FI:Child is Female',
-                        'e_fies_indicator:female'='Caregiver-Reported FI:Child is Female',
-                           '(Intercept)'='(Intercept)'),
+                           'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              gof_map=gm,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
-             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/02_va_ols_child_sex.html",
+             notes = "Note: Endline Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/08_va_ols_ch_cg_int.html",
              escape = FALSE)
 
 modelsummary(va_ols_region_results,
              title='\\label{reg:sex}Value-Added Model: Heterogeneity by Child Sex',
              cluster='careid',
              coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*female)",
-             coef_map=c('e_cfies_indicator'="Child-Reported FI",
-                        'e_fies_indicator'="Caregiver-Reported FI",
-                        'female'='Child is Female',
-                        'lagged_outcome'="Lagged Outcome",
-                        'e_cfies_indicator:female'='Child-Reported FI:Child is Female',
-                        'e_fies_indicator:female'='Caregiver-Reported FI:Child is Female',
-                        '(Intercept)'='(Intercept)'),
+             coef_rename=c('e_cfies_indicator'="Endline Child-Reported FI",
+                           'e_fies_indicator'="Endline Caregiver-Reported FI",
+                           'female'='Child is Female',
+                           'lagged_outcome'="Lagged Outcome"),
              gof_omit = 'AIC|BIC|Std.Errors',
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
+             notes = "Note: Endline Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
              out='latex',
              escape = FALSE)
 

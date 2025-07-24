@@ -114,8 +114,8 @@ out<-overall %>%
          '5-9 Years'=younger,
          '10-17 Years'=older,
          'P-Value: Child Age Group'=pval_age) %>% 
-  mutate(var=case_when(var=='e_cfies_indicator'~'Endline Child-Reported FI (%)',
-                       var=='e_fies_indicator'~'Endline Caregiver-Reported FI (%)',
+  mutate(var=case_when(var=='e_cfies_indicator'~'Child-Reported FI (%)',
+                       var=='e_fies_indicator'~'Caregiver-Reported FI (%)',
                        var=='e_cfies_scale_0'~'Child: No FI (CFIES=0)',
                        var=='e_cfies_scale_1'~'Child: Few Exp. (CFIES=1-6)',
                        var=='e_cfies_scale_2'~'Child: Several Exp. (CFIES=7-10)',

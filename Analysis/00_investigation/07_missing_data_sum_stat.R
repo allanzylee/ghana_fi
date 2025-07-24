@@ -207,8 +207,8 @@ out<-missing_summary_stat %>%
   rename('Excluded'=excluded,
     'Not Excluded'=not_excluded,
     'P-Value: Exclusion'=pval_excluded) %>% 
-  mutate(var=case_when(var=='e_cfies_indicator'~'Endline Child-Reported FI (%)',
-                       var=='e_fies_indicator'~'Endline Caregiver-Reported FI (%)',
+  mutate(var=case_when(var=='e_cfies_indicator'~'Child-Reported FI (%)',
+                       var=='e_fies_indicator'~'Caregiver-Reported FI (%)',
                        var=='female'~'Child is Female (%)',
                        var=='age_num'~'Child Age (Years)',
                        var=='region_north_east'~"Region: North East",

@@ -10,7 +10,9 @@
 
 # Clear the environment
 rm(list=ls())
-
+options(modelsummary_factory_default = 'kableExtra')
+options(modelsummary_factory_latex = 'kableExtra')
+options(modelsummary_factory_html = 'kableExtra')
 # Load header
 source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.R")
 
@@ -59,7 +61,7 @@ full_data_w<-full_data_w %>%
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=paste0('re',c(1:4,6:7)),
-                                                 model=c('~ e_ch_fs_dummy+e_cg_fs_dummy+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -76,15 +78,54 @@ modelsummary(va_ols_region_results,
              title='SEL Item Model',
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
-             coef_rename=c('e_ch_fs_dummy'="Child-Reported Food Insecurity",
-                           'e_cg_fs_dummy'="Caregiver-Reported Food Insecurity",
-                           'lagged_outcome'="Lagged Outcome"),
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_map=c('e_cfies_indicator'="Child-Reported Food Insecurity",
+                           'e_fies_indicator'="Caregiver-Reported Food Insecurity",
+                           'lagged_outcome'="Lagged Outcome",
+                        '(Intercept)'='(Intercept)'),
              gof_omit = 'AIC|BIC|Std.Errors',
              gof_map=gm,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+             notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary
+indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger
+than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/07_glm_sel_items.html",
              escape = FALSE)
+
+raw<-modelsummary(va_ols_region_results,
+             fmt=f,
+             cluster='careid',
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_map=c('e_cfies_indicator'="Child-Reported Food Insecurity",
+                        'e_fies_indicator'="Caregiver-Reported Food Insecurity",
+                        'lagged_outcome'="Lagged Outcome",
+                        '(Intercept)'='(Intercept)'),
+             gof_omit = 'AIC|BIC|Std.Errors',
+             gof_map=gm,
+             stars = c('*' = .05, 
+                       '**' = .01,
+                       '***' = .001),
+             notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary
+indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger
+than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+             out="latex",
+             booktabs=T, threeparttable = TRUE)
+
+formatted=raw %>% 
+  column_spec(1,width="1in") %>% 
+  column_spec(2:7,width="0.5in")
+
+writeLines(formatted,
+           "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/07_glm_sel_items.tex")
+# 
+# ex=kbl(formatted)
+# cat(ex)
+# 
+# kableExtra::save_kable(
+#   formatted,
+#   format='latex',
+#   file = "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/07_glm_sel_items.tex",
+#   float=F
+# )

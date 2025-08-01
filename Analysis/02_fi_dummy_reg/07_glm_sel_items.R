@@ -28,6 +28,12 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
   rename(careid=caseid) %>% 
   filter(io2==1)
 
+m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
+  dplyr::select(-contains("gb")) %>% 
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  mutate(across(contains('fs'),~as.double(.))) %>% 
+  filter(io2==1)
+
 ##########################################################################################
 ############################## Multivariate OLS Regression w/ Region and household randomized treatment + Age and Gender ##############################
 ##########################################################################################
@@ -35,9 +41,16 @@ e_child <- read_dta("import/03_PNP_Endline_ChildSurvey.dta") %>%
 # Define regression function
 reg_func_sel <- function(category, model){
   
-  for_reg<-full_data_w
+  outcome=paste0('e_',
+                 category)
   
-  fm <- as.formula(paste(category, model))  
+  m_category_str=paste0('m_',
+                category)
+  
+  for_reg<-full_data_w %>% 
+    rename(lagged_outcome=m_category_str)
+  
+  fm <- as.formula(paste(outcome, model,'+','lagged_outcome'))  
   reg <- glm(fm,
                data=for_reg,
                family = 'binomial')
@@ -45,7 +58,7 @@ reg_func_sel <- function(category, model){
 }
 
 # Define sel outcomes
-sel_outcomes<-e_child %>% 
+e_sel_outcomes<-e_child %>% 
   select(childid,
          matches('re[1-7]')) %>% 
   select(-re10,
@@ -53,10 +66,24 @@ sel_outcomes<-e_child %>%
          -re5) %>% 
   mutate(across(-childid,~case_when(.==1~1,
                                         .==0~0,
-                                        T~NA_real_)))
+                                        T~NA_real_))) %>% 
+  rename_with(~ paste0("e_",.), .cols = matches("re"))
+
+m_sel_outcomes<-m_child %>% 
+  select(childid,
+         matches('re[1-7]')) %>% 
+  select(-re10,
+         -re11,
+         -re5) %>% 
+  mutate(across(-childid,~case_when(.==1~1,
+                                    .==0~0,
+                                    T~NA_real_))) %>% 
+  rename_with(~ paste0("m_",.), .cols = matches("re"))
 
 full_data_w<-full_data_w %>% 
-  left_join(sel_outcomes,
+  left_join(e_sel_outcomes,
+            by=c('childid')) %>% 
+  left_join(m_sel_outcomes,
             by=c('childid'))
 
 # Define base OLS input

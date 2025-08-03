@@ -1,6 +1,6 @@
 # Set WD
 setwd("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data")
-
+ 
 # Load packages
 library(fixest)
 library(stargazer)

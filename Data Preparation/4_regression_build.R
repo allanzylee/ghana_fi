@@ -94,7 +94,7 @@ full_data_w <- e_child %>%
   #                                     contains('per')),
   #                  by=c("childid","careid")) %>% 
   dplyr::left_join(controls,
-                   by=c("childid","careid")) %>% 
+                   by=c("childid")) %>% 
   dplyr::left_join(fi,
                    by=c("childid")
   ) %>%

@@ -233,19 +233,73 @@ cg_mh<-e_cg %>%
          careid=as.double(careid)) %>% 
   select(-matches('mh[0-9]'))
 
-################################### Create control data for export ######################
+################################### Create and standardize control data for export ######################
+
 controls<-e_ch_motiv_esteem %>% 
   left_join(e_cg_pe,by=c('childid','careid')) %>% 
   left_join(e_cg_emotional_engagement,by=c('childid','careid')) %>% 
   mutate(across(c(childid,careid),~as.double(.))) %>%
   left_join(cg_mh,
             by=c('childid',
-                 'careid'))
+                 'careid')) %>% 
+  left_join(e_child %>% 
+              select(childid,
+                     enum_id,
+                     treatment),
+            by=c('childid'))
+
+std_ctrl<-function(var){
+  
+  df<-controls %>% 
+    select(childid,
+           enum_id,
+           treatment,
+           var) %>% 
+    filter(!is.na(!!sym(var)),
+           !is.na(enum_id))
+  
+  # Calculate outcome scores net of enumerator effects  
+  fm=as.formula(glue('{var}~factor(enum_id)'))
+  model <- lm(fm, data = df)
+  df[['res']] <- resid(model)
+  
+  # Calculate control group means and SDs of residuals
+  mean_res <- df %>% 
+    filter(treatment==0) %>% 
+    summarise(mean=mean(res)) %>% 
+    pull()
+  
+  sd_res <- df %>% 
+    filter(treatment==0) %>% 
+    summarise(sd=sd(res)) %>% 
+    pull()
+  
+  # Add back mean and sd
+  out<-df %>% 
+    mutate(mean=mean_res,
+           sd=sd_res) %>% 
+    mutate(z_score=(res-mean)/sd) %>% 
+    dplyr::select(
+      childid,
+      !!quo_name(var) := z_score)
+  
+  return(out)
+  
+}
+
+input=c('e_ch_motiv',
+        'e_cg_edu_engagement',
+        'e_cg_emotional_engagement',
+        'cg_mh_scale')
+
+ctrl_std=map(input,
+             std_ctrl) %>% 
+  reduce(left_join, by = "childid")
 
 ##########################################################################################
 ################################## Exporting Relevant Data ###############################
 ##########################################################################################
 
 saveRDS(fi, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/fi.rds")
-saveRDS(controls, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/controls.rds")
+saveRDS(ctrl_std, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/controls.rds")
 

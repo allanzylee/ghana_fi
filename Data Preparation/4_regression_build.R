@@ -64,13 +64,16 @@ full_data_w <- e_child %>%
          e_ch_health_rel=cw2,
          e_ch_edu_asp=ja3,
          contains('fs'),
-         treatment
+         treatment,
+         startdate
          ) %>% 
   rename_with(~ paste0(., "_child"), .cols = matches("^fs\\d+$")) %>% 
   mutate(across(contains('fs'),~case_when(. == 1 ~ 2,
                                           . == 2 ~ 1,
                                           . == 3 ~ 0,
-                                          TRUE ~ NA_real_))) %>%
+                                          TRUE ~ NA_real_)),
+         year=year(startdate),
+         month=month(startdate)) %>%
   left_join(outcome_checker,
             by=c('childid')) %>% 
   left_join(outcome_raw %>% 

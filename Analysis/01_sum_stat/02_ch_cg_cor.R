@@ -46,5 +46,20 @@ hh_fi_table <-full_data_w %>%
          )
 
 
+# Test within household child-level FI correlation
+
+sib_pairs <- full_data_w %>%
+  group_by(careid) %>%
+  filter(n() == 2) %>%      
+  arrange(careid) %>%      
+  mutate(sib = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(
+    id_cols = careid,
+    names_from = sib,
+    values_from = e_cfies_indicator
+  )
+
+cor.test(sib_pairs$`1`, sib_pairs$`2`, use = "complete.obs")
 
 

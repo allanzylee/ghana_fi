@@ -34,20 +34,25 @@ e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>%
   mutate(careid=as.double(careid),
          childid=as.double(childid)) %>% 
   mutate(across(contains('fs'),~as.double(.)))
-# child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>% 
-#   dplyr::select(-community, -region)
+child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>%
+  dplyr::select(childid, ch_rank=rank, num_kids)
 # baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
 #   mutate(careid=as.double(careid))
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
   filter(io2==1)
 m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
-  mutate(across(contains('id'),~as.double(.)))
+  mutate(across(contains('id'),~as.double(.))) %>% 
+  mutate(cg_female=case_when(cb2==2~1,
+                             T~0),
+         edu_rowmax=pmax(cb3,cb4,na.rm=T),
+         cg_primary=case_when(edu_rowmax>=2 & edu_rowmax<=5~1,
+                              T~0))
 outcome_checker<- read_rds("build/outcome_zscore_checker.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
 outcome_raw<- read_rds("build/outcome_raw.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
-
+e_household=read_dta('import/01_PNP_Endline_HouseholdSurvey.dta')
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -99,6 +104,16 @@ full_data_w <- e_child %>%
   dplyr::left_join(controls,
                    by=c("childid")) %>% 
   dplyr::left_join(fi,
+                   by=c("childid")
+  ) %>%
+  dplyr::left_join(m_cg %>% 
+                     select(cg_age=cb1,
+                            cg_female,
+                            cg_primary,
+                            childid),
+                   by=c("childid")
+  ) %>%
+  dplyr::left_join(child_order,
                    by=c("childid")
   ) %>%
   # Adjust variables to become ordinal/binary

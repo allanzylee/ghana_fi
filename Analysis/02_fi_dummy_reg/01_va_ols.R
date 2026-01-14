@@ -26,7 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+factor(month)+'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,

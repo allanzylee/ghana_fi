@@ -111,3 +111,8 @@ modelsummary(reg,
              latex_options = c("booktabs", "scale_down"),
              escape = FALSE)
 
+# Within household versions here
+reg<-glm(diff ~ age + female + ch_rank+factor(careid),
+         data = full_data_w)
+summary(reg)
+

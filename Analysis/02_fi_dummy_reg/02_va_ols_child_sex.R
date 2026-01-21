@@ -26,7 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 model=c('~ e_cfies_indicator+e_fies_indicator+e_cfies_indicator*female+e_fies_indicator*female+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+e_cfies_indicator*female+e_fies_indicator*female+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -54,7 +54,7 @@ modelsummary(va_ols_region_results,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
+             notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, child rank in percentile by age, region, and household randomized treatment.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/02_va_ols_child_sex.html",
              escape = FALSE)
 
@@ -73,7 +73,7 @@ modelsummary(va_ols_region_results,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
+             notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, child rank in percentile by age, region, and household randomized treatment.",
              out='latex',
              escape = FALSE)
 

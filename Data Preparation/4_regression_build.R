@@ -52,7 +52,30 @@ outcome_checker<- read_rds("build/outcome_zscore_checker.rds") %>%
   mutate(across(contains('id'),~as.double(.)))
 outcome_raw<- read_rds("build/outcome_raw.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
-e_household=read_dta('import/01_PNP_Endline_HouseholdSurvey.dta')
+# Calculate child rank variable
+e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta") %>%
+  mutate(
+    across(starts_with("cr0_"), as.double),
+    across(starts_with("cr6_"), as.double),
+    careid = as.double(careid)
+  ) %>%
+  select(careid, starts_with("cr0_"), starts_with("cr6_")) %>%
+  pivot_longer(
+    cols = c(starts_with("cr0_"), starts_with("cr6_")),
+    names_to = c(".value", "child_num"),
+    names_pattern = "cr(0|6)_(.*)"
+  ) %>%
+  rename(
+    childid   = `0`,
+    child_age = `6`
+  ) %>%
+  select(careid, childid, child_age) %>% 
+  arrange(careid,child_age) %>% 
+  group_by(careid) %>% 
+  mutate(
+    age_pct_rank = percent_rank(child_age)
+  ) %>%
+  ungroup()
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -115,7 +138,10 @@ full_data_w <- e_child %>%
   ) %>%
   dplyr::left_join(child_order,
                    by=c("childid")
+  
   ) %>%
+  dplyr::left_join(e_household %>% select(childid,age_pct_rank),
+                   by=c("childid")) %>% 
   # Adjust variables to become ordinal/binary
   mutate(across(contains('enroll_ch'),~case_when(.!=1~0,
                                                  T~1)),
@@ -167,7 +193,8 @@ full_data_w <- e_child %>%
     !is.na(e_lit_per),
     !is.na(e_num_per),
     !is.na(e_sel_per),
-    !is.na(e_ef_per)
+    !is.na(e_ef_per),
+    !is.na(age_pct_rank)
          ) %>%
   # left_join(num_kids,by=c('careid')) %>%
   fastDummies::dummy_cols(select_columns='region') %>% 

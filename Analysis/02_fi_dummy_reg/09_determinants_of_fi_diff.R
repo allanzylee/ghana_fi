@@ -27,7 +27,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 ##########################################################################################
 
 # Define base OLS input
-reg<-glm(diff ~ age + female + ch_rank+num_kids+ cg_female+cg_primary+cg_age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
+reg<-glm(diff ~ age + female + age_pct_rank+ cg_female+cg_primary+cg_age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
          data = full_data_w)
 summary(reg)
 
@@ -42,7 +42,7 @@ modelsummary(reg,
                         'lagged_outcome'="Lagged Outcome",
                         "female"="Child is Female",
                         'age'='Child is 10-17',
-                        'ch_rank'='Child Rank',
+                        'age_pct_rank'='Child Rank',
                         'num_kids'='No. Kids',
                         'cg_primary'="Caregiver Attended Primary School",
                         'cg_age'='Caregiver Age',

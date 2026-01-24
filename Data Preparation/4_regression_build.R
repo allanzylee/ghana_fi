@@ -92,7 +92,7 @@ full_data_w <- e_child %>%
          e_ch_health_rel=cw2,
          e_ch_edu_asp=ja3,
          contains('fs'),
-         treatment,
+         treatment_raw=treatment,
          startdate
          ) %>% 
   rename_with(~ paste0(., "_child"), .cols = matches("^fs\\d+$")) %>% 
@@ -152,7 +152,7 @@ full_data_w <- e_child %>%
          across(contains('school_type'),~if_else(.==1,0,1)),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
-         treatment=case_when(treatment>0 ~ 1,
+         treatment=case_when(treatment_raw>0 ~ 1,
                              T~0),
          region=case_when(region==""~"Northern",
                           T~region),

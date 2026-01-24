@@ -32,7 +32,7 @@ reg_func <- function(category, model){
   for_reg<-full_data_w %>% 
     rename(lagged_outcome=m_category_str)
   
-  fm <- as.formula(paste(e_category_str, model, 'lagged_outcome'))  
+  fm <- as.formula(paste(e_category_str, model, 'lagged_outcome','| factor(month)+factor(year)'))  
   reg <- feols(fm,
             data=for_reg,
             cluster=~careid)

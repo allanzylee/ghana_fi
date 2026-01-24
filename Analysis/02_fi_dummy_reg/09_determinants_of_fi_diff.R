@@ -20,14 +20,16 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
   mutate(diff=case_when(e_cfies_indicator!=e_fies_indicator~1,
-                        T~0))
+                        T~0),
+         attend=case_when(as.double(e_attend)>3~1,
+                          T~0))
 
 ##########################################################################################
 ############################## Multivariate OLS Regression w/ Region and household randomized treatment + Age and Gender ##############################
 ##########################################################################################
 
 # Define base OLS input
-reg<-glm(diff ~ age + female + age_pct_rank+ cg_female+cg_primary+cg_age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
+reg<-glm(diff ~ age + female + age_pct_rank+ attend+cg_female+cg_primary+cg_age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
          data = full_data_w)
 summary(reg)
 
@@ -43,6 +45,7 @@ modelsummary(reg,
                         "female"="Child is Female",
                         'age'='Child is 10-17',
                         'age_pct_rank'='Child Rank',
+                        'attend'='Child Attends School',
                         'num_kids'='No. Kids',
                         'cg_primary'="Caregiver Attended Primary School",
                         'cg_age'='Caregiver Age',
@@ -112,7 +115,7 @@ modelsummary(reg,
              escape = FALSE)
 
 # Within household versions here
-reg<-glm(diff ~ age + female + ch_rank+factor(careid),
-         data = full_data_w)
-summary(reg)
+# reg<-glm(diff ~ age + female + ch_rank+factor(careid),
+#          data = full_data_w)
+# summary(reg)
 

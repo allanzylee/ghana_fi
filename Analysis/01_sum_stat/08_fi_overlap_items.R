@@ -22,6 +22,9 @@ library(glue)
 library(ltm)
 library(xtable)
 library(writexl)
+library(knitr)
+library(kableExtra)
+library(flextable)
 
 ##########################################################################################
 ###################################### Load relevant data ################################
@@ -55,79 +58,139 @@ overlap_perc_raw<-full_data_w %>%
                 # Hungry but didn't eat
                 'hungry_child'=fs5_child,
                 'hungry_cg'=fs7_cg
-                ) %>% 
-  pivot_longer(cols=-c(childid,
-                       careid,
-                       female,
-                       age),
-               names_to = c(".value", "category"), 
-               names_sep ="_") 
+                )
 
-perc_overall<-overlap_perc_raw%>% 
-  group_by(category) %>% 
-  summarise(across(c("worry",
-                     'cut',
-                     'skip',
-                     'hungry'),
-                   ~mean(.,
-                         na.rm=T))) %>% 
-  mutate(type='Overall')
+# Create input
+perc_diff_input<-expand.grid(cat=c('overall','female','male','older','younger','older_female','older_male','younger_female','younger_male'),
+                             outcome=c('worry','cut','skip','hungry'))
 
-perc_gender<-overlap_perc_raw%>% 
-  group_by(category,
-           female)%>% 
-  summarise(across(c("worry",
-                     'cut',
-                     'skip',
-                     'hungry'),
-                   ~mean(.,
-                         na.rm=T))) %>% 
-  mutate(type=case_when(female==1 ~ 'Child is Female',
-                         T~'Child is Male')) %>% 
-  ungroup() %>% 
-  dplyr::select(-female) %>% 
-  arrange(type)
+# Create function to calculate percentage difference and pval
+perc_diff_func<-function(cat,outcome){
+  
+  if(cat=='overall'){
+    
+    df=overlap_perc_raw
+    
+  } else if(cat=='female'){
+    
+    df=overlap_perc_raw %>% filter(female==1)
+    
+  } else if(cat=='male'){
+    
+    df=overlap_perc_raw %>% filter(female==0)
+    
+  } else if(cat=='older'){
+    
+    df=overlap_perc_raw %>% filter(age==1)
+    
+  } else if(cat=='younger'){
+    
+    df=overlap_perc_raw %>% filter(age==0)
+    
+  } else if(cat=='older_female'){
+    
+    df=overlap_perc_raw %>% filter(age==1, female==1)
+    
+  } else if(cat=='older_male'){
+    
+    df=overlap_perc_raw %>% filter(age==1,female==0)
+     
+  } else if(cat=='younger_female'){
+    
+    df=overlap_perc_raw %>% filter(age==0, female==1)
+    
+  } else {
+    
+    df=overlap_perc_raw %>% filter(age==0,female==0)
+    
+  }
+  
+  # Create outcome string
+  ch_outcome=paste0(outcome,'_child')
+  cg_outcome=paste0(outcome,'_cg')
+  
+  tab <- table(
+    Child  = overlap_perc_raw[[ch_outcome]],
+    Parent = overlap_perc_raw[[cg_outcome]]
+  )
+  
+  mc=mcnemar.test(tab,correct = F)
+  
+  out <- df %>% 
+    summarise(
+      child_pct  = mean(!!ensym(ch_outcome), na.rm = TRUE) * 100,
+      cg_pct = mean(!!ensym(cg_outcome),    na.rm = TRUE) * 100,
+      N_pairs    = sum(!is.na(!!ensym(ch_outcome)) & !is.na(!!ensym(cg_outcome))),
+      discordant_pct = mean(!!ensym(ch_outcome) != !!ensym(cg_outcome), na.rm = TRUE) * 100
+    ) %>% 
+    mutate(
+      diff_pp = child_pct - cg_pct,
+      pval    = mc$p.value,
+      cat=cat,
+      outcome=outcome
+    )
+  
+}
 
-perc_age<-overlap_perc_raw%>% 
-  group_by(category,
-           age)%>% 
-  summarise(across(c("worry",
-                     'cut',
-                     'skip',
-                     'hungry'),
-                   ~mean(.,
-                         na.rm=T))) %>% 
-  mutate(type=case_when(age==1 ~ 'Child is 10-17',
-                        T~'Child is 5-9')) %>% 
-  ungroup() %>% 
-  dplyr::select(-age)%>% 
-  arrange(type)
+# run function
+overlap_perc<-pmap_dfr(perc_diff_input,
+              perc_diff_func)
 
-perc_gender_age<-overlap_perc_raw%>% 
-  group_by(category,
-           age,
-           female)%>% 
-  summarise(across(c("worry",
-                     'cut',
-                     'skip',
-                     'hungry'),
-                   ~mean(.,
-                         na.rm=T))) %>% 
-  mutate(type=case_when(age==1 & female==1 ~ 'Child is Female (10-17)',
-                        age==1 & female==0 ~ 'Child is Male (10-17)',
-                        age==0 & female==1 ~ 'Child is Female (5-9)',
-                        T~'Child is Male (5-9)')) %>% 
-  ungroup() %>% 
-  dplyr::select(-age,
-                -female) %>% 
-  arrange(type)
+# perc_gender<-overlap_perc_raw%>% 
+#   group_by(category,
+#            female)%>% 
+#   summarise(across(c("worry",
+#                      'cut',
+#                      'skip',
+#                      'hungry'),
+#                    ~mean(.,
+#                          na.rm=T))) %>% 
+#   mutate(type=case_when(female==1 ~ 'Child is Female',
+#                          T~'Child is Male')) %>% 
+#   ungroup() %>% 
+#   dplyr::select(-female) %>% 
+#   arrange(type)
+# 
+# perc_age<-overlap_perc_raw%>% 
+#   group_by(category,
+#            age)%>% 
+#   summarise(across(c("worry",
+#                      'cut',
+#                      'skip',
+#                      'hungry'),
+#                    ~mean(.,
+#                          na.rm=T))) %>% 
+#   mutate(type=case_when(age==1 ~ 'Child is 10-17',
+#                         T~'Child is 5-9')) %>% 
+#   ungroup() %>% 
+#   dplyr::select(-age)%>% 
+#   arrange(type)
+# 
+# perc_gender_age<-overlap_perc_raw%>% 
+#   group_by(category,
+#            age,
+#            female)%>% 
+#   summarise(across(c("worry",
+#                      'cut',
+#                      'skip',
+#                      'hungry'),
+#                    ~mean(.,
+#                          na.rm=T))) %>% 
+#   mutate(type=case_when(age==1 & female==1 ~ 'Child is Female (10-17)',
+#                         age==1 & female==0 ~ 'Child is Male (10-17)',
+#                         age==0 & female==1 ~ 'Child is Female (5-9)',
+#                         T~'Child is Male (5-9)')) %>% 
+#   ungroup() %>% 
+#   dplyr::select(-age,
+#                 -female) %>% 
+#   arrange(type)
+# 
+# overlap_perc=bind_rows(perc_overall,
+#                        perc_gender,
+#                        perc_age,
+#                        perc_gender_age)
 
-overlap_perc=bind_rows(perc_overall,
-                       perc_gender,
-                       perc_age,
-                       perc_gender_age)
-
-# Create unction for overlap cor ------------------------------------------------------
+# Create function for overlap cor ------------------------------------------------------
 
 # Create data cor correlation 
 overlap_cor_df<-full_data_w %>% 
@@ -224,7 +287,12 @@ to_export<-list('cor'=as_tibble(overlap_cor),
 write_xlsx(to_export,
           "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_items.xlsx")
 
-# Create latex friendly version of table
+#####################################################################################################################
+####################################### LaTex Version ###############################################################
+#####################################################################################################################
+
+### Correlation
+
 latex_cor<-xtable(overlap_cor %>% 
          dplyr::select('Category'=category,
                 'Worry'=worry,
@@ -232,39 +300,105 @@ latex_cor<-xtable(overlap_cor %>%
                 'Skip'=skip,
                 'Hungry'=hungry))
 
-print(latex_cor,
-      include.rownames=FALSE)
+print(latex_cor, type = "latex", "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_item_cor.tex")
 
-latex_perc=xtable(overlap_perc %>% 
-         dplyr::select('Category'=type,
-                       'Worry'=worry,
-                       'Cut'=cut,
-                       'Skip'=skip,
-                       'Hungry'=hungry,
-                       'Reported by'=category) %>% 
-  mutate(`Reported by`=case_when(`Reported by`=='cg'~"Caregiver",
-                                 T~'Child')))
+### Percentage
 
-print(latex_perc,
-      include.rownames=FALSE)
+latex_perc=overlap_perc %>% 
+  mutate(
+    group = factor(cat, levels = unique(as.character(perc_diff_input$cat)))
+  ) %>%
+  mutate(
+    group_label = recode(
+      group,
+      "overall"        = "Overall",
+      "female"         = "Child is Female",
+      "male"           = "Child is Male",
+      "older"          = "Child is 10-17",
+      "younger"        = "Child is 5-9",
+      "older_female"   = "Child is Female (10-17)",
+      "older_male"     = "Child is male (10-17)",
+      "younger_female" = "Child is Female (5-9)",
+      "younger_male"   = "Child is Male (5-9)"
+    )
+  ) %>% 
+  pivot_wider(
+    names_from  = cat,
+    values_from = c(child_pct, cg_pct, pval)
+  ) %>%
+  arrange(group) %>% 
+  mutate(child_pct = coalesce(!!!dplyr::select(., dplyr::starts_with("child_pct"))),
+         cg_pct = coalesce(!!!dplyr::select(., dplyr::starts_with("cg_pct"))),
+         pval = coalesce(!!!dplyr::select(., dplyr::starts_with("pval")))) %>% 
+  dplyr::select(group_label, outcome, child_pct,cg_pct,pval) %>% 
+  pivot_wider(
+    names_from  = outcome,
+    values_from = c(child_pct, cg_pct, pval)
+  ) %>% 
+  dplyr::select(group_label,contains('worry'),contains('cut'),contains('skip'),contains('hungry')) %>% 
+  mutate(across(contains("pval"),
+                ~ sprintf("%.2f", .)),
+         across(
+           matches("child|cg"),
+           ~ paste0(sprintf("%.2f", .), "\\%")))
+  
+out<-kable(
+  latex_perc,
+  format = "latex",
+  booktabs = TRUE,
+  digits = 2,
+  col.names = c(
+    "Group",
+    rep(c("Child (\\%)", "Caregiver (\\%)", "P-value"), 4)
+  ),
+  align = "lcccccccccccc",
+  escape = FALSE
+) %>%
+  add_header_above(c(
+    " "      = 1,
+    "Worry"  = 3,
+    "Cut"    = 3,
+    "Skip"   = 3,
+    "Hungry" = 3
+  )) %>%
+  kable_styling(
+    latex_options = c("hold_position", "scale_down")
+  )
 
-# Calculate percentage difference mean
-perc_diff_mean<-overlap_perc %>% 
-  group_by(type) %>% 
-  mutate(across(c(worry,
-                  cut,
-                  skip,
-                  hungry),~.[category=='cg']-.[category=='child'])) %>% 
-  ungroup() %>% 
-  distinct(worry,
-           cut,
-           skip,
-           hungry) %>% 
-  summarise(across(c(worry,
-                     cut,
-                     skip,
-                     hungry),~mean(.,na.rm=T))) %>% 
-  rowwise() %>% 
-  summarise(
-            mean = mean(c_across(worry:hungry)),
-            median = median(c_across(worry:hungry))) 
+writeLines(out, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_item_perc.tex")
+
+
+# 
+#   xtable(overlap_perc %>% 
+#          dplyr::select('Category'=type,
+#                        'Worry'=worry,
+#                        'Cut'=cut,
+#                        'Skip'=skip,
+#                        'Hungry'=hungry,
+#                        'Reported by'=category) %>% 
+#   mutate(`Reported by`=case_when(`Reported by`=='cg'~"Caregiver",
+#                                  T~'Child')))
+# 
+# print(latex_perc,
+#       include.rownames=FALSE)
+# 
+# # Calculate percentage difference mean
+# perc_diff_mean<-overlap_perc %>% 
+#   group_by(type) %>% 
+#   mutate(across(c(worry,
+#                   cut,
+#                   skip,
+#                   hungry),~.[category=='cg']-.[category=='child'])) %>% 
+#   ungroup() %>% 
+#   distinct(worry,
+#            cut,
+#            skip,
+#            hungry) %>% 
+#   summarise(across(c(worry,
+#                      cut,
+#                      skip,
+#                      hungry),~mean(.,na.rm=T))) %>% 
+#   rowwise() %>% 
+#   summarise(
+#             mean = mean(c_across(worry:hungry)),
+#             median = median(c_across(worry:hungry))) 

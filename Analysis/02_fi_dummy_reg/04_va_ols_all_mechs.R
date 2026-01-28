@@ -45,8 +45,8 @@ cg_psyc_input='e_cg_emotional_engagement+cg_mh_scale'
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num'),
-                                   model=c(glue('~ e_cfies_indicator+e_fies_indicator+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+'),
-                                           glue('~ e_cfies_indicator+e_fies_indicator+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+{health_input}+{child_psyc_input}+{cg_psyc_input}+')
+                                   model=c(glue('~ e_cfies_indicator+e_fies_indicator+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+age_pct_rank+factor(month)+'),
+                                           glue('~ e_cfies_indicator+e_fies_indicator+female+region_north_east+region_northern+region_upper_east+region_upper_west+treatment+{edu_input}+{health_input}+{child_psyc_input}+{cg_psyc_input}+age_pct_rank+factor(month)+')
                                            ))
 
 # Regression results
@@ -113,7 +113,7 @@ modelsummary(va_ols_region_results,
                        '**' = .01,
                        '***' = .001),
              notes = "Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, region, and household randomized treatment. The child-reported health covariates are measured relative to children who reported very poor health. Attended School is a binary variable indicating whether the child attended school most of the time. Private school is a binary variable indicating whether the child attended private school. Caregiver Edu. Engagement is the sum of caregivers’ degree of agreement with statements related to whether they engage with their children’s education. Child Motivation is the sum of a child’s degree of agreement with statements related to whether they are motivated. Child Edu. Aspiration is a binary variable of whether a child aspires to complete high school. Caregiver Emo. Engagement is the sum of caregivers’ degree of agreement with statements related to whether they engage with their children’s emotional well-being. Caregiver Mental Health is the sum of caregivers’ degree of experience with poor mental health.",
-             out='latex',
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/04_va_ols_all_mechs.tex",
              latex_options = c("booktabs", "scale_down"),
              escape = FALSE)
 

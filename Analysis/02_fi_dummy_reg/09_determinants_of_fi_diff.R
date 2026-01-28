@@ -19,7 +19,7 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 ##########################################################################################
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
-  mutate(diff=case_when(e_cfies_indicator!=e_fies_indicator~1,
+  mutate(`FI Report Mismatch`=case_when(e_cfies_indicator!=e_fies_indicator~1,
                         T~0),
          attend=case_when(as.double(e_attend)>3~1,
                           T~0))
@@ -29,7 +29,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 ##########################################################################################
 
 # Define base OLS input
-reg<-glm(diff ~ age + female + age_pct_rank+ attend+cg_female+cg_primary+cg_age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
+reg<-glm(`FI Report Mismatch` ~ age + female + age_pct_rank+ attend+cg_female+cg_primary+cg_age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west +factor(month),
          data = full_data_w)
 summary(reg)
 
@@ -71,12 +71,13 @@ modelsummary(reg,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates.",
+             modelnames = "FI Report Mismatch",
+             notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. FI Report Mismatch=1 if children and caregivers of a given household did not match in their food insecurity indicator reports. Child rank is constructed as a percentile rank of all children in a given household from oldest to youngest. Model includes month fixed effect. Robust standard errors clustered by caregiver are reported.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/09_determinants_of_fi_diff.html",
              escape = FALSE)
 
-modelsummary(reg,
-             title='\\label{appendix:missing}Regression of Disparity in Child-/Caregiver-Reported FI on Child/Caregiver Characteristics',
+modelsummary(dvnames(reg),
+             # title='\\label{appendix:missing}Regression of Disparity in Child-/Caregiver-Reported FI on Child/Caregiver Characteristics',
              fmt=f,
              cluster='careid',
              # coef_omit = "^(?!.*tercept|.*dummy|.*outcome)",
@@ -109,10 +110,13 @@ modelsummary(reg,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates.",
-             out='latex',
+             modelnames = "FI Report Mismatch",
+             notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. FI Report Mismatch=1 if children and caregivers of a given household did not match in their food insecurity indicator reports. Child rank is constructed as a percentile rank of all children in a given household from oldest to youngest. Model includes month fixed effect. Robust standard errors clustered by caregiver are reported.",
+             # out='latex',
              latex_options = c("booktabs", "scale_down"),
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/09_determinants_of_fi_diff.tex",
              escape = FALSE)
+
 
 # Within household versions here
 # reg<-glm(diff ~ age + female + ch_rank+factor(careid),

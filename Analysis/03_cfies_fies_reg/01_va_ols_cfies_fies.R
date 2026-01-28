@@ -23,7 +23,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                   model=c('~ e_cfies_scale+e_fies_scale+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+'))
+                                   model=c('~ e_cfies_scale+e_fies_scale+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+factor(month)+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -73,6 +73,6 @@ modelsummary(va_ols_region_results,
                        '**' = .01,
                        '***' = .001),
              notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
-             out='latex',
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/01_va_ols_cfies_fies.tex",
              escape = FALSE)
 

@@ -86,6 +86,7 @@ latex=xtable(out,
 
 
 print(latex, sanitize.colnames.function=function(x){x},
-      include.rownames=FALSE)
+      include.rownames=FALSE,
+      file="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/01b_sum_stat_mid_vs_end.tex",)
 
 

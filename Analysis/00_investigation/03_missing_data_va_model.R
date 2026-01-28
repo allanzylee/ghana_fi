@@ -47,7 +47,29 @@ outcome_checker<- read_rds("build/outcome_zscore_checker.rds") %>%
   mutate(across(contains('id'),~as.double(.)))
 outcome_raw<- read_rds("build/outcome_raw.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
-
+e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta") %>%
+  mutate(
+    across(starts_with("cr0_"), as.double),
+    across(starts_with("cr6_"), as.double),
+    careid = as.double(careid)
+  ) %>%
+  select(careid, starts_with("cr0_"), starts_with("cr6_")) %>%
+  pivot_longer(
+    cols = c(starts_with("cr0_"), starts_with("cr6_")),
+    names_to = c(".value", "child_num"),
+    names_pattern = "cr(0|6)_(.*)"
+  ) %>%
+  rename(
+    childid   = `0`,
+    child_age = `6`
+  ) %>%
+  select(careid, childid, child_age) %>% 
+  arrange(careid,child_age) %>% 
+  group_by(careid) %>% 
+  mutate(
+    age_pct_rank = percent_rank(child_age)
+  ) %>%
+  ungroup()
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -64,13 +86,16 @@ full_data_w <- e_child %>%
                 e_ch_health_rel=cw2,
                 e_ch_edu_asp=ja3,
                 contains('fs'),
-                treatment
+                treatment_raw=treatment,
+                startdate
   ) %>% 
   rename_with(~ paste0(., "_child"), .cols = matches("^fs\\d+$")) %>% 
   mutate(across(contains('fs'),~case_when(. == 1 ~ 2,
                                           . == 2 ~ 1,
                                           . == 3 ~ 0,
-                                          TRUE ~ NA_real_))) %>%
+                                          TRUE ~ NA_real_)),
+         year=year(startdate),
+         month=month(startdate)) %>%
   left_join(outcome_checker,
             by=c('childid')) %>% 
   left_join(outcome_raw %>% 
@@ -94,10 +119,12 @@ full_data_w <- e_child %>%
   #                                     contains('per')),
   #                  by=c("childid","careid")) %>% 
   dplyr::left_join(controls,
-                   by=c("childid","careid")) %>% 
+                   by=c("childid")) %>% 
   dplyr::left_join(fi,
                    by=c("childid")
   ) %>%
+  dplyr::left_join(e_household %>% select(childid,age_pct_rank),
+                   by=c("childid")) %>% 
   # Adjust variables to become ordinal/binary
   mutate(across(contains('enroll_ch'),~case_when(.!=1~0,
                                                  T~1)),
@@ -108,7 +135,7 @@ full_data_w <- e_child %>%
          across(contains('school_type'),~if_else(.==1,0,1)),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
-         treatment=case_when(treatment>0 ~ 1,
+         treatment=case_when(treatment_raw>0 ~ 1,
                              T~0),
          region=case_when(region==""~"Northern",
                           T~region),
@@ -152,16 +179,17 @@ full_data_w <- e_child %>%
       !is.na(e_lit_per)&
       !is.na(e_num_per)&
       !is.na(e_sel_per)&
+      !is.na(age_pct_rank)&
       !is.na(e_ef_per) ~ 0,
     T~1
   ))
 
-# Regress missingness on food insecurity, child sex, age, caregiver has education, caregiver age, caregiver gender, poverty status, region, pnp
-reg<-glm(missing ~ e_cfies_indicator+e_fies_indicator + age + female + treatment+region_north_east+region_northern+region_upper_east+region_upper_west ,
+# Regress missingness on food insecurity, child sex, age etc
+reg<-glm(missing ~ e_cfies_indicator+e_fies_indicator + age + female + treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+factor(month),
          data = full_data_w)
 summary(reg)
 
-reg=list('Child is Exclued from Sample'=reg)
+reg=list('Child is Excluded from Sample'=reg)
 
 # Export results
 modelsummary(reg,
@@ -237,7 +265,7 @@ modelsummary(reg,
                        '**' = .01,
                        '***' = .001),
              notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates.",
-             out='latex',
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/03_missing_data_va_model.tex",
              latex_options = c("booktabs", "scale_down"),
              escape = FALSE)
 

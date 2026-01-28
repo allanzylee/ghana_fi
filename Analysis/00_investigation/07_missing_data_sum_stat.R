@@ -47,7 +47,29 @@ outcome_checker<- read_rds("build/outcome_zscore_checker.rds") %>%
   mutate(across(contains('id'),~as.double(.)))
 outcome_raw<- read_rds("build/outcome_raw.rds") %>% 
   mutate(across(contains('id'),~as.double(.)))
-
+e_household <- read_dta("import/01_PNP_Endline_HouseholdSurvey.dta") %>%
+  mutate(
+    across(starts_with("cr0_"), as.double),
+    across(starts_with("cr6_"), as.double),
+    careid = as.double(careid)
+  ) %>%
+  select(careid, starts_with("cr0_"), starts_with("cr6_")) %>%
+  pivot_longer(
+    cols = c(starts_with("cr0_"), starts_with("cr6_")),
+    names_to = c(".value", "child_num"),
+    names_pattern = "cr(0|6)_(.*)"
+  ) %>%
+  rename(
+    childid   = `0`,
+    child_age = `6`
+  ) %>%
+  select(careid, childid, child_age) %>% 
+  arrange(careid,child_age) %>% 
+  group_by(careid) %>% 
+  mutate(
+    age_pct_rank = percent_rank(child_age)
+  ) %>%
+  ungroup()
 
 ##########################################################################################
 ################################## Putting all data together #############################
@@ -64,13 +86,16 @@ full_data_w <- e_child %>%
                 e_ch_health_rel=cw2,
                 e_ch_edu_asp=ja3,
                 contains('fs'),
-                treatment
+                treatment_raw=treatment,
+                startdate
   ) %>% 
   rename_with(~ paste0(., "_child"), .cols = matches("^fs\\d+$")) %>% 
   mutate(across(contains('fs'),~case_when(. == 1 ~ 2,
                                           . == 2 ~ 1,
                                           . == 3 ~ 0,
-                                          TRUE ~ NA_real_))) %>%
+                                          TRUE ~ NA_real_)),
+         year=year(startdate),
+         month=month(startdate)) %>%
   left_join(outcome_checker,
             by=c('childid')) %>% 
   left_join(outcome_raw %>% 
@@ -94,10 +119,12 @@ full_data_w <- e_child %>%
   #                                     contains('per')),
   #                  by=c("childid","careid")) %>% 
   dplyr::left_join(controls,
-                   by=c("childid","careid")) %>% 
+                   by=c("childid")) %>% 
   dplyr::left_join(fi,
                    by=c("childid")
   ) %>%
+  dplyr::left_join(e_household %>% select(childid,age_pct_rank),
+                   by=c("childid")) %>% 
   # Adjust variables to become ordinal/binary
   mutate(across(contains('enroll_ch'),~case_when(.!=1~0,
                                                  T~1)),
@@ -108,7 +135,7 @@ full_data_w <- e_child %>%
          across(contains('school_type'),~if_else(.==1,0,1)),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
-         treatment=case_when(treatment>0 ~ 1,
+         treatment=case_when(treatment_raw>0 ~ 1,
                              T~0),
          region=case_when(region==""~"Northern",
                           T~region),
@@ -152,6 +179,7 @@ full_data_w <- e_child %>%
       !is.na(e_lit_per)&
       !is.na(e_num_per)&
       !is.na(e_sel_per)&
+      !is.na(age_pct_rank)&
       !is.na(e_ef_per) ~ 0,
     T~1
   ))
@@ -243,5 +271,6 @@ names(latex)=c("\\multicolumn{1}{p{2.5in}}{Statistic}",
 )
 
 print(latex, sanitize.colnames.function=function(x){x},
+      file="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/00_investigation/07_missing_data_sum_stat.tex",
       include.rownames=FALSE)
 

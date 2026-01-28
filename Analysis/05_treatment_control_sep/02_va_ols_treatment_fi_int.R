@@ -2,7 +2,7 @@
 
 # Author: Allan Lee
 # Date: May 23, 2025
-# Purpose: Run Baseline OLS Regression
+# Purpose: Run Baseline OLS Regression with month FE
 
 ##########################################################################################
 ############################################### Set up ###################################
@@ -26,11 +26,11 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+factor(month)+'))
+                                   model=c('~ e_cfies_indicator+e_fies_indicator+treatment*e_cfies_indicator+treatment*e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+factor(month)+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
-                                           reg_func) %>% 
+                             reg_func) %>% 
   set_names('Literacy',
             'Numeracy',
             'EF',
@@ -44,6 +44,8 @@ modelsummary(va_ols_region_results,
              coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*reatment)",
              coef_map=c('e_cfies_indicator'="Child-Reported FI",
                         'e_fies_indicator'="Caregiver-Reported FI",
+                        'e_cfies_indicator:treatment'='Child-Reported FI:Treatment',
+                        'e_fies_indicator:treatment'='Caregiver-Reported FI:Treatment',
                         'lagged_outcome'="Lagged Outcome",
                         'treatment'="Treatment",
                         '(Intercept)'='(Intercept)'),
@@ -53,7 +55,7 @@ modelsummary(va_ols_region_results,
                        '**' = .01,
                        '***' = .001),
              notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, child rank in percentile by age, region, and household randomized treatment.",
-             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/01_va_ols.html",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/05_treatment_control_sep/02_va_ols_treatment_fi_int.html",
              escape = FALSE)
 
 modelsummary(va_ols_region_results,
@@ -61,15 +63,15 @@ modelsummary(va_ols_region_results,
              cluster='careid',
              coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*reatment)",
              coef_map=c('e_cfies_indicator'="Child-Reported FI",
-                           'e_fies_indicator'="Caregiver-Reported FI",
-                           'lagged_outcome'="Lagged Outcome",
+                        'e_fies_indicator'="Caregiver-Reported FI",
+                        'lagged_outcome'="Lagged Outcome",
                         'treatment'="Treatment",
-                           '(Intercept)'='(Intercept)'),
+                        '(Intercept)'='(Intercept)'),
              gof_omit = 'AIC|BIC|Std.Errors',
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
              notes = "Note: Child- and Caregiver-Reported FI were defined as binary indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger than 4, respectively. Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, child rank in percentile by age, region, and household randomized treatment.",
-             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/01_va_ols.tex",
+             out='latex',
              escape = FALSE)
 

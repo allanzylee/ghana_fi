@@ -88,7 +88,7 @@ full_data_w<-full_data_w %>%
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=paste0('re',c(1:4,6:7)),
-                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west'))
+                                                 model=c('~ e_cfies_indicator+e_fies_indicator+female+age+treatment+age_pct_rank+factor(month)+region_north_east+region_northern+region_upper_east+region_upper_west'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -105,7 +105,7 @@ modelsummary(va_ols_region_results,
              title='SEL Item Model',
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*treatment)",
              coef_map=c('e_cfies_indicator'="Child-Reported Food Insecurity",
                            'e_fies_indicator'="Caregiver-Reported Food Insecurity",
                            'lagged_outcome'="Lagged Outcome",
@@ -124,7 +124,7 @@ than 4, respectively. Generalized Linear Models are used for this analysis to re
 raw<-modelsummary(va_ols_region_results,
              fmt=f,
              cluster='careid',
-             coef_omit = "^(?!.*tercept|.*indicator|.*outcome)",
+             coef_omit = "^(?!.*tercept|.*indicator|.*outcome|.*treatment)",
              coef_map=c('e_cfies_indicator'="Child-Reported Food Insecurity",
                         'e_fies_indicator'="Caregiver-Reported Food Insecurity",
                         'lagged_outcome'="Lagged Outcome",
@@ -137,7 +137,7 @@ raw<-modelsummary(va_ols_region_results,
              notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary
 indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger
 than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
-             out="latex",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/07_glm_sel_items.tex",
              booktabs=T, threeparttable = TRUE)
 
 formatted=raw %>% 

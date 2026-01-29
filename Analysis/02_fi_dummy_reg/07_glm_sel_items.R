@@ -117,7 +117,7 @@ modelsummary(va_ols_region_results,
                        '***' = .001),
              notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary
 indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger
-than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, child rank in percentile by age, and month fixed effects.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/07_glm_sel_items.html",
              escape = FALSE)
 
@@ -136,7 +136,7 @@ raw<-modelsummary(va_ols_region_results,
                        '***' = .001),
              notes = "Note: Child- and Caregiver-Reported Food insecurity were defined as binary
 indicators if the sum of CFIES was larger than 7 and if the sum of FIES was larger
-than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, and household randomized treatment.",
+than 4, respectively. Generalized Linear Models are used for this analysis to regress binary variables of whether a child reached out for help on food insecurity and other covariates. Covariates in the regression that are not shown include child sex, child age group, region, child rank in percentile by age, and month fixed effects.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/02_fi_dummy_reg/07_glm_sel_items.tex",
              booktabs=T, threeparttable = TRUE)
 

@@ -61,7 +61,7 @@ modelsummary(va_ols_region_results,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, child rank in percentile by age, child rank in percentile by age, and month fixed effects.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/02_va_ols_child_sex.html",
              escape = FALSE)
 
@@ -87,7 +87,8 @@ modelsummary(va_ols_region_results,
              stars = c('*' = .05, 
                        '**' = .01,
                        '***' = .001),
-             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, and household randomized treatment.",
+             notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child age group, region, child rank in percentile by age, child rank in percentile by age, and month fixed effects.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/02_va_ols_child_sex.tex",
+             latex_options = "scale_down",
              escape = FALSE)
 

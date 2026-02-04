@@ -76,5 +76,6 @@ modelsummary(va_ols_region_results,
                        '***' = .001),
              notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, child rank in percentile by age, and month fixed effects.",
              out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/01_va_ols_cfies_fies.tex",
+             latex_options = "scale_down",
              escape = FALSE)
 

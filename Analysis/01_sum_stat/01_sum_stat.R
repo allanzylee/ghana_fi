@@ -65,7 +65,11 @@ summed <- map_dfr(
     'region_northern',
     'region_savannah',
     'region_upper_east',
-    'region_upper_west'
+    'region_upper_west',
+    # Panel D: Caregiver Characteristics
+    'cg_female',
+    'cg_age',
+    'cg_primary'
   ),
   sum_stat_func
 ) %>%
@@ -74,8 +78,8 @@ summed <- map_dfr(
     across(
       -var,
       ~ case_when(
-        str_detect(var, 'age_num') ~ formatC(.x, format = "f", big.mark = ",", digits = 1),
-        TRUE                       ~ formatC(.x, format = "f", big.mark = ",", digits = 3)
+        str_detect(var, 'age_num|cg_age') ~ formatC(.x, format = "f", big.mark = ",", digits = 1),
+        TRUE                              ~ formatC(.x, format = "f", big.mark = ",", digits = 3)
       )
     )
   ) %>%
@@ -102,7 +106,10 @@ summed <- map_dfr(
     'region_northern'     = 'Northern',
     'region_savannah'     = 'Savannah',
     'region_upper_east'   = 'Upper East',
-    'region_upper_west'   = 'Upper West'
+    'region_upper_west'   = 'Upper West',
+    'cg_female'           = 'Caregiver is Female (\\%)',
+    'cg_age'              = 'Caregiver Age (Years)',
+    'cg_primary'          = 'Caregiver Completed Primary Education (\\%)'
   ))
 
 
@@ -119,9 +126,10 @@ make_row <- function(df, i) {
 }
 
 # Row index reference:
-# Panel A (Food Insecurity):       rows 1-10  (added disagree at row 3)
+# Panel A (Food Insecurity):       rows 1-10
 # Panel B (Child Characteristics): rows 11-16
 # Panel C (Region):                rows 17-21
+# Panel D (Caregiver):             rows 22-24
 
 panel_a_rows <- paste0(
   # Indicator rates (rows 1-3: child FI, caregiver FI, disagreement)
@@ -133,6 +141,7 @@ panel_a_rows <- paste0(
 
 panel_b_rows <- paste0(sapply(11:16, function(i) make_row(summed, i)), collapse = "")
 panel_c_rows <- paste0(sapply(17:21, function(i) make_row(summed, i)), collapse = "")
+panel_d_rows <- paste0(sapply(22:24, function(i) make_row(summed, i)), collapse = "")
 
 # N row
 n_row <- paste0(
@@ -162,10 +171,19 @@ latex_table <- paste0(
   "\\addlinespace \\midrule \\addlinespace\n",
   
   # Panel C
-  "\\multicolumn{3}{@{}l}{\\emph{Panel C: Region}} \\\\ \\addlinespace\n",
+  
+  "\\multicolumn{3}{@{}l}{\\emph{Panel C: Caregiver Characteristics}} \\\\ \\addlinespace\n",
+  panel_d_rows,
+  "\\addlinespace \\midrule \\addlinespace\n",
+  
+  # Panel D
+  
+  "\\multicolumn{3}{@{}l}{\\emph{Panel D: Region}} \\\\ \\addlinespace\n",
   panel_c_rows,
   "\\addlinespace \\midrule \\addlinespace\n",
   
+  
+
   # N
   n_row,
   

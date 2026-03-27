@@ -26,8 +26,7 @@ full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data
          !is.na(e_ch_motiv),                 !is.na(m_ch_motiv),
          !is.na(e_ch_edu_asp),               !is.na(m_ch_edu_asp),
          !is.na(e_cg_emotional_engagement),  !is.na(m_cg_emotional_engagement),
-         !is.na(e_attend),                   !is.na(m_attend),
-         !is.na(cg_mh_scale)) %>%
+         !is.na(e_attend),                   !is.na(m_attend)) %>%
   mutate(
     e_attend = case_when(as.double(e_attend) > 3 ~ 1, T ~ 0),
     m_attend = case_when(as.double(m_attend) > 3 ~ 1, T ~ 0)
@@ -48,8 +47,7 @@ mech_outcomes <- list(
   list(e_var = "e_ch_motiv",                m_var = "m_ch_motiv",                label = "Child Motivation"),
   list(e_var = "e_ch_edu_asp",              m_var = "m_ch_edu_asp",              label = "Child Edu. Aspiration"),
   # Caregiver Psychological
-  list(e_var = "e_cg_emotional_engagement", m_var = "m_cg_emotional_engagement", label = "Caregiver Emo. Engagement"),
-  list(e_var = "cg_mh_scale",               m_var = NULL,                        label = "Caregiver Mental Health")  # no midline available
+  list(e_var = "e_cg_emotional_engagement", m_var = "m_cg_emotional_engagement", label = "Caregiver Emo. Engagement")
 )
 
 ##########################################################################################
@@ -64,14 +62,15 @@ mech_outcome_reg <- function(mech) {
   e_var     <- mech$e_var
   m_var     <- mech$m_var
   is_factor <- is.factor(full_data_w[[e_var]])
+  is_binary <- e_var %in% c("e_attend", "e_private_school")
   
-  # Only include lagged term if m_var is available
-  lag_term <- if (!is.null(m_var)) paste0(m_var, " + ") else ""
-  rhs      <- glue("~ {fi} + {lag_term}{base_ctrl}")
-  fm       <- as.formula(paste(e_var, rhs))
+  rhs <- glue("~ {fi} + {m_var} + {base_ctrl}")
+  fm  <- as.formula(paste(e_var, rhs))
   
   if (is_factor) {
     reg <- polr(fm, data = full_data_w, Hess = TRUE)
+  } else if (is_binary) {
+    reg <- glm(fm, data = full_data_w, family = "binomial")
   } else {
     reg <- feols(fm, data = full_data_w, cluster = ~careid)
   }
@@ -88,7 +87,7 @@ mech_results <- map(mech_outcomes, mech_outcome_reg) %>%
 ##########################################################################################
 
 vcov_list <- map(mech_results, ~ {
-  if (inherits(.x, "polr")) {
+  if (inherits(.x, "polr") | inherits(.x, "glm")) {
     vcovCL(.x, cluster = full_data_w$careid)
   } else {
     NULL
@@ -106,28 +105,20 @@ indicators, the corresponding midline outcome, and base controls. Base controls 
 child sex, region fixed effects, treatment status, child percentile rank by age, and month
 fixed effects. Columns are grouped into four mechanism categories: Health Input, Educational
 Input, Child Psychological Input, and Caregiver Psychological Input. The Child Health column
-uses an ordered logit (polr); all other columns use OLS estimated via feols. The Caregiver
-Mental Health column has no midline counterpart and is estimated without a lagged outcome."
-
-# Build rename vec: only map non-NULL m_ variables to "Lagged Outcome"
-m_vars <- map_chr(mech_outcomes, ~ if (!is.null(.x$m_var)) .x$m_var else NA_character_) %>%
-  na.omit() %>%
-  as.character()
-lagged_rename <- set_names(rep("Lagged Outcome", length(m_vars)), m_vars)
+uses an ordered logit (polr); Attended School and Private School use logistic regression (glm);
+all other columns use OLS estimated via feols."
 
 coef_rename_vec <- c(
   'e_cfies_indicator' = "Child-Reported FI",
   'e_fies_indicator'  = "Caregiver-Reported FI",
-  'treatment'         = "Treatment",
-  '(Intercept)'       = "(Intercept)",
-  lagged_rename
+  'treatment'         = "Treatment"
 )
 
 ms_args <- list(
   models      = mech_results,
   fmt         = f,
   vcov        = vcov_list,
-  coef_omit   = "^(?!.*indicator|.*treatment|.*m_ch|.*m_attend|.*m_private|.*m_cg)|\\.\\|\\.",
+  coef_omit   = "^(?!.*indicator|.*treatment)|\\.\\|\\.",  # show only FI indicators and treatment
   coef_rename = coef_rename_vec,
   gof_omit    = 'AIC|BIC|Std.Errors',
   gof_map     = gm,
@@ -148,7 +139,6 @@ latex_content <- paste(readLines(out_tex), collapse = "\n")
 # Break long column headers onto two lines
 latex_content <- gsub("Caregiver Edu\\. Engagement",  "\\\\shortstack{Caregiver\\\\\\\\Edu. Engagement}",  latex_content)
 latex_content <- gsub("Caregiver Emo\\. Engagement",  "\\\\shortstack{Caregiver\\\\\\\\Emo. Engagement}",  latex_content)
-latex_content <- gsub("Caregiver Mental Health",       "\\\\shortstack{Caregiver\\\\\\\\Mental Health}",    latex_content)
 latex_content <- gsub("Child Edu\\. Aspiration",       "\\\\shortstack{Child Edu.\\\\\\\\Aspiration}",      latex_content)
 
 # Wrap tabular in resizebox

@@ -340,7 +340,8 @@ latex_perc=overlap_perc %>%
                 ~ sprintf("%.2f", .)),
          across(
            matches("child|cg"),
-           ~ paste0(sprintf("%.2f", .), "\\%")))
+           ~ paste0(sprintf("%.2f", .), "\\%"))) %>% 
+  select(-contains('pval'))
   
 out<-kable(
   latex_perc,
@@ -349,17 +350,17 @@ out<-kable(
   digits = 2,
   col.names = c(
     "Group",
-    rep(c("Child (\\%)", "Caregiver (\\%)", "P-value"), 4)
+    rep(c("Child (\\%)", "Caregiver (\\%)"), 4)
   ),
   align = "lcccccccccccc",
   escape = FALSE
 ) %>%
   add_header_above(c(
     " "      = 1,
-    "Worry"  = 3,
-    "Cut"    = 3,
-    "Skip"   = 3,
-    "Hungry" = 3
+    "Worry"  = 2,
+    "Cut"    = 2,
+    "Skip"   = 2,
+    "Hungry" = 2
   )) %>%
   kable_styling(
     latex_options = c("hold_position", "scale_down")

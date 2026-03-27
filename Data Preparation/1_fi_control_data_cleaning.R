@@ -137,6 +137,30 @@ fi <- e_cg_fs %>%
 #################### CG-Reported Parental Education Engagement data cleaning #########################
 ###################################################################################################
 
+# Midline
+m_cg_pe <- m_cg %>% 
+  dplyr::select(careid,childid,matches('pe[0-9]a'),pe8,pe9,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
+  # Change the ordinal form of PE8 and PE9
+  mutate_at(vars(pe8,pe9),funs(new=case_when(. == 4 ~ 3,
+                                             . == 3 ~ 2,
+                                             . == 2 ~ 1,
+                                             . == 1 ~ 0,
+                                             TRUE ~ NA_real_))) %>% 
+  # Drop the old pe8 and pe9; replace with the new ones and then reorder
+  # dplyr::select(-pe8,-pe9) %>% 
+  # rename("pe8"="pe8_new",
+  #        "pe9"="pe9_new") %>% 
+  dplyr::select(careid,childid,pe1a:pe6a,pe8=pe8_new,pe9=pe9_new,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
+  # Ensure that all columns are numeric
+  mutate(across(everything(),~as.double(.))) %>%
+  # Turn NAs into 0s
+  mutate(across(contains('pe'),~case_when(is.na(.)~0,
+                                          T~.))) %>%
+  mutate(m_cg_edu_engagement=dplyr::select(., contains("pe")) %>% rowSums()) %>% 
+  select(childid,
+         careid,
+         m_cg_edu_engagement)
+
 # Endline
 e_cg_pe <- e_cg %>% 
   dplyr::select(careid,childid,matches('pe[0-9]a'),pe8,pe9,pe10a,pe10b,pe10c,pe10d,pe10e) %>% 
@@ -164,6 +188,24 @@ e_cg_pe <- e_cg %>%
 ###################################################################################################
 #################### CG-Reported Parental Emotional Engagement data cleaning #########################
 ###################################################################################################
+m_cg_emotional_engagement<-m_cg %>% 
+  dplyr::select(childid,
+                careid,
+                es1,
+                es2,
+                es3,
+                es4,
+                es5,
+                es6) %>% 
+  mutate(es6=case_when(es6==4~1,
+                       es6==3~2,
+                       es6==2~3,
+                       T~4)) %>% 
+  mutate(across(contains('es'),~case_when(is.na(.)~0,
+                                          T~.)),
+         m_cg_emotional_engagement=es1+es2+es3+es4+es5+es6) %>% 
+  dplyr::select(-contains('es'))
+
 e_cg_emotional_engagement<-e_cg %>% 
   dplyr::select(childid,
          careid,
@@ -186,21 +228,21 @@ e_cg_emotional_engagement<-e_cg %>%
 #################### Clean HH Size, CG_Schooling, Motivation, and Self-Esteem #########################
 ###################################################################################################
 # 
-# # Midline Child Motivation and Esteem
-# m_ch_motiv_esteem <- m_child %>% 
-#   mutate(across(contains("mo"),~as.double(.)),
-#          across(contains("mo"),~case_when(.<0~0,T~.))) %>% 
-#   mutate(across(matches("se[0-9]"),~as.double(.)),
-#          across(matches("se[0-9]"),~case_when(.<0~0,T~.))) %>% 
-#   mutate(m_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>% 
-#   mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
-#                                               . == 3 ~ 2,
-#                                               . == 2 ~ 3,
-#                                               . == 1 ~ 4,
-#                                               TRUE ~ NA_real_))
-#   ) %>% 
-#   mutate(m_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>% 
-#   dplyr::select(childid,careid,m_ch_motiv,m_ch_esteem)
+# Midline Child Motivation and Esteem
+m_ch_motiv_esteem <- m_child %>%
+  mutate(across(contains("mo"),~as.double(.)),
+         across(contains("mo"),~case_when(.<0~0,T~.))) %>%
+  mutate(across(matches("se[0-9]"),~as.double(.)),
+         across(matches("se[0-9]"),~case_when(.<0~0,T~.))) %>%
+  mutate(m_ch_motiv=dplyr::select(., contains("mo")) %>% rowSums()) %>%
+  mutate(across(c(se2,se5,se8,se9),~case_when(. == 4 ~ 1,
+                                              . == 3 ~ 2,
+                                              . == 2 ~ 3,
+                                              . == 1 ~ 4,
+                                              TRUE ~ NA_real_))
+  ) %>%
+  mutate(m_ch_esteem=dplyr::select(., matches("se[0-9]")) %>% rowSums()) %>%
+  dplyr::select(childid,careid,m_ch_motiv)
 
 # Endline Child Motivation and Esteem
 e_ch_motiv_esteem <- e_child %>% 
@@ -236,8 +278,11 @@ cg_mh<-e_cg %>%
 ################################### Create and standardize control data for export ######################
 
 controls<-e_ch_motiv_esteem %>% 
+  left_join(m_ch_motiv_esteem,by=c('childid','careid')) %>% 
   left_join(e_cg_pe,by=c('childid','careid')) %>% 
   left_join(e_cg_emotional_engagement,by=c('childid','careid')) %>% 
+  left_join(m_cg_pe,by=c('childid','careid')) %>% 
+  left_join(m_cg_emotional_engagement,by=c('childid','careid')) %>% 
   mutate(across(c(childid,careid),~as.double(.))) %>%
   left_join(cg_mh,
             by=c('childid',
@@ -290,6 +335,9 @@ std_ctrl<-function(var){
 input=c('e_ch_motiv',
         'e_cg_edu_engagement',
         'e_cg_emotional_engagement',
+        'm_ch_motiv',
+        'm_cg_edu_engagement',
+        'm_cg_emotional_engagement',
         'cg_mh_scale')
 
 ctrl_std=map(input,

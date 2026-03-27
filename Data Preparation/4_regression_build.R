@@ -40,7 +40,14 @@ child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>%
 #   mutate(careid=as.double(careid))
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
-  filter(io2==1)
+  filter(io2==1) %>% 
+  select(careid,
+         childid,
+         m_ch_health=cw1,
+         m_school_type=ed2,
+         m_ch_edu_asp=ja3,
+         )
+
 m_cg <- read_dta("import/02_PNP_Midline_CaregiverSurvey.dta") %>% 
   mutate(across(contains('id'),~as.double(.))) %>% 
   mutate(cg_female=case_when(cb2==2~1,
@@ -95,6 +102,7 @@ full_data_w <- e_child %>%
          treatment_raw=treatment,
          startdate
          ) %>% 
+  left_join(m_child,by=c('childid','careid')) %>% 
   rename_with(~ paste0(., "_child"), .cols = matches("^fs\\d+$")) %>% 
   mutate(across(contains('fs'),~case_when(. == 1 ~ 2,
                                           . == 2 ~ 1,
@@ -133,7 +141,8 @@ full_data_w <- e_child %>%
                      select(cg_age=cb1,
                             cg_female,
                             cg_primary,
-                            childid),
+                            childid,
+                            m_attend=cr8,),
                    by=c("childid")
   ) %>%
   dplyr::left_join(child_order,
@@ -149,6 +158,9 @@ full_data_w <- e_child %>%
          e_private_school=case_when(e_school_type==2~1,
                                     is.na(e_school_type)~0,
                                    T~0),
+         m_private_school=case_when(m_school_type==2~1,
+                                    is.na(m_school_type)~0,
+                                    T~0),
          across(contains('school_type'),~if_else(.==1,0,1)),
          age_num=as.double(age),
          age=if_else((age>=5 & age <=9),0,1),
@@ -161,6 +173,9 @@ full_data_w <- e_child %>%
          across(contains('attend'),~as.factor(.)),
          e_ch_edu_asp=case_when(e_ch_edu_asp>=5~1,
                                 is.na(e_ch_edu_asp) ~ NA_real_, 
+                                T~0),
+         m_ch_edu_asp=case_when(m_ch_edu_asp>=5~1,
+                                is.na(m_ch_edu_asp) ~ NA_real_, 
                                 T~0)
          ) %>%
   # Create binary variables for health
@@ -176,8 +191,9 @@ full_data_w <- e_child %>%
   # Standardize investment mechanisms
   mutate(across(c(
                 e_ch_motiv,
-                # e_ch_edu_asp,
-                e_cg_emotional_engagement),
+                m_ch_motiv,
+                e_cg_emotional_engagement,
+                m_cg_emotional_engagement),
          ~scale(.)[,1])) %>%
   # Filter out NAs
   filter(

@@ -27,8 +27,8 @@ data<-full_data_w %>%
                 childid,
                 age,
                 female,
-                e_ch_fs_dummy,
-                e_cg_fs_dummy,
+                e_cfies_indicator,
+                e_fies_indicator,
                 matches('^e_.*per_raw$'))
 
 ############################# Child Outcomes: Mean by Group/Round ###############################
@@ -53,8 +53,8 @@ outcome_sum_stat_func <- function(var_group_str, str_1, str_0) {
 # Define Input
 input <- tribble(
   ~var_group_str, ~str_1, ~str_0,
-  'e_ch_fs_dummy',      "Child is FI", "Child is Not FI",
-  'e_cg_fs_dummy',      "Household is FI", "Household is Not FI"
+  'e_cfies_indicator',      "Child is FI", "Child is Not FI",
+  'e_fies_indicator',      "Household is FI", "Household is Not FI"
   
 )
 # 

@@ -35,7 +35,8 @@ e_cg <- read_dta("import/02_PNP_Endline_CaregiverSurvey.dta") %>%
          childid=as.double(childid)) %>% 
   mutate(across(contains('fs'),~as.double(.)))
 child_order <-read_dta("import/Child Order Dataset_12.15.22.dta") %>%
-  dplyr::select(childid, ch_rank=rank, num_kids)
+  mutate(poverty=mid_PPI_pct/100) %>% 
+  dplyr::select(childid, ch_rank=rank, num_kids,poverty) 
 # baseline_enrollment_reg<-read_dta("import/Enrolment & Caregiver Survey_depii.dta") %>% 
 #   mutate(careid=as.double(careid))
 m_child <- read_dta("import/03_PNP_Midline_ChildSurvey.dta") %>% 

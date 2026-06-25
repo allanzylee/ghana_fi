@@ -46,6 +46,12 @@ poverty_pval <- function(var_name) {
   tryCatch(t.test(x, y)$p.value, error = function(e) NA_real_)
 }
 
+edu_pval <- function(var_name) {
+  x <- full_data_w %>% filter(edu_group == "cg_primary_yes") %>% pull(.data[[var_name]])
+  y <- full_data_w %>% filter(edu_group == "cg_primary_no")  %>% pull(.data[[var_name]])
+  tryCatch(t.test(x, y)$p.value, error = function(e) NA_real_)
+}
+
 # Format p-value with stars
 format_pval <- function(p) {
   if (is.na(p)) return("")
@@ -65,7 +71,8 @@ sum_stat_subgroup_func <- function(var_name, label) {
     below_poverty  = subgroup_mean(full_data_w, var_name, "poverty_group", "below_poverty"),
     pval_poverty   = poverty_pval(var_name),
     cg_primary_yes = subgroup_mean(full_data_w, var_name, "edu_group", "cg_primary_yes"),
-    cg_primary_no  = subgroup_mean(full_data_w, var_name, "edu_group", "cg_primary_no")
+    cg_primary_no  = subgroup_mean(full_data_w, var_name, "edu_group", "cg_primary_no"),
+    pval_edu       = edu_pval(var_name)          # <-- new
   )
 }
 
@@ -91,7 +98,8 @@ summed <- summed_raw %>%
   mutate(
     across(c(above_poverty, below_poverty, cg_primary_yes, cg_primary_no),
            ~ formatC(.x, format = "f", digits = 3)),
-    pval_poverty = map_chr(pval_poverty, format_pval)
+    pval_poverty = map_chr(pval_poverty, format_pval),
+    pval_edu     = map_chr(pval_edu,     format_pval)   # <-- new
   )
 
 # Subgroup Ns
@@ -103,7 +111,6 @@ n_cg_no  <- sum(full_data_w$edu_group     == "cg_primary_no",  na.rm = TRUE)
 ##########################################################################################
 ###################################### Build LaTeX Table #################################
 ##########################################################################################
-
 make_row <- function(df, i) {
   paste0(
     df$var[i],            " & ",
@@ -111,7 +118,8 @@ make_row <- function(df, i) {
     df$below_poverty[i],  " & ",
     df$pval_poverty[i],   " & ",
     df$cg_primary_yes[i], " & ",
-    df$cg_primary_no[i],  " \\\\\n"
+    df$cg_primary_no[i],  " & ",
+    df$pval_edu[i],       " \\\\\n"   # <-- new
   )
 }
 
@@ -136,19 +144,27 @@ latex_table <- paste0(
   "\\begin{table}[H]\n",
   "\\caption{Food Insecurity Measures by Poverty and Caregiver Education}\n",
   "\\label{tab:fi_subgroup}\\small\n",
-  "\\begin{tabular}{@{}lccccc@{}}\n",
+  "\\begin{tabular}{@{}lcccccc@{}}\n",   # 7 cols now
   "\\toprule\n",
-  " & \\multicolumn{3}{c}{Poverty} & \\multicolumn{2}{c}{Caregiver Education} \\\\\n",
-  "\\cmidrule(lr){2-4} \\cmidrule(lr){5-6}\n",
-  " & Above Median & Below Median & p-value & Completed Primary & Did Not Complete Primary \\\\\n",
-  " & (1) & (2) & (3) & (4) & (5) \\\\\n",
+  " & \\multicolumn{3}{c}{Poverty} & \\multicolumn{3}{c}{Caregiver Education} \\\\\n",
+  "\\cmidrule(lr){2-4} \\cmidrule(lr){5-7}\n",
+  " & Above Median & Below Median & p-value & Completed Primary & Did Not Complete Primary & p-value \\\\\n",
+  " & (1) & (2) & (3) & (4) & (5) & (6) \\\\\n",
   "\\midrule \\addlinespace\n",
   
   "\\multicolumn{6}{@{}l}{\\emph{Panel A: Food Insecurity Experiences}} \\\\ \\addlinespace\n",
   panel_a_rows,
   "\\addlinespace \\midrule \\addlinespace\n",
   
-  n_row,
+  n_row <- paste0(
+    "Total Observations & ",
+    formatC(n_above,  big.mark = ","), " & ",
+    formatC(n_below,  big.mark = ","), " & ",
+    " & ",
+    formatC(n_cg_yes, big.mark = ","), " & ",
+    formatC(n_cg_no,  big.mark = ","), " & ",
+    " \\\\\n"   # blank p-value cell for N row
+  ),
   
   "\\bottomrule\n",
   "\\end{tabular}\n",

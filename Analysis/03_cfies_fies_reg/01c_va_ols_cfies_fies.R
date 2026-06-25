@@ -17,27 +17,27 @@ source("/Users/AllanLee/Desktop/Personal Projects/ECON4900/Code/Analysis/header.
 ##########################################################################################
 ###################################### Load relevant data ################################
 ##########################################################################################
-
-# Define reg func without midline
-reg_func=function(category, model){
-  e_category_str<-paste0("e_",category,"_per")
-  m_category_str<-paste0("m_",category,"_per")
-  
-  for_reg<-full_data_w
-  
-  fm <- as.formula(paste(e_category_str, model,'| factor(month)+factor(year)'))  
-  reg <- feols(fm,
-               data=for_reg,
-               cluster=~careid)
-  return(reg)
-}
+# 
+# # Define reg func without midline
+# reg_func=function(category, model){
+#   e_category_str<-paste0("e_",category,"_per")
+#   m_category_str<-paste0("m_",category,"_per")
+#   
+#   for_reg<-full_data_w
+#   
+#   fm <- as.formula(paste(e_category_str, model,'| factor(month)+factor(year)'))  
+#   reg <- feols(fm,
+#                data=for_reg,
+#                cluster=~careid)
+#   return(reg)
+# }
 
 full_data_w <- read_rds('/Users/AllanLee/Desktop/Personal Projects/ECON4900/Data/build/regression_build_w.rds') %>% 
   mutate(e_fies_scale=as.factor(e_fies_scale))
 
 # Define base OLS input
 va_ols_input_region <- expand.grid(category=c('lit','num','ef','sel'),
-                                   model=c('~ e_cfies_scale+e_fies_scale+m_fies_scale+m_cfies_scale+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+factor(month)'))
+                                   model=c('~ e_cfies_scale+e_fies_scale+m_fies_scale+m_cfies_scale+female+age+treatment+region_north_east+region_northern+region_upper_east+region_upper_west+age_pct_rank+'))
 
 # Regression results
 va_ols_region_results<- pmap(va_ols_input_region,
@@ -68,7 +68,7 @@ modelsummary(va_ols_region_results,
                        '**' = .01,
                        '***' = .001),
              notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, child rank in percentile by age, and month fixed effects.",
-             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/01_va_ols_cfies_fies.html",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/01d_va_ols_cfies_fies.html",
              escape = FALSE)
 
 modelsummary(va_ols_region_results,
@@ -88,7 +88,7 @@ modelsummary(va_ols_region_results,
                        '**' = .01,
                        '***' = .001),
              notes = "Note: Robust standard errors clustered by caregiver are reported. Results reported come from a value-added model that controls for midline standardized outcomes and covariates. Covariates in the regression that are not shown include child sex, child age group, region, child rank in percentile by age, and month fixed effects.",
-             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/01c_va_ols_cfies_fies.html",
+             out="/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/03_cfies_fies_reg/01d_va_ols_cfies_fies.html",
              latex_options = "scale_down",
              escape = FALSE)
 

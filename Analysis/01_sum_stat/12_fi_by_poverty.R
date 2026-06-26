@@ -183,3 +183,48 @@ latex_table <- paste0(
 
 writeLines(latex_table,
            "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/12_fi_by_poverty.tex")
+
+full_data_w <- full_data_w %>%
+  mutate(
+    # Flip caregiver education
+    cg_no_primary = case_when(
+      is.na(cg_primary) ~ NA_real_,
+      TRUE ~ 1 - cg_primary
+    )
+  )
+
+# 2. Function to run t-tests ----------------------------------------------
+
+run_tests <- function(data, group_var, label){
+  
+  var_name <- deparse(substitute(group_var))
+  
+  f1 <- as.formula(paste("poverty ~", var_name))
+  f2 <- as.formula(paste("cg_no_primary ~", var_name))
+  
+  tibble(
+    group = label,
+    poverty_test = list(t.test(f1, data = data)),
+    cg_test = list(t.test(f2, data = data))
+  ) %>%
+    mutate(
+      poverty_diff = map_dbl(poverty_test, ~ diff(.x$estimate)),
+      poverty_pval = map_dbl(poverty_test, ~ .x$p.value),
+      cg_no_primary_diff = map_dbl(cg_test, ~ diff(.x$estimate)),
+      cg_no_primary_pval = map_dbl(cg_test, ~ .x$p.value)
+    ) %>%
+    select(group, poverty_diff, poverty_pval,
+           cg_no_primary_diff, cg_no_primary_pval)
+}
+
+# 3. Run tests ------------------------------------------------------------
+
+test1 <- run_tests(full_data_w, e_fies_indicator, "Household FI")
+test2 <- run_tests(full_data_w, e_cfies_indicator, "Child FI")
+test3 <- run_tests(full_data_w, age, "Older (10–17) vs Younger (5–9)")
+test4 <- run_tests(full_data_w, female, "Female vs Male")
+
+# 4. Combine results ------------------------------------------------------
+
+out <- bind_rows(test1, test2, test3, test4)
+

@@ -86,10 +86,10 @@ summed <- map_dfr(
   # Relabel variables
   mutate(var = recode(
     var,
-    'e_cfies_indicator'   = 'Child-Reported FI (\\%)',
-    'e_fies_indicator'    = 'Caregiver-Reported FI (\\%)',
-    'disagree'            = 'Child-Caregiver FI Disagreement (\\%)',
-    'e_cfies_scale_0'     = 'Child: No FI (CFIES=0)',
+    'e_cfies_indicator'   = 'Child-Reported Food Insecurity (\\%)',
+    'e_fies_indicator'    = 'Caregiver-Reported Food Insecurity (\\%)',
+    'disagree'            = 'Child-Caregiver Food Insecurity Disagreement (\\%)',
+    'e_cfies_scale_0'     = 'Child: No Food Insecurity (CFIES=0)',
     'e_cfies_scale_1'     = 'Child: Few Exp. (CFIES=1--6)',
     'e_cfies_scale_2'     = 'Child: Several Exp. (CFIES=7--10)',
     'e_cfies_scale_3'     = 'Child: Many Exp. (CFIES=11--20)',
@@ -98,10 +98,10 @@ summed <- map_dfr(
     'e_fies_scale_2'      = 'Caregiver: Severely Food Insecure (FIES=7--8)',
     'female'              = 'Child is Female (\\%)',
     'age_num'             = 'Child Age (Years)',
-    'e_lit_per_raw'       = 'Literacy (\\% Correct)',
-    'e_num_per_raw'       = 'Numeracy (\\% Correct)',
-    'e_ef_per_raw'        = 'EF (\\% Correct)',
-    'e_sel_per_raw'       = 'SEL (\\% Correct)',
+    'e_lit_per_raw'       = 'Literacy Raw Score (\\% Correct)',
+    'e_num_per_raw'       = 'Numeracy Raw Score (\\% Correct)',
+    'e_ef_per_raw'        = 'Executive Function Raw Score (\\% Correct)',
+    'e_sel_per_raw'       = 'Social-emotional Learning Raw Score (\\% Correct)',
     'region_north_east'   = 'North East',
     'region_northern'     = 'Northern',
     'region_savannah'     = 'Savannah',
@@ -109,7 +109,7 @@ summed <- map_dfr(
     'region_upper_west'   = 'Upper West',
     'cg_female'           = 'Caregiver is Female (\\%)',
     'cg_age'              = 'Caregiver Age (Years)',
-    'cg_primary'          = 'Caregiver Completed Primary Education (\\%)'
+    'cg_primary'          = 'Caregiver Completed Primary Education or Above (\\%)'
   ))
 
 
@@ -166,7 +166,7 @@ latex_table <- paste0(
   "\\addlinespace \\midrule \\addlinespace\n",
   
   # Panel B
-  "\\multicolumn{3}{@{}l}{\\emph{Panel B: Child Characteristics}} \\\\ \\addlinespace\n",
+  "\\multicolumn{3}{@{}l}{\\emph{Panel B: Child Characteristics and Outcomes}} \\\\ \\addlinespace\n",
   panel_b_rows,
   "\\addlinespace \\midrule \\addlinespace\n",
   

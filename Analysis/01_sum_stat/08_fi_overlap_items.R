@@ -302,11 +302,15 @@ latex_cor<-xtable(overlap_cor %>%
 
 print(latex_cor, type = "latex", "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_item_cor.tex")
 
-### Percentage
-
-latex_perc=overlap_perc %>% 
+latex_perc <- overlap_perc %>%
   mutate(
-    group = factor(cat, levels = unique(as.character(perc_diff_input$cat)))
+    group = factor(cat, levels = c(
+      "overall",
+      "female", "male",
+      "younger", "older",
+      "younger_female", "younger_male",
+      "older_female", "older_male"
+    ))
   ) %>%
   mutate(
     group_label = recode(
@@ -314,92 +318,75 @@ latex_perc=overlap_perc %>%
       "overall"        = "Overall",
       "female"         = "Child is Female",
       "male"           = "Child is Male",
-      "older"          = "Child is 10-17",
       "younger"        = "Child is 5-9",
-      "older_female"   = "Child is Female (10-17)",
-      "older_male"     = "Child is male (10-17)",
+      "older"          = "Child is 10-17",
       "younger_female" = "Child is Female (5-9)",
-      "younger_male"   = "Child is Male (5-9)"
+      "younger_male"   = "Child is Male (5-9)",
+      "older_female"   = "Child is Female (10-17)",
+      "older_male"     = "Child is Male (10-17)"
     )
-  ) %>% 
+  ) %>%
   pivot_wider(
     names_from  = cat,
     values_from = c(child_pct, cg_pct, pval)
   ) %>%
-  arrange(group) %>% 
-  mutate(child_pct = coalesce(!!!dplyr::select(., dplyr::starts_with("child_pct"))),
-         cg_pct = coalesce(!!!dplyr::select(., dplyr::starts_with("cg_pct"))),
-         pval = coalesce(!!!dplyr::select(., dplyr::starts_with("pval")))) %>% 
-  dplyr::select(group_label, outcome, child_pct,cg_pct,pval) %>% 
+  arrange(group) %>%
+  mutate(
+    child_pct = coalesce(!!!dplyr::select(., dplyr::starts_with("child_pct"))),
+    cg_pct    = coalesce(!!!dplyr::select(., dplyr::starts_with("cg_pct"))),
+    pval      = coalesce(!!!dplyr::select(., dplyr::starts_with("pval")))
+  ) %>%
+  dplyr::select(group_label, outcome, child_pct, cg_pct, pval) %>%
   pivot_wider(
     names_from  = outcome,
     values_from = c(child_pct, cg_pct, pval)
+  ) %>%
+  dplyr::select(
+    group_label,
+    contains('worry'), contains('cut'), contains('skip'), contains('hungry')
+  ) %>%
+  mutate(
+    across(matches("child|cg"), ~ paste0(sprintf("%.1f", .), "\\%")),
+    across(contains("pval"),    ~ sprintf("%.1f", .))
   ) %>% 
-  dplyr::select(group_label,contains('worry'),contains('cut'),contains('skip'),contains('hungry')) %>% 
-  mutate(across(contains("pval"),
-                ~ sprintf("%.2f", .)),
-         across(
-           matches("child|cg"),
-           ~ paste0(sprintf("%.2f", .), "\\%"))) %>% 
-  select(-contains('pval'))
-  
-out<-kable(
+  mutate(across(matches("child|cg"), ~ gsub("\\\\%", "", .)))
+
+body <- kable(
   latex_perc,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 2,
+  format    = "latex",
+  booktabs  = TRUE,
   col.names = c(
-    "Group",
-    rep(c("Child (\\%)", "Caregiver (\\%)"), 4)
+    "",
+    rep(c("Child", "Caregiver", "P-value"), 4)
   ),
-  align = "lcccccccccccc",
+  align  = "lcccccccccccc",
   escape = FALSE
 ) %>%
-  add_header_above(c(
-    " "      = 1,
-    "Worry"  = 2,
-    "Cut"    = 2,
-    "Skip"   = 2,
-    "Hungry" = 2
-  )) %>%
-  kable_styling(
-    latex_options = c("hold_position", "scale_down")
-  )
+  kable_styling(latex_options = c("hold_position", "scale_down"))
 
-writeLines(out, "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_item_perc.tex")
+header_rows <- c(
+  "\\multicolumn{1}{c}{} & \\multicolumn{3}{c}{\\textbf{Worry}} & \\multicolumn{3}{c}{\\textbf{Cut}} & \\multicolumn{3}{c}{\\textbf{Skip}} & \\multicolumn{3}{c}{\\textbf{Hungry}} \\\\",
+  "\\cmidrule(lr){2-4} \\cmidrule(lr){5-7} \\cmidrule(lr){8-10} \\cmidrule(lr){11-13}",
+  "\\multicolumn{1}{c}{} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{(\\%)} & \\multicolumn{1}{c}{} \\\\"
+)
+
+body_lines  <- strsplit(body, "\n")[[1]]
+toprule_idx <- which(grepl("\\\\toprule", body_lines))
+
+# Find the column name line (the line with "Child") and inject (%) row after it
+colname_idx <- which(grepl("Child", body_lines))[1]
+
+out_lines <- c(
+  body_lines[1:toprule_idx],
+  header_rows[1:2],                                        # bold headers + cmidrule
+  body_lines[(toprule_idx + 1):colname_idx],               # Child/Caregiver/P-value line
+  header_rows[3],                                          # (%) row immediately after
+  body_lines[(colname_idx + 1):length(body_lines)]
+)
+
+writeLines(out_lines,
+           "/Users/AllanLee/Desktop/Personal Projects/ECON4900/Output/01_sum_stat/08_fi_overlap_item_perc.tex")
 
 
-# 
-#   xtable(overlap_perc %>% 
-#          dplyr::select('Category'=type,
-#                        'Worry'=worry,
-#                        'Cut'=cut,
-#                        'Skip'=skip,
-#                        'Hungry'=hungry,
-#                        'Reported by'=category) %>% 
-#   mutate(`Reported by`=case_when(`Reported by`=='cg'~"Caregiver",
-#                                  T~'Child')))
-# 
-# print(latex_perc,
-#       include.rownames=FALSE)
-# 
-# # Calculate percentage difference mean
-# perc_diff_mean<-overlap_perc %>% 
-#   group_by(type) %>% 
-#   mutate(across(c(worry,
-#                   cut,
-#                   skip,
-#                   hungry),~.[category=='cg']-.[category=='child'])) %>% 
-#   ungroup() %>% 
-#   distinct(worry,
-#            cut,
-#            skip,
-#            hungry) %>% 
-#   summarise(across(c(worry,
-#                      cut,
-#                      skip,
-#                      hungry),~mean(.,na.rm=T))) %>% 
-#   rowwise() %>% 
-#   summarise(
-#             mean = mean(c_across(worry:hungry)),
-#             median = median(c_across(worry:hungry))) 
+
+
